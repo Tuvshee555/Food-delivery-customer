@@ -1,18 +1,19 @@
 import { ChevronLeft } from "lucide-react";
 
-interface Page {
-  page: number;
-  setPage: any;
+type CreatePassword = {
+  nextStep: () => void
+  stepBack: () => void
+
 }
 
-export const Page2 = ({ page, setPage }: Page) => {
+export const CreatePassword = ({nextStep, stepBack}: CreatePassword) => {
   return (
     <>
       <div className="h-screen w-screen bg-white flex items-center justify-center gap-12">
         <div className="flex flex-col gap-6 w-[416px]">
           <ChevronLeft
             className="bg-black rounded-[6px]"
-            onClick={() => setPage(1)}
+            onClick={() => stepBack()}
           />
           <h1 className="text-[24px] font-inter font-600 text-black m-[0]">
             Create a strong password

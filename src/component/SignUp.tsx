@@ -1,12 +1,14 @@
-import { ChevronLeft } from "Chevronleft"
-import { Pages } from "./InterFF";
+import { ChevronLeft } from "lucide-react";
 
+type SignUpEmailStepType = {
+  nextStep: () => void;
+  stepBack: () => void;
+};
 
-export const Page1 = ({Clicked}: Pages) => {
-
+export const SignUp = ({ nextStep, stepBack }: SignUpEmailStepType) => {
   return (
     <>
-      <div className="h-screen w-screen bg-white flex items-center justify-center gap-12">
+      <div className="h-screen w-screen bg-[white] flex items-center justify-center gap-12">
         <div className="flex flex-col gap-6 w-[416px]">
           <ChevronLeft className="bg-black rounded-[6px]" />
 
@@ -22,7 +24,7 @@ export const Page1 = ({Clicked}: Pages) => {
           ></input>
           <button
             className="h-[36px] w-[416px] rounded-[8px] text-[white] bg-[#d1d1d1] hover:bg-black"
-            onClick={() => Clicked()}
+            onClick={() => nextStep()}
           >
             Let's go
           </button>

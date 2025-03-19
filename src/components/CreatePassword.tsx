@@ -75,7 +75,7 @@ export const CreatePassword = ({ nextStep, stepBack }: CreatePassword) => {
             Create a strong password with letters, numbers.
           </p>
           <input
-            className={`gap-[8px] text-[#71717b] font-400 border border-2 rounded-[8px] p-[6px] ${
+            className={`gap-[8px] text-[#71717b] font-400 border-2 rounded-[8px] p-[6px] ${
               passwordError ? "border-red-500" : "border-gray-300"
             }`}
             placeholder="Password"
@@ -87,7 +87,7 @@ export const CreatePassword = ({ nextStep, stepBack }: CreatePassword) => {
             <p className="text-red-500 text-sm">{passwordError}</p>
           )}
           <input
-            className={`gap-[8px] text-[#71717b] font-400 border border-2 rounded-[8px] p-[6px] ${
+            className={`gap-[8px] text-[#71717b] font-400 border-2 rounded-[8px] p-[6px] ${
               passwordError ? "border-[red]" : "border-[gray]"
             }`}
             placeholder="Confirm"

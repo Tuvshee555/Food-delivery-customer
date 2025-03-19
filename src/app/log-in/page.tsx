@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LogIn() {
@@ -9,9 +10,10 @@ export default function LogIn() {
   const [passwordValue, setPasswordValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const logIn = async (e: React.FormEvent) => {
-    e.preventDefault(); // ✅ Prevent page reload
+    e.preventDefault();
 
     try {
       const response = await axios.post("http://localhost:4000/login", {
@@ -90,7 +92,10 @@ export default function LogIn() {
 
         <div className="flex gap-3 justify-center">
           <p className="text-[16px] text-[#71717a]">Don’t have an account?</p>
-          <p className="text-[16px] text-[#2762ea] hover:cursor-pointer">
+          <p
+            className="text-[16px] text-[#2762ea] hover:cursor-pointer"
+            onClick={() => router.push(`/sign-up`)}
+          >
             Sign up
           </p>
         </div>

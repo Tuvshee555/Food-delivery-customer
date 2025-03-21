@@ -3,35 +3,53 @@
 import axios from "axios";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function LogIn() {
   const [emailValue, setEmailValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [users, setUsers] = useState([]); 
   const router = useRouter();
 
-  const logIn = async (e: React.FormEvent) => {
+  const getUsers = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/user/login");
+      setUsers(response.data);
+      console.log(response.data);
+      
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setError("Error loading users");
+    }
+  };
+
+  useEffect(() => {
+    getUsers();
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const response = await axios.post("http://localhost:4000/login", {
-        email: emailValue,
-        password: passwordValue,
-      });
+    const user = users.find(
+      (user: any) => user.email === emailValue && user.password === passwordValue
+    );
 
-      console.log("Login successful", response.data);
-    } catch (error) {
-      console.log(error);
+    if (user) {
+      console.log("Login successful", user);
+      router.push("/dashboard");
+    } else {
       setError("Invalid email or password");
+      console.log("no");
+      
     }
   };
 
   return (
     <div className="h-screen w-screen bg-white flex items-center justify-center gap-12">
       <div className="flex flex-col gap-6 w-[416px]">
-        <ChevronLeft className="bg-black rounded-[6px] hover:cursor-pointer" />
+        <ChevronLeft className="bg-white rounded-[6px] hover:cursor-pointer" />
 
         <h1 className="text-[24px] font-inter font-bold text-black m-0">
           Log in
@@ -40,7 +58,7 @@ export default function LogIn() {
           Log in to enjoy your favorite dishes.
         </p>
 
-        <form onSubmit={logIn} className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" onSubmit={handleLogin}>
           {/* Email Input */}
           <input
             className="text-[#71717b] border border-gray-300 rounded-[8px] p-2 focus:outline-none focus:ring-2 focus:ring-black"
@@ -48,7 +66,6 @@ export default function LogIn() {
             type="email"
             value={emailValue}
             onChange={(e) => setEmailValue(e.target.value)}
-            id="emailInput"
             required
           />
 
@@ -60,7 +77,6 @@ export default function LogIn() {
               type={showPassword ? "text" : "password"}
               value={passwordValue}
               onChange={(e) => setPasswordValue(e.target.value)}
-              id="passwordInput"
               required
             />
           </div>

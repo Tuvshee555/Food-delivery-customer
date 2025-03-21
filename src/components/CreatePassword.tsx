@@ -1,20 +1,48 @@
 "use client";
 
 import { SignUpEmailStepType } from "@/type/type";
-import { ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-
-export const CreatePassword = ({ nextStep, stepBack, setUser }: SignUpEmailStepType) => {
-  const [password, setPassword] = useState("");
+export const CreatePassword = ({
+  nextStep,
+  stepBack,
+  setUser,
+  user,
+}: SignUpEmailStepType) => {
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const validatePassword = () => {
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUser((prev) => ({ ...prev, password: e.target.value }));
+  };
+
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setUser((prev) => ({ ...prev, repassword: e.target.value }));
+  };
+
+  useEffect(() => {
+    validatePasswords();
+  }, [user]);
+
+  const validatePasswords = () => {
+    const { password, repassword } = user;
+
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+    } else if (repassword && password !== repassword) {
+      setError("Passwords do not match");
     } else {
       setError(null);
-      setUser((prev: any) => ({ ...prev, password }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!error) {
       nextStep();
     }
   };
@@ -22,26 +50,75 @@ export const CreatePassword = ({ nextStep, stepBack, setUser }: SignUpEmailStepT
   return (
     <div className="h-screen w-screen bg-white flex items-center justify-center gap-12">
       <div className="flex flex-col gap-6 w-[416px]">
-        <ChevronLeft className="bg-white rounded-[6px] hover:cursor-pointer" onClick={stepBack} />
-
-        <h1 className="text-[24px] font-semibold text-black">Create a password</h1>
-
-        <input
-          type="password"
-          className="border-2 rounded-[8px] p-[6px] text-[#71717b]"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+        <ChevronLeft
+          className="bg-white rounded-[6px] hover:cursor-pointer"
+          onClick={stepBack}
         />
+
+        <h1 className="text-[24px] font-semibold text-black">
+          Create a password
+        </h1>
+
+        {/* Password Input */}
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            className="border-2 rounded-[8px] p-[6px] text-[#71717b] w-full pr-10"
+            placeholder="Enter your password"
+            value={user.password}
+            onChange={handlePasswordChange}
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-2 text-gray-500"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+
+        {/* Confirm Password Input */}
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            className="border-2 rounded-[8px] p-[6px] text-[#71717b] w-full pr-10"
+            placeholder="Confirm your password"
+            value={user.repassword}
+            onChange={handleConfirmPasswordChange}
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-2 text-gray-500"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+
+        {/* Error Message */}
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
+        {/* Submit Button */}
         <button
-          className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black"
-          onClick={validatePassword}
+          className={`h-[36px] w-full rounded-[8px] text-white ${
+            error ? "bg-gray-300" : "bg-black hover:bg-gray-800"
+          }`}
+          onClick={handleSubmit}
+          disabled={!!error}
         >
           Continue
         </button>
+        <div className="flex gap-3 justify-center">
+          <p className="text-[16px] text-[#71717a]">Already have an account?</p>
+          <p
+            className="text-[16px] text-[#2762ea] hover:cursor-pointer"
+            onClick={() => router.push("/log-in")}
+          >
+            Log in
+          </p>
+        </div>
       </div>
+
       <img src="./deliverM.png" className="w-[860px] h-[900px]" />
     </div>
   );

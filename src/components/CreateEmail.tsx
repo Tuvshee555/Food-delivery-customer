@@ -28,7 +28,7 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
         })
         .validate({ email });
 
-      setUser((prev: any) => ({ ...prev, email }));
+      setUser((prev: any) => ({ ...prev, email: email }));
       nextStep();
     } catch (err) {
       console.log(err);

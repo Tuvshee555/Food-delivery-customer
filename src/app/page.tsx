@@ -1,6 +1,7 @@
 "use client";
 
-import { SignUp } from "@/components/SignUp";
+
+import { PostUser } from "@/components/PostUser";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -31,7 +32,7 @@ export default function Home() {
 
   return (
     <>
-      <SignUp />
+      <PostUser />
     </>
   );
 }

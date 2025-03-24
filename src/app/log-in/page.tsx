@@ -3,46 +3,36 @@
 import axios from "axios";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 
 export default function LogIn() {
   const [emailValue, setEmailValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [users, setUsers] = useState([]); 
   const router = useRouter();
 
-  const getUsers = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/user/login");
-      setUsers(response.data);
-      console.log(response.data);
-      
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setError("Error loading users");
-    }
-  };
-
-  useEffect(() => {
-    getUsers();
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const user = users.find(
-      (user: any) => user.email === emailValue && user.password === passwordValue
-    );
+    try {
+      const response = await axios.post("http://localhost:4000/user/login", {
+        email: emailValue,
+        password: passwordValue,
+      });
 
-    if (user) {
-      console.log("Login successful", user);
-      router.push("/dashboard");
-    } else {
-      setError("Invalid email or password");
-      console.log("no");
-      
+      console.log("Login response", response.data);
+
+      if (response.data.success) {
+        console.log("login successful");
+        localStorage.setItem("token", response.data.token);
+        router.push("/home-page");
+      } else {
+        setError(response.data.message);
+      }
+    } catch (error: any) {
+      console.log(error);
+      setError(error);
     }
   };
 
@@ -66,7 +56,6 @@ export default function LogIn() {
             type="email"
             value={emailValue}
             onChange={(e) => setEmailValue(e.target.value)}
-            required
           />
 
           {/* Password Input */}
@@ -77,7 +66,6 @@ export default function LogIn() {
               type={showPassword ? "text" : "password"}
               value={passwordValue}
               onChange={(e) => setPasswordValue(e.target.value)}
-              required
             />
           </div>
 
@@ -101,6 +89,7 @@ export default function LogIn() {
           <button
             className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black transition duration-300"
             type="submit"
+            onClick={() => handleLogin}
           >
             Log in
           </button>

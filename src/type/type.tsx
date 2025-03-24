@@ -20,3 +20,37 @@ export type SignUpEmailStepType = {
 export type InputEventType = {
   target: { value: string };
 };
+export type Datas = {
+  categoryName: string;
+  _id: string;
+  foodCount: number;
+};
+
+export type CategoriesProps = {
+  category: CategoryType[];
+};
+export type CategoryType = {
+  categoryName: string;
+  _id: string;
+  foodCount: number;
+};
+
+export type FoodCardPropsType = {
+  food: FoodType;
+  refreshFood: () => void;
+  category: { _id: string; categoryName: string };
+};
+export type FoodType = {
+  _id: string;
+  foodName: string;
+  price: number;
+  image?: string
+  ingredients: string;
+  category: string;
+  refreshFood: () => void;
+  foodData: any[];
+  categories: string;
+};
+export type AddFoodOrderProps = {
+  food: FoodType;
+};

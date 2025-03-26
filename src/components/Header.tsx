@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AddLocation } from "./AddLocation";
 import { SheetRight } from "./SheetRight";
-import { UserEmail } from "./UserEmail";
+import { Email } from "./Email";
 
 export const Header = () => {
   return (
@@ -21,7 +21,7 @@ export const Header = () => {
         <div className="flex gap-[8px]">
           <AddLocation />
           <SheetRight />
-          <UserEmail />
+          <Email />
         </div>
       </div>
     </>

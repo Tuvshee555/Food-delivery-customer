@@ -10,21 +10,24 @@ import {
 } from "@/components/ui/dialog";
 import { User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-export const UserEmail = () => {
+export const Email = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const email = localStorage.getItem("email");
     setUserEmail(email);
-    console.log("email",email);
-    
+    console.log("email", email);
   }, []);
 
   const handleClick = () => {
-    localStorage.removeItem("token");  
-    // localStorage.removeItem("email");  
-    window.location.reload(); 
+    localStorage.removeItem("token");
+    router.push(`/log-in`);
+
+    // localStorage.removeItem("email");
+    // window.location.reload();
   };
 
   return (
@@ -38,13 +41,6 @@ export const UserEmail = () => {
       <DialogContent className="w-[250px] p-4 h-[150px]">
         <DialogHeader>
           <DialogTitle>{userEmail}</DialogTitle>
-          {/* <DialogDescription>
-            {userEmail ? (
-              <p>Your email: {userEmail}</p>
-            ) : (
-              <p>No email found</p> 
-            )}
-          </DialogDescription> */}
         </DialogHeader>
 
         <DialogFooter>

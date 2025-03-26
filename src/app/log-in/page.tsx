@@ -15,7 +15,7 @@ export default function LogIn() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null)
+    setError(null);
 
     try {
       const response = await axios.post("http://localhost:4000/user/login", {
@@ -28,7 +28,8 @@ export default function LogIn() {
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         console.log("token", response.data.token);
-        
+        localStorage.setItem("email", response.data.user.email);
+        console.log("email", response.data.user.email);
 
         toast("Login successful!");
 
@@ -49,8 +50,12 @@ export default function LogIn() {
       <div className="flex flex-col gap-6 w-[416px]">
         <ChevronLeft className="bg-white rounded-[6px] hover:cursor-pointer" />
 
-        <h1 className="text-[24px] font-inter font-bold text-black m-0">Log in</h1>
-        <p className="text-[16px] font-inter text-[#71717a]">Log in to enjoy your favorite dishes.</p>
+        <h1 className="text-[24px] font-inter font-bold text-black m-0">
+          Log in
+        </h1>
+        <p className="text-[16px] font-inter text-[#71717a]">
+          Log in to enjoy your favorite dishes.
+        </p>
 
         <form className="flex flex-col gap-4" onSubmit={handleLogin}>
           <input

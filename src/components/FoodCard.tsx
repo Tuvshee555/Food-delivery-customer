@@ -3,8 +3,7 @@ import { AddFoodOrder } from "./AddFoodOrder";
 
 export const FoodCard: React.FC<FoodCardPropsType> = ({
   food,
-  refreshFood,
-  category,
+
 }) => {
   return (
     <div className="bg-white shadow-md p-4 gap-5 border-[1px] rounded-2xl flex flex-col items-center w-[271px] max-w-[241px]">

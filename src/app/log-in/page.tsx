@@ -3,7 +3,8 @@
 import axios from "axios";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {  useState } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function LogIn() {
   const [emailValue, setEmailValue] = useState("");
@@ -14,6 +15,7 @@ export default function LogIn() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null)
 
     try {
       const response = await axios.post("http://localhost:4000/user/login", {
@@ -24,15 +26,21 @@ export default function LogIn() {
       console.log("Login response", response.data);
 
       if (response.data.success) {
-        console.log("login successful");
         localStorage.setItem("token", response.data.token);
+        console.log("token", response.data.token);
+        
+
+        toast("Login successful!");
+
         router.push("/home-page");
       } else {
         setError(response.data.message);
+        toast.error(response.data.message);
       }
     } catch (error: any) {
       console.log(error);
-      setError(error);
+      setError("An error occurred while logging in.");
+      toast.error("An error occurred while logging in.");
     }
   };
 
@@ -41,15 +49,10 @@ export default function LogIn() {
       <div className="flex flex-col gap-6 w-[416px]">
         <ChevronLeft className="bg-white rounded-[6px] hover:cursor-pointer" />
 
-        <h1 className="text-[24px] font-inter font-bold text-black m-0">
-          Log in
-        </h1>
-        <p className="text-[16px] font-inter text-[#71717a]">
-          Log in to enjoy your favorite dishes.
-        </p>
+        <h1 className="text-[24px] font-inter font-bold text-black m-0">Log in</h1>
+        <p className="text-[16px] font-inter text-[#71717a]">Log in to enjoy your favorite dishes.</p>
 
         <form className="flex flex-col gap-4" onSubmit={handleLogin}>
-          {/* Email Input */}
           <input
             className="text-[#71717b] border border-gray-300 rounded-[8px] p-2 focus:outline-none focus:ring-2 focus:ring-black"
             placeholder="Enter your email address"
@@ -58,7 +61,6 @@ export default function LogIn() {
             onChange={(e) => setEmailValue(e.target.value)}
           />
 
-          {/* Password Input */}
           <div className="relative">
             <input
               className="text-[#71717b] border border-gray-300 rounded-[8px] p-2 w-full focus:outline-none focus:ring-2 focus:ring-black"
@@ -69,7 +71,6 @@ export default function LogIn() {
             />
           </div>
 
-          {/* Show Password Checkbox */}
           <label className="flex items-center gap-2 text-black text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -85,11 +86,9 @@ export default function LogIn() {
             Forgot your password?
           </p>
 
-          {/* Log In Button */}
           <button
             className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black transition duration-300"
             type="submit"
-            onClick={() => handleLogin}
           >
             Log in
           </button>

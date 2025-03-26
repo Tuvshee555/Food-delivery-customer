@@ -12,17 +12,21 @@ export const CreatePassword = ({
   user,
 }: SignUpEmailStepType) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTouched, setIsTouched] = useState(false);
   const router = useRouter();
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser((prev) => ({ ...prev, password: e.target.value }));
+    setIsTouched(true);
   };
 
   const handleConfirmPasswordChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setUser((prev) => ({ ...prev, repassword: e.target.value }));
+    setIsTouched(true);
   };
 
   useEffect(() => {
@@ -71,7 +75,7 @@ export const CreatePassword = ({
           <button
             type="button"
             className="absolute right-3 top-2 text-gray-500"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -80,7 +84,7 @@ export const CreatePassword = ({
         {/* Confirm Password Input */}
         <div className="relative">
           <input
-            type={showPassword ? "text" : "password"}
+            type={showConfirmPassword ? "text" : "password"}
             className="border-2 rounded-[8px] p-[6px] text-[#71717b] w-full pr-10"
             placeholder="Confirm your password"
             value={user.repassword}
@@ -89,14 +93,14 @@ export const CreatePassword = ({
           <button
             type="button"
             className="absolute right-3 top-2 text-gray-500"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)} // Toggle confirm password visibility
           >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
 
-        {/* Error Message */}
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {/* Only show error if user has started typing */}
+        {isTouched && error && <p className="text-red-500 text-sm">{error}</p>}
 
         {/* Submit Button */}
         <button
@@ -108,6 +112,7 @@ export const CreatePassword = ({
         >
           Continue
         </button>
+
         <div className="flex gap-3 justify-center">
           <p className="text-[16px] text-[#71717a]">Already have an account?</p>
           <p

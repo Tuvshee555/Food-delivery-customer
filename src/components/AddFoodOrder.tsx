@@ -9,23 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Minus, X } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { AddFoodOrderProps } from "@/type/type";
 
-// // Type Definitions
-// export type FoodType = {
-//   _id: string;
-//   foodName: string;
-//   price: number; // Ensure this is a number for calculations
-//   image?: string; // File removed since it's likely a string (URL)
-//   ingredients: string;
-// };
-
-// export type AddFoodOrderProps = {
-//   food: FoodType;
-// };
-
-// Component
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const [quantity, setQuantity] = useState<number>(1);
 
@@ -53,6 +39,7 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
 
         {/* Right Side - Food Details */}
         <div className="flex flex-col flex-1 p-[26px]">
+          <div className="flex flex-col justify-between h-[300px]">
           <div className="flex justify-between items-start">
             <div>
               <DialogTitle className="text-red-500 text-lg font-semibold">
@@ -62,7 +49,6 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
                 {food.ingredients}
               </DialogDescription>
             </div>
-            <X className="hover:cursor-pointer text-gray-500" />
           </div>
 
           {/* Price & Quantity */}
@@ -90,6 +76,7 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
                 <Plus />
               </button>
             </div>
+          </div>
           </div>
 
           {/* Add to Cart Button */}

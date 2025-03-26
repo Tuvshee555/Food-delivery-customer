@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FoodCategoryList } from "./FoodCategoryList";
-import { CategoriesProps } from "@/type/type";
+import { CategoriesProps, FoodType } from "@/type/type";
 
 export const CategoriesFoods = ({ category }: CategoriesProps) => {
-  const [foodData, setFoodData] = useState([]);
+  const [foodData, setFoodData] = useState<FoodType[]>([]);
 
   const getFoodData = async () => {
     try {

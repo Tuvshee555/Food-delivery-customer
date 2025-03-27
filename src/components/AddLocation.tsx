@@ -14,41 +14,37 @@ import {
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useJwt } from "react-jwt";
 
+type UserType = {
+  userId: string;
+};
 export const AddLocation = () => {
   const [address, setAddress] = useState("");
+  const token = localStorage.getItem("token");
+
+  const { decodedToken, isExpired } = useJwt<UserType>(token as string);
+  console.log("decodedToken", decodedToken);
+  console.log("isExpired", isExpired);
 
   const postAddress = async () => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-  
-    if (!token) {
-      console.error("No token found");
-      return;
-    }
-    if (!userId) {
-      console.error("No user ID found");
-      return;
-    }
-  
     try {
       const response = await axios.put(
-        "http://localhost:4000/user",
-        { _id: userId, address: address }, 
+        `http://localhost:4000/user/${decodedToken?.userId}`,
+        { address: address },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      toast("succesfully added location")
+      toast("succesfully added location");
       console.log("Address updated successfully:", response.data);
     } catch (error) {
       console.error("Error updating address:", error);
-      toast.error("Failed to add loaction")
+      toast.error("Failed to add loaction");
     }
   };
-  
 
   return (
     <Dialog>
@@ -64,7 +60,11 @@ export const AddLocation = () => {
           ) : (
             <div className="flex items-center gap-2 max-w-[200px] truncate">
               <p className="text-white text-sm truncate">{address}</p>
-              <X stroke="white" className="cursor-pointer" onClick={() => setAddress("")} />
+              <X
+                stroke="white"
+                className="cursor-pointer"
+                onClick={() => setAddress("")}
+              />
             </div>
           )}
         </div>
@@ -73,7 +73,9 @@ export const AddLocation = () => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Delivery address</DialogTitle>
-          <DialogDescription>Please enter your address details below.</DialogDescription>
+          <DialogDescription>
+            Please enter your address details below.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <textarea

@@ -1,9 +1,9 @@
-type CategoryListProps = {
-  category: { categoryName: string; _id: string; foodCount: number }[];
-  loading: boolean;
-};
+import { useCategory } from "@/app/provider/CategoryProvider";
+import { useRouter } from "next/navigation";
 
-export const CategoryNameList = ({ category, loading }: CategoryListProps) => {
+export const CategoryNameList = () => {
+  const { category, loading } = useCategory();
+  const router = useRouter();
   return (
     <div>
       {loading ? (
@@ -14,7 +14,8 @@ export const CategoryNameList = ({ category, loading }: CategoryListProps) => {
             {category.map((c) => (
               <div
                 key={c._id}
-                className="py-2 px-4 text-sm rounded-[20px] border border-gray-400 flex gap-[8px] bg-[white]"
+                className="py-2 px-4 text-sm rounded-[20px] border border-gray-400 flex gap-[8px] bg-[white] hover:cursor-pointer"
+                onClick={() => router.push(`category-type/${c._id}`)}
               >
                 <div> {c.categoryName}</div>
 

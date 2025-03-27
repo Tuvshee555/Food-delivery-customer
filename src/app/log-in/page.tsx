@@ -23,13 +23,15 @@ export default function LogIn() {
         password: passwordValue,
       });
 
-      console.log("Login response", response.data);
+      console.log(response.data);
+      
 
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
-        console.log("token", response.data.token);
         localStorage.setItem("email", response.data.user.email);
-        console.log("email", response.data.user.email);
+        localStorage.setItem("userId", response.data._id)
+        console.log("userId", response.data._id);
+        
 
         toast("Login successful!");
 

@@ -1,32 +1,10 @@
-"use client";
+"use client"
 
-import { Datas } from "@/type/type";
-import axios from "axios";
-import { useEffect, useState } from "react";
 import { CategoryNameList } from "@/components/CategoryNameList";
 import { CategoriesFoods } from "@/components/CateforiesFoods";
 import { Header } from "@/components/Header";
 
 export default function Home() {
-  const [category, setCategory] = useState<Datas[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const getData = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/category");
-      setCategory(response.data);
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
   return (
     <>
       <div className="w-screen h-screen bg-[#404040]">
@@ -37,9 +15,9 @@ export default function Home() {
             Categories
           </div>
           <div className="flex">
-            <CategoryNameList category={category} loading={loading} />
+            <CategoryNameList />
           </div>
-          <CategoriesFoods category={category} />
+          <CategoriesFoods />
         </div>
       </div>
     </>

@@ -1,53 +1,56 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ShoppingCart } from "lucide-react"
+import { ShoppingCart } from "lucide-react";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
+import { useState } from "react";
+import { PayFood } from "./PayFood";
+import { OrderHistory } from "./OrderHistory";
 
 export const SheetRight = () => {
+  const [page, setPage] = useState<number | string>(1);
+
   return (
     <Sheet>
       <SheetTrigger asChild>
-      <div className="border rounded-full h-full items-center w-[44px] flex justify-center bg-[white] hover:cursor-pointer">
-            <ShoppingCart onClick={() => SheetRight()}/>
-          </div>
+        <div className="border rounded-full h-full items-center w-[44px] flex justify-center bg-[white] hover:cursor-pointer">
+          <ShoppingCart onClick={() => SheetRight()} />
+        </div>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="sm:max-w-[538px] p-[32px] bg-[#404040] flex flex-col gap-6">
         <SheetHeader>
-          <SheetTitle>Edit profile</SheetTitle>
-          <SheetDescription>
-            Make changes to your profile here. Click save when you're done.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
-            <Input id="name" value="Pedro Duarte" className="col-span-3" />
+          <div className="flex gap-3">
+            <SheetTitle>
+              <ShoppingCart />
+            </SheetTitle>
+            <SheetTitle>Order detail</SheetTitle>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="username" className="text-right">
-              Username
-            </Label>
-            <Input id="username" value="@peduarte" className="col-span-3" />
+        </SheetHeader>
+        <div className="h-[44px] w-full bg-white p-1 gap-2 rounded-full flex">
+          <div
+            className={`w-full h-full rounded-full flex items-center justify-center ${
+              page === 1 ? "text-white bg-red-500" : "text-black border-[1px] border-[black]"
+            }`}
+            onClick={() => setPage(1)}
+          >
+            Card
+          </div>
+          <div
+            className={`w-full h-full rounded-full flex items-center justify-center ${
+              page === 2 ? "text-white bg-red-500" : "text-black border-[1px] border-[black]"
+            }`}
+            onClick={() => setPage(2)}
+          >
+            Order
           </div>
         </div>
-        <SheetFooter>
-          <SheetClose asChild>
-            <Button type="submit">Save changes</Button>
-          </SheetClose>
-        </SheetFooter>
+
+        {page === 1 && <PayFood />}
+        {page === 2 && <OrderHistory />}
       </SheetContent>
     </Sheet>
-  )
-}
+  );
+};

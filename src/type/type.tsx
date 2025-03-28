@@ -37,7 +37,6 @@ export type CategoryType = {
 
 export type FoodCardPropsType = {
   food: FoodType;
-  category: { _id: string; categoryName: string };
 };
 export type FoodType = {
   _id: string;

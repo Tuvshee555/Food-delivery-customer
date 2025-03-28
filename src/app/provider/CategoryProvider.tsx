@@ -10,9 +10,15 @@ type CategoryContextType = {
   refreshCategories: () => void;
 };
 
-const CategoryContext = createContext<CategoryContextType | undefined>(undefined);
+const CategoryContext = createContext<CategoryContextType | undefined>(
+  undefined
+);
 
-export const CategoryProvider = ({children,}: {children: React.ReactNode}) => {
+export const CategoryProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [category, setCategory] = useState<Datas[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { CategoryNameList } from "@/components/CategoryNameList";
-import { CategoriesFoods } from "@/components/CateforiesFoods";
+import { FoodCategoryList } from "@/components/FoodCategoryList";
 import { Header } from "@/components/Header";
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
           <div className="flex">
             <CategoryNameList />
           </div>
-          <CategoriesFoods />
+          <FoodCategoryList />
         </div>
       </div>
     </>

@@ -21,14 +21,14 @@ type UserType = {
 };
 export const AddLocation = () => {
   const [address, setAddress] = useState("");
-  const token = localStorage.getItem("token");
-
-  const { decodedToken, isExpired } = useJwt<UserType>(token as string);
-  console.log("decodedToken", decodedToken);
-  console.log("isExpired", isExpired);
 
   const postAddress = async () => {
     try {
+      const token = localStorage.getItem("token");
+
+      const { decodedToken, isExpired } = useJwt<UserType>(token as string);
+      console.log("decodedToken", decodedToken);
+      console.log("isExpired", isExpired);
       const response = await axios.put(
         `http://localhost:4000/user/${decodedToken?.userId}`,
         { address: address },

@@ -11,13 +11,14 @@ import { PayFood } from "./PayFood";
 import { OrderHistory } from "./OrderHistory";
 
 export const SheetRight = () => {
-  const [page, setPage] = useState<number | string>(1);
+  const [page, setPage] = useState<any>(1);
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <div className="border rounded-full h-full items-center w-[44px] flex justify-center bg-[white] hover:cursor-pointer">
-          <ShoppingCart onClick={() => SheetRight()} />
+          {/* No need to call SheetRight() here */}
+          <ShoppingCart />
         </div>
       </SheetTrigger>
       <SheetContent className="sm:max-w-[538px] p-[32px] bg-[#404040] flex flex-col gap-6">

@@ -1,19 +1,77 @@
 import { useEffect, useState } from "react";
 import { SheetClose, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useJwt } from "react-jwt";
+import axios from "axios";
+
+type UserType = {
+  userId: string;
+};
 
 export const PayFood = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
+  const token = localStorage.getItem("token");
+  const { decodedToken, isExpired } = useJwt<UserType>(token as string);
+
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(storedCart);
-
-    // Calculate total price
-    const total = storedCart.reduce((sum: number, item: any) => sum + item.food.price * item.quantity, 0);
+    const total = storedCart.reduce(
+      (sum: number, item: any) => sum + item.food.price * item.quantity,
+      0
+    );
     setTotalPrice(total);
   }, []);
+
+  const postFoodItems = async () => {
+    console.log("Cart Items:", cartItems);
+
+    if (!token) {
+      toast.error("No token found. Please log in.");
+      return;
+    }
+    if (isExpired) {
+      toast.error("Session expired. Please log in again.");
+      return;
+    }
+    if (cartItems.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:4000/order`,
+        {
+          userId: decodedToken?.userId,
+          items: cartItems.map((item) => ({
+            foodId: item.food._id,
+            quantity: item.quantity,
+
+          })),
+          totalPrice,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response);
+      
+
+      toast.success("Your order has been successfully placed!");
+      localStorage.removeItem("cart"); 
+      setCartItems([]);
+      setTotalPrice(0);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.error("Failed to place order. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -23,22 +81,31 @@ export const PayFood = () => {
         <div className="mt-2 space-y-4 max-h-[300px] overflow-y-auto">
           {cartItems.length > 0 ? (
             cartItems.map((item, index) => (
-              <div key={index} className="flex items-center justify-between border-b pb-4">
+              <div
+                key={index}
+                className="flex items-center justify-between border-b pb-4"
+              >
                 {/* Food Image */}
-                <img 
-                  src={item.food.image} 
-                  className="w-[64px] h-[64px] rounded-lg object-cover" 
-                  alt={item.food.foodName} 
+                <img
+                  src={item.food.image}
+                  className="w-[64px] h-[64px] rounded-lg object-cover"
+                  alt={item.food.foodName}
                 />
 
                 {/* Food Details */}
                 <div className="flex flex-col flex-1 ml-4">
-                  <span className="text-red-500 font-semibold text-base">{item.food.foodName}</span>
-                  <span className="text-gray-600 text-sm">x{item.quantity}</span>
+                  <span className="text-red-500 font-semibold text-base">
+                    {item.food.foodName}
+                  </span>
+                  <span className="text-gray-600 text-sm">
+                    x{item.quantity}
+                  </span>
                 </div>
 
                 {/* Price */}
-                <span className="font-semibold text-lg">${(item.food.price * item.quantity).toFixed(2)}</span>
+                <span className="font-semibold text-lg">
+                  ${(item.food.price * item.quantity).toFixed(2)}
+                </span>
               </div>
             ))
           ) : (
@@ -58,7 +125,10 @@ export const PayFood = () => {
       {/* Checkout Button */}
       <SheetFooter className="mt-4">
         <SheetClose asChild>
-          <Button className="bg-red-500 text-white w-full rounded-lg py-3 text-lg font-semibold">
+          <Button
+            className="bg-red-500 text-white w-full rounded-lg py-3 text-lg font-semibold"
+            onClick={postFoodItems}
+          >
             Proceed to Checkout
           </Button>
         </SheetClose>

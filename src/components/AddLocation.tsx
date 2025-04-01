@@ -19,30 +19,37 @@ import { useJwt } from "react-jwt";
 type UserType = {
   userId: string;
 };
+
 export const AddLocation = () => {
   const [address, setAddress] = useState("");
 
-  const postAddress = async () => {
-    try {
-      const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  const { decodedToken, isExpired } = useJwt<UserType>(token as string);
 
-      const { decodedToken, isExpired } = useJwt<UserType>(token as string);
-      console.log("decodedToken", decodedToken);
-      console.log("isExpired", isExpired);
+  const postAddress = async () => {
+    if (!token) {
+      toast.error("No token found. Please log in.");
+      return;
+    }
+    if (isExpired) {
+      toast.error("Session expired. Please log in again.");
+      return;
+    }
+    try {
       const response = await axios.put(
         `http://localhost:4000/user/${decodedToken?.userId}`,
-        { address: address },
+        { address },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      toast("succesfully added location");
+      toast.success("Successfully added location");
       console.log("Address updated successfully:", response.data);
     } catch (error) {
       console.error("Error updating address:", error);
-      toast.error("Failed to add loaction");
+      toast.error("Failed to add location");
     }
   };
 

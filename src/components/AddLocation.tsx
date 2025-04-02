@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useJwt } from "react-jwt";
@@ -19,12 +19,17 @@ import { useJwt } from "react-jwt";
 type UserType = {
   userId: string;
 };
-
 export const AddLocation = () => {
   const [address, setAddress] = useState("");
+  const [token, setToken] = useState<string | null>(null);
 
-  const token = localStorage.getItem("token");
-  const { decodedToken, isExpired } = useJwt<UserType>(token as string);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("token"));
+    }
+  }, []);
+
+  const { decodedToken, isExpired } = useJwt<UserType>(token || "");
 
   const postAddress = async () => {
     if (!token) {

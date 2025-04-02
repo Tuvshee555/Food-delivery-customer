@@ -1,5 +1,4 @@
 "use client"
-
 import { CategoryNameList } from "@/components/CategoryNameList";
 import { FoodCategoryList } from "@/components/FoodCategoryList";
 import { Header } from "@/components/Header";

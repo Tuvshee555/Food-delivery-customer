@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Minus } from "lucide-react";
 import { AddFoodOrderProps } from "@/type/type";
-import axios from "axios";
 import { toast } from "sonner";
 
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
@@ -25,27 +24,27 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
     if (quantity > 1) setQuantity((prev) => prev - 1);
     setTotalPrice(food.price * (quantity - 1));
   };
-  console.log(totalPrice);
-  
 
   const createOrder = async () => {
     try {
-      const cart = localStorage.getItem('cart')
+      const cart = localStorage.getItem("cart");
       if (cart) {
-        const cartItems = JSON.parse(cart)
-        const newCart = [...cartItems, {food:food, quantity:quantity}]
-        localStorage.setItem('cart', JSON.stringify(newCart))
-      }else{
-        localStorage.setItem('cart', JSON.stringify([{food:food, quantity:quantity}]))
+        const cartItems = JSON.parse(cart);
+        const newCart = [...cartItems, { food: food, quantity: quantity }];
+        localStorage.setItem("cart", JSON.stringify(newCart));
+      } else {
+        localStorage.setItem(
+          "cart",
+          JSON.stringify([{ food: food, quantity: quantity }])
+        );
       }
-      
-      toast("Successully created order")
-      
+
+      toast("Successully created order");
     } catch (error) {
       console.log(error);
-      toast.error("Failed to create order")
+      toast.error("Failed to create order");
     }
-  }
+  };
 
   return (
     <Dialog>
@@ -108,8 +107,10 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
 
           {/* Add to Cart Button */}
           <DialogFooter className="mt-auto">
-            <Button className="bg-black text-white rounded-lg w-full p-3"
-            onClick={() => createOrder()}>
+            <Button
+              className="bg-black text-white rounded-lg w-full p-3"
+              onClick={() => createOrder()}
+            >
               Add to cart
             </Button>
           </DialogFooter>

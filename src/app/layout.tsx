@@ -7,6 +7,7 @@ import { FoodDataProvider } from "./provider/FoodDataProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./globals.css";
 import { useState } from "react";
+import { AuthProvider } from "./provider/AuthProvider";
 
 
 const geistSans = Geist({
@@ -22,17 +23,20 @@ const geistMono = Geist_Mono({
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [queryClient] = useState(()=>new QueryClient())
+  const [queryClient] = useState(() => new QueryClient());
+  
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <QueryClientProvider client={queryClient}>
-          <CategoryProvider>
-            <FoodDataProvider>
-              {children}
-              <Toaster /> 
-            </FoodDataProvider>
-          </CategoryProvider>
+          <AuthProvider>  {/* Wrap your existing providers with AuthProvider */}
+            <CategoryProvider>
+              <FoodDataProvider>
+                {children}
+                <Toaster /> 
+              </FoodDataProvider>
+            </CategoryProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </body>
     </html>

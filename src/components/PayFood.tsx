@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useJwt } from "react-jwt";
 import axios from "axios";
+import { useAuth } from "@/app/provider/AuthProvider";
 
 type UserType = {
   userId: string;
@@ -14,7 +15,8 @@ export const PayFood = () => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
   const token = localStorage.getItem("token");
-  const { decodedToken, isExpired } = useJwt<UserType>(token as string);
+  const { decodedToken } = useJwt<UserType>(token as string);
+  const { userId } = useAuth();
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -29,14 +31,6 @@ export const PayFood = () => {
   const postFoodItems = async () => {
     console.log("Cart Items:", cartItems);
 
-    if (!token) {
-      toast.error("No token found. Please log in.");
-      return;
-    }
-    if (isExpired) {
-      toast.error("Session expired. Please log in again.");
-      return;
-    }
     if (cartItems.length === 0) {
       toast.error("Your cart is empty.");
       return;
@@ -50,7 +44,6 @@ export const PayFood = () => {
           items: cartItems.map((item) => ({
             foodId: item.food._id,
             quantity: item.quantity,
-
           })),
           totalPrice,
         },
@@ -61,10 +54,9 @@ export const PayFood = () => {
         }
       );
       console.log(response);
-      
 
       toast.success("Your order has been successfully placed!");
-      localStorage.removeItem("cart"); 
+      localStorage.removeItem("cart");
       setCartItems([]);
       setTotalPrice(0);
     } catch (error) {

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,7 +8,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./globals.css";
 import { useState } from "react";
 import { AuthProvider } from "./provider/AuthProvider";
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,16 +23,18 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const [queryClient] = useState(() => new QueryClient());
-  
+
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>  {/* Wrap your existing providers with AuthProvider */}
+          <AuthProvider>
             <CategoryProvider>
               <FoodDataProvider>
                 {children}
-                <Toaster /> 
+                <Toaster />
               </FoodDataProvider>
             </CategoryProvider>
           </AuthProvider>

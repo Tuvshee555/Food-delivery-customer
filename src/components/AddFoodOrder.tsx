@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,17 +15,30 @@ import { toast } from "sonner";
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [totalPrice, setTotalPrice] = useState<number>(food.price);
+  const [address, setAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAddress(localStorage.getItem("address"));
+  }, []);
 
   const handleIncrease = (): void => {
     setQuantity((prev) => prev + 1);
     setTotalPrice(food.price * (quantity + 1));
   };
+
   const handleDecrease = (): void => {
     if (quantity > 1) setQuantity((prev) => prev - 1);
     setTotalPrice(food.price * (quantity - 1));
   };
 
   const createOrder = async () => {
+    console.log(address);
+
+    if (!address) {
+      toast.error("❌ No address provided! Please add a delivery address.");
+      return;
+    }
+
     try {
       const cart = localStorage.getItem("cart");
       if (cart) {
@@ -39,10 +52,10 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
         );
       }
 
-      toast("Successully created order");
+      toast.success("✅ Successfully added to cart");
     } catch (error) {
       console.log(error);
-      toast.error("Failed to create order");
+      toast.error("❌ Failed to add order");
     }
   };
 
@@ -54,7 +67,6 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
         </div>
       </DialogTrigger>
       <DialogContent className="w-[826px] h-[412px] p-0 flex overflow-hidden rounded-lg">
-        {/* Left Side - Food Image */}
         <div className="w-[377px] h-[412px]">
           <img
             className="w-full h-full object-cover"
@@ -63,7 +75,6 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
           />
         </div>
 
-        {/* Right Side - Food Details */}
         <div className="flex flex-col flex-1 p-[26px]">
           <div className="flex flex-col justify-between h-[300px]">
             <div className="flex justify-between items-start">
@@ -77,7 +88,6 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
               </div>
             </div>
 
-            {/* Price & Quantity */}
             <div className="flex flex-col gap-6 mt-6">
               <div>
                 <h3 className="text-gray-600 text-sm">Total price</h3>
@@ -86,7 +96,6 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
                 </h2>
               </div>
 
-              {/* Quantity Selector */}
               <div className="flex items-center gap-4">
                 <button
                   onClick={handleDecrease}
@@ -105,11 +114,10 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
             </div>
           </div>
 
-          {/* Add to Cart Button */}
           <DialogFooter className="mt-auto">
             <Button
               className="bg-black text-white rounded-lg w-full p-3"
-              onClick={() => createOrder()}
+              onClick={createOrder}
             >
               Add to cart
             </Button>

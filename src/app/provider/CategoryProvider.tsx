@@ -10,8 +10,8 @@ type CategoryContextType = {
   refreshCategories: () => void;
 };
 
-const CategoryContext = createContext<CategoryContextType | undefined>(
-  undefined
+const CategoryContext = createContext<CategoryContextType>(
+  {} as CategoryContextType
 );
 
 export const CategoryProvider = ({
@@ -46,7 +46,6 @@ export const CategoryProvider = ({
   );
 };
 
-// Custom hook for easy access
 export const useCategory = () => {
   const context = useContext(CategoryContext);
   if (!context) {

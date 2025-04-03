@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
 
-// Define the Order type
 type OrderType = {
   _id: string;
   totalprice: number;
@@ -23,18 +22,11 @@ type OrderType = {
 
 export const OrderHistory = () => {
   const [orders, setOrders] = useState<OrderType[]>([]);
-  const { userId, isExpired, token } = useAuth(); // Using the context to get auth state
+  const { userId } = useAuth();
+  console.log("userID", userId);
 
   const getOrders = async () => {
     try {
-      if (!token) {
-        toast.error("No token found. Please log in.");
-        return;
-      }
-      if (isExpired) {
-        toast.error("Session expired. Please log in again.");
-        return;
-      }
       if (!userId) {
         toast.error("User ID is not available.");
         return;
@@ -50,11 +42,10 @@ export const OrderHistory = () => {
   };
 
   useEffect(() => {
-    setOrders([]);
     if (userId) {
       getOrders();
     }
-  }, [userId]); // Re-fetch order when userId changes
+  }, [userId]);
 
   return (
     <div className="w-full bg-white rounded-lg p-4 shadow-lg">
@@ -86,7 +77,7 @@ export const OrderHistory = () => {
               <ul className="mt-2 text-sm">
                 {order.foodOrderItems.map((item) => (
                   <li
-                    key={item.foodId._id}
+                    key={item.foodId.foodName}
                     className="flex justify-between border-b py-1"
                   >
                     <span>Food name: {item.foodId.foodName}</span>

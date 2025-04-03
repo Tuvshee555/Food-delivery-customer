@@ -1,47 +1,45 @@
-// context/AuthContext.tsx
-import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useJwt } from "react-jwt";
 
-// Type for the decoded JWT token
 type UserType = {
   userId: string;
 };
 
-// Define the shape of the context
 type AuthContextType = {
   userId?: string;
-  isExpired?: boolean;
-  token?: string | null;
+  email?: string;
 };
 
-// Create the context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType>(
+  {} as AuthContextType
+);
 
-// AuthProvider component to manage auth state
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
-  const { decodedToken, isExpired } = useJwt<UserType>(token ?? "");
+  const { decodedToken, reEvaluateToken } = useJwt<UserType>(token as string);
 
-  // Load the token from localStorage when the component mounts
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
-  }, []);
+    if (!storedToken) {
+      router.push("/log-in");
+    } else {
+      reEvaluateToken(storedToken as string);
+    }
+  }, [token]);
 
   return (
-    <AuthContext.Provider
-      value={{ userId: decodedToken?.userId, isExpired, token }}
-    >
+    <AuthContext.Provider value={{ userId: decodedToken?.userId }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to access authentication state
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useFood must be used within a FoodPrider");
   }
   return context;
 };

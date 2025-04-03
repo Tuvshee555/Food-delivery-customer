@@ -24,14 +24,14 @@ export default function LogIn() {
       });
 
       console.log(response.data);
-      
 
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("email", response.data.user.email);
-        localStorage.setItem("userId", response.data._id)
+        console.log("email", response.data.user.email);
+
+        localStorage.setItem("userId", response.data._id);
         console.log("userId", response.data._id);
-        
 
         toast("Login successful!");
 

@@ -11,42 +11,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { useJwt } from "react-jwt";
+import { useAuth } from "@/app/provider/AuthProvider";
 
 type UserType = {
   userId: string;
 };
+
 export const AddLocation = () => {
   const [address, setAddress] = useState("");
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setToken(localStorage.getItem("token"));
-    }
-  }, []);
-
-  const { decodedToken, isExpired } = useJwt<UserType>(token || "");
+  const { userId } = useAuth();
+  console.log(userId, "userid");
 
   const postAddress = async () => {
-    if (!token) {
-      toast.error("No token found. Please log in.");
-      return;
-    }
-    if (isExpired) {
-      toast.error("Session expired. Please log in again.");
-      return;
-    }
     try {
       const response = await axios.put(
-        `http://localhost:4000/user/${decodedToken?.userId}`,
-        { address },
+        `http://localhost:4000/user/${userId}`,
+        { address: address },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${userId}`,
           },
         }
       );
@@ -55,6 +41,8 @@ export const AddLocation = () => {
     } catch (error) {
       console.error("Error updating address:", error);
       toast.error("Failed to add location");
+    } finally {
+      localStorage.setItem("address", address);
     }
   };
 

@@ -1,6 +1,5 @@
 "use client";
 
-
 import { PostUser } from "@/components/PostUser";
 import axios from "axios";
 import { useEffect, useState } from "react";

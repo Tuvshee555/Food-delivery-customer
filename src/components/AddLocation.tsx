@@ -16,23 +16,23 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
 
-type UserType = {
-  userId: string;
-};
-
 export const AddLocation = () => {
   const [address, setAddress] = useState("");
-  const { userId } = useAuth();
-  console.log(userId, "userid");
+  const { userId, token } = useAuth();
 
   const postAddress = async () => {
+    if (!token || !userId) {
+      toast.error("User not authenticated.");
+      return;
+    }
+
     try {
       const response = await axios.put(
         `http://localhost:4000/user/${userId}`,
         { address: address },
         {
           headers: {
-            Authorization: `Bearer ${userId}`,
+            Authorization: `Bearer ${token}`, // Passing the token as the Authorization header
           },
         }
       );

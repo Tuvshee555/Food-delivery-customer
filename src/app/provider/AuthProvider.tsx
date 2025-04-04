@@ -8,7 +8,7 @@ type UserType = {
 
 type AuthContextType = {
   userId?: string;
-  email?: string;
+  token?: string;
 };
 
 export const AuthContext = createContext<AuthContextType>(
@@ -25,12 +25,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!storedToken) {
       router.push("/log-in");
     } else {
-      reEvaluateToken(storedToken as string);
+      setToken(storedToken); // Ensure the token state is set
+      reEvaluateToken(storedToken); // Re-evaluate the token
     }
-  }, [token]);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ userId: decodedToken?.userId }}>
+    <AuthContext.Provider value={{ userId: decodedToken?.userId, token }}>
       {children}
     </AuthContext.Provider>
   );
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useFood must be used within a FoodPrider");
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

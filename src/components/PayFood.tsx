@@ -1,28 +1,40 @@
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from "react";
 import { SheetClose, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useJwt } from "react-jwt";
 import axios from "axios";
-import { useAuth } from "@/app/provider/AuthProvider";
+
+type FoodType = {
+  _id: string;
+  foodName: string;
+  price: number;
+  image: string;
+};
+
+type CartItemType = {
+  food: FoodType;
+  quantity: number;
+};
 
 type UserType = {
   userId: string;
 };
 
 export const PayFood = () => {
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<CartItemType[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
   const token = localStorage.getItem("token");
   const { decodedToken } = useJwt<UserType>(token as string);
-  const { userId } = useAuth();
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(storedCart);
     const total = storedCart.reduce(
-      (sum: number, item: any) => sum + item.food.price * item.quantity,
+      (sum: number, item: CartItemType) =>
+        sum + item.food.price * item.quantity,
       0
     );
     setTotalPrice(total);

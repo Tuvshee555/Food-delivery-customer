@@ -1,22 +1,29 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import axios from "axios";
 import { ChevronLeft } from "lucide-react";
 import * as yup from "yup";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { InputEventType, SignUpEmailStepType } from "@/type/type";
+import { SignUpEmailStepType } from "@/type/type";
+
+type User = {
+  email: string;
+  password: string;
+  repassword: string;
+};
 
 export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleInputChange = (e: InputEventType) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setEmail(e.target.value);
   };
 
-  const validateEmail = async () => {
+  const validateEmail = async (): Promise<void> => {
     try {
       await yup
         .object()
@@ -28,10 +35,14 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
         })
         .validate({ email });
 
-      setUser((prev: any) => ({ ...prev, email: email }));
+      setUser((prev: User) => ({ ...prev, email: email }));
       nextStep();
     } catch (err) {
-      console.log(err);
+      if (err instanceof yup.ValidationError) {
+        setError(err.errors[0] || "An error occurred");
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
@@ -59,7 +70,7 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
           className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black"
           onClick={validateEmail}
         >
-          Let's go
+          Lets go
         </button>
 
         <div className="flex gap-3 justify-center">

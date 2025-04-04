@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 export const PostUser = () => {
   const [signupStep, setSignupStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState({ email: "", password: "", repassword: "" });
   const router = useRouter();
 
@@ -47,13 +46,6 @@ export const PostUser = () => {
   };
 
   const stepBack = () => setSignupStep((prev) => prev - 1);
-
-  if (loading)
-    return (
-      <div className="flex justify-center items-center text-[30px] text-white">
-        Loading...
-      </div>
-    );
 
   return (
     <>

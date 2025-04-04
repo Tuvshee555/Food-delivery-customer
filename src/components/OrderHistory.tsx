@@ -45,6 +45,7 @@ export const OrderHistory = () => {
     if (userId) {
       getOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return (
@@ -77,7 +78,7 @@ export const OrderHistory = () => {
               <ul className="mt-2 text-sm">
                 {order.foodOrderItems.map((item) => (
                   <li
-                    key={item.foodId.foodName}
+                    key={item.foodId._id}
                     className="flex justify-between border-b py-1"
                   >
                     <span>Food name: {item.foodId.foodName}</span>

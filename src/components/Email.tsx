@@ -24,9 +24,6 @@ export const Email = () => {
   const handleClick = () => {
     localStorage.removeItem("token");
     router.push(`/log-in`);
-
-    // localStorage.removeItem("email");
-    // window.location.reload();
   };
 
   return (

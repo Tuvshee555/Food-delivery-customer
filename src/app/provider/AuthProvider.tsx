@@ -8,7 +8,7 @@ type UserType = {
 
 type AuthContextType = {
   userId?: string;
-  token?: string | undefined | any;
+  token?: string | undefined | null;
 };
 
 export const AuthContext = createContext<AuthContextType>(
@@ -25,9 +25,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!storedToken) {
       router.push("/log-in");
     } else {
-      setToken(storedToken); // Ensure the token state is set
-      reEvaluateToken(storedToken); // Re-evaluate the token
+      setToken(storedToken);
+      reEvaluateToken(storedToken);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

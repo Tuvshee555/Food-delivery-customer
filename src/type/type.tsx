@@ -42,11 +42,11 @@ export type FoodType = {
   _id: string;
   foodName: string;
   price: number;
-  image?: string
+  image?: string;
   ingredients: string;
   category: string;
   refreshFood: () => void;
-  foodData: any[];
+  foodData: FoodType[];
   categories: string;
 };
 export type AddFoodOrderProps = {

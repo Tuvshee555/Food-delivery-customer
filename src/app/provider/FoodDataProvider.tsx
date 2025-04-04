@@ -1,6 +1,6 @@
 "use client";
 
-import { Datas, FoodType } from "@/type/type";
+import { FoodType } from "@/type/type";
 import axios from "axios";
 import {
   createContext,
@@ -12,7 +12,7 @@ import {
 
 type FoodContextType = {
   // category: Datas[]
-  foodData: any[];
+  foodData: FoodType[];
   refreshFood: () => void;
 };
 

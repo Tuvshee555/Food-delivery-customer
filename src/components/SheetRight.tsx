@@ -11,7 +11,7 @@ import { PayFood } from "./PayFood";
 import { OrderHistory } from "./OrderHistory";
 
 export const SheetRight = () => {
-  const [page, setPage] = useState<any>(1);
+  const [page, setPage] = useState<number>(1);
 
   return (
     <Sheet>
@@ -33,7 +33,9 @@ export const SheetRight = () => {
         <div className="h-[44px] w-full bg-white p-1 gap-2 rounded-full flex">
           <div
             className={`w-full h-full rounded-full flex items-center justify-center ${
-              page === 1 ? "text-white bg-red-500" : "text-black border-[1px] border-[black]"
+              page === 1
+                ? "text-white bg-red-500"
+                : "text-black border-[1px] border-[black]"
             }`}
             onClick={() => setPage(1)}
           >
@@ -41,7 +43,9 @@ export const SheetRight = () => {
           </div>
           <div
             className={`w-full h-full rounded-full flex items-center justify-center ${
-              page === 2 ? "text-white bg-red-500" : "text-black border-[1px] border-[black]"
+              page === 2
+                ? "text-white bg-red-500"
+                : "text-black border-[1px] border-[black]"
             }`}
             onClick={() => setPage(2)}
           >

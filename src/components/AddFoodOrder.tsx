@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,6 @@ import { toast } from "sonner";
 
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const [quantity, setQuantity] = useState<number>(1);
-  const [totalPrice, setTotalPrice] = useState<number>(food.price);
   const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,12 +23,10 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
 
   const handleIncrease = (): void => {
     setQuantity((prev) => prev + 1);
-    setTotalPrice(food.price * (quantity + 1));
   };
 
   const handleDecrease = (): void => {
     if (quantity > 1) setQuantity((prev) => prev - 1);
-    setTotalPrice(food.price * (quantity - 1));
   };
 
   const createOrder = async () => {

@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { SignUpEmailStepType } from "@/type/type";
@@ -31,6 +33,7 @@ export const CreatePassword = ({
 
   useEffect(() => {
     validatePasswords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const validatePasswords = () => {

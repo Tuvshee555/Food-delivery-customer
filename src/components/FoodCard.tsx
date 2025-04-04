@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { FoodCardPropsType } from "@/type/type";
 import { AddFoodOrder } from "./AddFoodOrder";
 

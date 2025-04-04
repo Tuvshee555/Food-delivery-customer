@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import axios from "axios";
@@ -40,7 +42,7 @@ export default function LogIn() {
         setError(response.data.message);
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
       setError("An error occurred while logging in.");
       toast.error("An error occurred while logging in.");

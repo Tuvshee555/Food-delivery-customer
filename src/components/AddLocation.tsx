@@ -21,18 +21,13 @@ export const AddLocation = () => {
   const { userId, token } = useAuth();
 
   const postAddress = async () => {
-    if (!token || !userId) {
-      toast.error("User not authenticated.");
-      return;
-    }
-
     try {
       const response = await axios.put(
         `http://localhost:4000/user/${userId}`,
         { address: address },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Passing the token as the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );

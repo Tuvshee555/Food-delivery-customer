@@ -8,7 +8,7 @@ type UserType = {
 
 type AuthContextType = {
   userId?: string;
-  token?: string;
+  token?: string | undefined | any;
 };
 
 export const AuthContext = createContext<AuthContextType>(

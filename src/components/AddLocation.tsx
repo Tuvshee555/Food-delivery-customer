@@ -20,6 +20,9 @@ export const AddLocation = () => {
   const [address, setAddress] = useState("");
   const { userId, token } = useAuth();
 
+  console.log(userId, "user ID");
+  console.log(token);
+
   const postAddress = async () => {
     try {
       const response = await axios.put(

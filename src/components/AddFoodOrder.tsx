@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,15 +12,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Minus } from "lucide-react";
-import { AddFoodOrderProps } from "@/type/type";
 import { toast } from "sonner";
+
+// Define food type
+export type FoodType = {
+  _id: string;
+  foodName: string;
+  ingredients: string;
+  price: number;
+  image: string;
+};
+
+// Props type
+export type AddFoodOrderProps = {
+  food: FoodType;
+};
 
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [address, setAddress] = useState<string | null>(null);
 
+  // Load user address from localStorage
   useEffect(() => {
-    setAddress(localStorage.getItem("address"));
+    const storedAddress = localStorage.getItem("address");
+    setAddress(storedAddress);
   }, []);
 
   const handleIncrease = (): void => {
@@ -30,29 +47,34 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   };
 
   const createOrder = async () => {
-    console.log(address);
-
-    if (!address) {
+    if (
+      !address ||
+      address.trim() === "" ||
+      address === "null" ||
+      address === "undefined"
+    ) {
       toast.error("❌ No address provided! Please add a delivery address.");
       return;
     }
 
     try {
       const cart = localStorage.getItem("cart");
+      const newItem = { food, quantity };
+
       if (cart) {
-        const cartItems = JSON.parse(cart);
-        const newCart = [...cartItems, { food: food, quantity: quantity }];
-        localStorage.setItem("cart", JSON.stringify(newCart));
+        const cartItems = JSON.parse(cart) as {
+          food: FoodType;
+          quantity: number;
+        }[];
+        cartItems.push(newItem);
+        localStorage.setItem("cart", JSON.stringify(cartItems));
       } else {
-        localStorage.setItem(
-          "cart",
-          JSON.stringify([{ food: food, quantity: quantity }])
-        );
+        localStorage.setItem("cart", JSON.stringify([newItem]));
       }
 
       toast.success("✅ Successfully added to cart");
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("❌ Failed to add order");
     }
   };
@@ -64,7 +86,9 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
           <Plus className="text-red-500" />
         </div>
       </DialogTrigger>
+
       <DialogContent className="w-[826px] h-[412px] p-0 flex overflow-hidden rounded-lg">
+        {/* Food Image */}
         <div className="w-[377px] h-[412px]">
           <img
             className="w-full h-full object-cover"
@@ -73,24 +97,23 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
           />
         </div>
 
+        {/* Food Info */}
         <div className="flex flex-col flex-1 p-[26px]">
           <div className="flex flex-col justify-between h-[300px]">
-            <div className="flex justify-between items-start">
-              <div>
-                <DialogTitle className="text-red-500 text-lg font-semibold">
-                  {food.foodName}
-                </DialogTitle>
-                <DialogDescription className="text-gray-600">
-                  {food.ingredients}
-                </DialogDescription>
-              </div>
+            <div>
+              <DialogTitle className="text-red-500 text-lg font-semibold">
+                {food.foodName}
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                {food.ingredients}
+              </DialogDescription>
             </div>
 
             <div className="flex flex-col gap-6 mt-6">
               <div>
                 <h3 className="text-gray-600 text-sm">Total price</h3>
                 <h2 className="text-xl font-semibold">
-                  ${(food.price * quantity).toFixed(2)}
+                  ${(Number(food.price) * quantity).toFixed(2)}
                 </h2>
               </div>
 

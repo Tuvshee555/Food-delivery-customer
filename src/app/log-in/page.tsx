@@ -7,13 +7,16 @@ import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "../provider/AuthProvider";
 
 export default function LogIn() {
   const [emailValue, setEmailValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
   const router = useRouter();
+  const { setAuthToken } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,25 +28,25 @@ export default function LogIn() {
         password: passwordValue,
       });
 
-      console.log(response.data);
-
       if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("email", response.data.user.email);
-        console.log("email", response.data.user.email);
+        const { token, user } = response.data;
 
-        localStorage.setItem("userId", response.data._id);
-        console.log("userId", response.data._id);
+        // ✅ Save in localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("email", user.email);
+        localStorage.setItem("userId", user.userId || user._id);
 
-        toast("Login successful!");
+        // ✅ Update context immediately
+        setAuthToken(token);
 
+        toast.success("Login successful!");
         router.push("/home-page");
       } else {
         setError(response.data.message);
         toast.error(response.data.message);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
       setError("An error occurred while logging in.");
       toast.error("An error occurred while logging in.");
     }

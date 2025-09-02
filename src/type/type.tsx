@@ -1,3 +1,26 @@
+export type FoodType = {
+  _id: string;
+  foodName: string;
+  price: number;
+  image?: string | File; // allow local file or URL
+  ingredients: string;
+  category: string;
+
+  // Optional fields for admin/fetch purposes
+  refreshFood?: () => void;
+  foodData?: FoodType[];
+  categories?: string;
+};
+
+export type FoodCardPropsType = {
+  food: FoodType;
+};
+
+export type AddFoodOrderProps = {
+  food: FoodType;
+};
+
+// Other types (unchanged)
 export type ValidationFunction = (
   value: string,
   nextStep: () => void,
@@ -20,6 +43,7 @@ export type SignUpEmailStepType = {
 export type InputEventType = {
   target: { value: string };
 };
+
 export type Datas = {
   categoryName: string;
   _id: string;
@@ -29,26 +53,9 @@ export type Datas = {
 export type CategoriesProps = {
   category: CategoryType[];
 };
+
 export type CategoryType = {
   categoryName: string;
   _id: string;
   foodCount: number;
-};
-
-export type FoodCardPropsType = {
-  food: FoodType;
-};
-export type FoodType = {
-  _id: string;
-  foodName: string;
-  price: number;
-  image?: string;
-  ingredients: string;
-  category: string;
-  refreshFood: () => void;
-  foodData: FoodType[];
-  categories: string;
-};
-export type AddFoodOrderProps = {
-  food: FoodType;
 };

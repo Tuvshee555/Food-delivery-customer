@@ -35,6 +35,7 @@ export type SignUpEmailStepType = {
       email: string;
       password: string;
       repassword: string;
+      role: string;
     }>
   >;
   user: { email: string; password: string; repassword: string };

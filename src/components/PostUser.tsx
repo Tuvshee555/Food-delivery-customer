@@ -9,7 +9,12 @@ import { toast } from "sonner";
 
 export const PostUser = () => {
   const [signupStep, setSignupStep] = useState(1);
-  const [user, setUser] = useState({ email: "", password: "", repassword: "" });
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
+    repassword: "",
+    role: "USER",
+  });
   const router = useRouter();
 
   const PostUser = async () => {

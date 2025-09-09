@@ -12,6 +12,7 @@ type User = {
   email: string;
   password: string;
   repassword: string;
+  role: string;
 };
 
 export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {

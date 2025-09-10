@@ -45,6 +45,7 @@ export const PostUser = () => {
   const nextStep = () => {
     if (signupStep === 2) {
       PostUser();
+      router.push("log-in");
     } else {
       setSignupStep((prev) => prev + 1);
     }

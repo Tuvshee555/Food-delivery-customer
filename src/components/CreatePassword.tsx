@@ -39,8 +39,13 @@ export const CreatePassword = ({
   const validatePasswords = () => {
     const { password, repassword } = user;
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    // Regex: exactly 6 digits (0-9)
+    const passwordRegex = /^\d{6}$/;
+
+    if (!password) {
+      setError("Password is required");
+    } else if (!passwordRegex.test(password)) {
+      setError("Password must be exactly 6 numbers");
     } else if (repassword && password !== repassword) {
       setError("Passwords do not match");
     } else {
@@ -78,7 +83,7 @@ export const CreatePassword = ({
           <button
             type="button"
             className="absolute right-3 top-2 text-gray-500"
-            onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
+            onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -96,7 +101,7 @@ export const CreatePassword = ({
           <button
             type="button"
             className="absolute right-3 top-2 text-gray-500"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)} // Toggle confirm password visibility
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
           >
             {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>

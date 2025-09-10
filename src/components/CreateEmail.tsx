@@ -3,7 +3,6 @@
 "use client";
 
 import { ChevronLeft } from "lucide-react";
-import * as yup from "yup";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SignUpEmailStepType } from "@/type/type";
@@ -20,31 +19,22 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setEmail(e.target.value);
-  };
+  const validateEmail = (): void => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const validateEmail = async (): Promise<void> => {
-    try {
-      await yup
-        .object()
-        .shape({
-          email: yup
-            .string()
-            .email("Invalid email")
-            .required("Email is required"),
-        })
-        .validate({ email });
-
-      setUser((prev: User) => ({ ...prev, email: email }));
-      nextStep();
-    } catch (err) {
-      if (err instanceof yup.ValidationError) {
-        setError(err.errors[0] || "An error occurred");
-      } else {
-        setError("An unexpected error occurred");
-      }
+    if (!email) {
+      setError("Email is required");
+      return;
     }
+
+    if (!emailRegex.test(email)) {
+      setError("Invalid email address");
+      return;
+    }
+
+    setError(null);
+    setUser((prev: User) => ({ ...prev, email }));
+    nextStep();
   };
 
   return (
@@ -63,7 +53,7 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
           className="border-2 rounded-[8px] p-[6px] text-[#71717b]"
           placeholder="Enter your email address"
           value={email}
-          onChange={handleInputChange}
+          onChange={(e) => setEmail(e.target.value)}
         />
         {error && <p className="text-red-500 text-sm">{error}</p>}
 

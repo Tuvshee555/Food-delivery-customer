@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
+
 "use client";
 
 import axios from "axios";
@@ -26,7 +27,7 @@ export default function LogIn() {
       const response = await axios.post("http://localhost:4000/user/login", {
         email: emailValue,
         password: passwordValue,
-        user: "USER",
+        role: "USER",
       });
 
       if (response.data.success) {

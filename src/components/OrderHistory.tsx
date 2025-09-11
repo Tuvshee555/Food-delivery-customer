@@ -16,14 +16,12 @@ type OrderType = {
     };
     quantity: number;
   }[];
-  status: string;
-  foodName: string;
+  status: "PENDING" | "DELIVERED" | "CANCELLED";
 };
 
 export const OrderHistory = () => {
   const [orders, setOrders] = useState<OrderType[]>([]);
   const { userId } = useAuth();
-  console.log("userID", userId);
 
   const getOrders = async () => {
     try {
@@ -34,7 +32,6 @@ export const OrderHistory = () => {
 
       const response = await axios.get(`http://localhost:4000/order/${userId}`);
       setOrders(response.data);
-      console.log(response.data, "order data");
     } catch (error) {
       console.log(error);
       toast.error("Failed to fetch orders");
@@ -48,6 +45,19 @@ export const OrderHistory = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const getStatusColor = (status: OrderType["status"]) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-700";
+      case "DELIVERED":
+        return "bg-green-100 text-green-700";
+      case "CANCELLED":
+        return "bg-red-100 text-red-700";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="w-full bg-white rounded-lg p-4 shadow-lg">
       <h1 className="text-lg font-semibold mb-4">Order History</h1>
@@ -60,11 +70,9 @@ export const OrderHistory = () => {
                   ${order.totalprice.toFixed(2)}
                 </span>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    order.status === "PENDING"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-green-100 text-green-600"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                    order.status
+                  )}`}
                 >
                   {order.status}
                 </span>

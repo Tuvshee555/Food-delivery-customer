@@ -1,13 +1,9 @@
 "use client";
 
+import { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import { CategoryProvider } from "../app/provider/CategoryProvider";
-import { FoodDataProvider } from "./provider/FoodDataProvider";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./globals.css";
-import { useState } from "react";
-import { AuthProvider } from "./provider/AuthProvider";
+import Providers from "./provider/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,26 +15,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadata: Metadata = {
+  title: "Food-delivery-cusstomer",
+  description: "Order food ",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <CategoryProvider>
-              <FoodDataProvider>
-                {children}
-                <Toaster />
-              </FoodDataProvider>
-            </CategoryProvider>
-          </AuthProvider>
-        </QueryClientProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

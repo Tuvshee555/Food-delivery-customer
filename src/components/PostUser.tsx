@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { CreatePassword } from "@/components/CreatePassword";
 import { CreateEmail } from "@/components/CreateEmail";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,14 @@ export const PostUser = () => {
 
       router.push(`/log-in`);
     } catch (error) {
-      console.log(error);
+      const err = error as AxiosError<{ message: string }>;
+      const message = err.response?.data?.message;
+      if (message) {
+        toast.error(message);
+      } else {
+        toast.error("Error occured!");
+      }
+
       toast.error("Something went wrong. Please try again.");
     }
   };

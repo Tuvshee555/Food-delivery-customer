@@ -1,3 +1,5 @@
+"use client";
+
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { AuthProvider } from "./AuthProvider";
 import { CategoryProvider } from "./CategoryProvider";

@@ -22,6 +22,8 @@ export const AddLocation = () => {
 
   console.log(userId, "user ID");
   console.log(token);
+  const add = localStorage.getItem("address");
+  console.log(add, "loaction");
 
   const postAddress = async () => {
     try {
@@ -52,7 +54,7 @@ export const AddLocation = () => {
           {!address ? (
             <>
               <span className="text-[#EF4444]">Delivery address</span>
-              <span className="text-[#71717a]">Add location</span>
+              <span className="text-[#71717a]">{add}</span>
               <ChevronRight stroke="#71717a" />
             </>
           ) : (
@@ -78,7 +80,7 @@ export const AddLocation = () => {
         <div className="grid gap-4 py-4">
           <textarea
             className="border w-full rounded-md h-[100px] p-2 text-black focus:ring-2 focus:ring-black"
-            placeholder="Provide building number, entrance, and apartment number"
+            placeholder={add || "Please provide your location"}
             rows={5}
             value={address}
             onChange={(e) => setAddress(e.target.value)}

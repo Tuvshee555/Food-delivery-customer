@@ -70,6 +70,9 @@ export const CreatePassword = ({
         <h1 className="text-[24px] font-semibold text-black">
           Create a password
         </h1>
+        <p className="text-[16px] text-[#71717a]">
+          Use a 6-digit numeric password for your account.
+        </p>
 
         {/* Password Input */}
         <div className="relative">
@@ -107,13 +110,13 @@ export const CreatePassword = ({
           </button>
         </div>
 
-        {/* Only show error if user has started typing */}
+        {/* Error message */}
         {isTouched && error && <p className="text-red-500 text-sm">{error}</p>}
 
         {/* Submit Button */}
         <button
           className={`h-[36px] w-full rounded-[8px] text-white ${
-            error ? "bg-gray-300" : "bg-black hover:bg-gray-800"
+            error ? "bg-[#d1d1d1]" : "bg-black hover:bg-gray-800"
           }`}
           onClick={handleSubmit}
           disabled={!!error}

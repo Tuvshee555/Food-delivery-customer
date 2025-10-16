@@ -27,18 +27,25 @@ export type ValidationFunction = (
   setError: (error: string) => void
 ) => void;
 
+// export type SignUpEmailStepType = {
+//   nextStep: () => void;
+//   stepBack?: () => void;
+//   setUser: React.Dispatch<
+//     React.SetStateAction<{
+//       email: string;
+//       password: string;
+//       repassword: string;
+//       role: string;
+//     }>
+//   >;
+//   user: { email: string; password: string; repassword: string };
+// };
+
 export type SignUpEmailStepType = {
   nextStep: () => void;
   stepBack?: () => void;
-  setUser: React.Dispatch<
-    React.SetStateAction<{
-      email: string;
-      password: string;
-      repassword: string;
-      role: string;
-    }>
-  >;
-  user: { email: string; password: string; repassword: string };
+  setUser: React.Dispatch<React.SetStateAction<User>>; // use User type
+  user: User; // use full User type
 };
 
 export type InputEventType = {
@@ -59,4 +66,19 @@ export type CategoryType = {
   categoryName: string;
   _id: string;
   foodCount: number;
+};
+
+export type User = {
+  email: string;
+  password: string;
+  repassword: string;
+  role?: string;
+};
+
+// props for CreatePassword
+export type UserType = {
+  setUser: React.Dispatch<React.SetStateAction<User>>;
+  nextStep: () => void;
+  stepBack: () => void;
+  user: User;
 };

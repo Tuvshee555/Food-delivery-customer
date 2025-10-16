@@ -3,44 +3,69 @@
 "use client";
 
 import { ChevronLeft } from "lucide-react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SignUpEmailStepType } from "@/type/type";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { toast } from "sonner";
 
 type User = {
   email: string;
   password: string;
   repassword: string;
-  role: string;
+  role?: string;
 };
 
-export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
-  const [email, setEmail] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+type UserType = {
+  setUser: React.Dispatch<React.SetStateAction<User>>;
+  nextStep: () => void;
+  user: User;
+};
+
+export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
   const router = useRouter();
 
-  const validateEmail = (): void => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email) {
-      setError("Email is required");
+  // ✅ Google Sign-Up handler
+  const handleGoogleSignUp = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      toast.error("No Google credentials received!");
       return;
     }
 
-    if (!emailRegex.test(email)) {
-      setError("Invalid email address");
-      return;
-    }
+    try {
+      const res = await fetch("http://localhost:4000/user/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: credentialResponse.credential,
+          role: "USER", // ✅ Send selected role
+        }),
+      });
 
-    setError(null);
-    setUser((prev: User) => ({ ...prev, email }));
-    nextStep();
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Google signup failed!");
+        return;
+      }
+
+      // ✅ Store user info
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("email", data.user.email);
+      setUser(data.user);
+
+      toast.success("Signed up with Google successfully!");
+      router.push("/log-in"); // ✅ redirect to login instead of home
+    } catch (error) {
+      console.error("Google signup failed:", error);
+      toast.error("Google signup failed!");
+    }
   };
 
   return (
     <div className="h-screen w-screen bg-white flex items-center justify-center gap-12">
       <div className="flex flex-col gap-6 w-[416px]">
-        <ChevronLeft className="bg-white rounded-[6px] hover:cursor-pointer" />
+        <ChevronLeft
+          className="bg-white rounded-[6px] hover:cursor-pointer"
+          onClick={() => router.back()}
+        />
 
         <h1 className="text-[24px] font-semibold text-black">
           Create your account
@@ -49,22 +74,39 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
           Sign up to explore your favorite dishes.
         </p>
 
+        {/* Email input */}
         <input
-          className="border-2 rounded-[8px] p-[6px] text-[#71717b]"
+          value={user.email}
+          onChange={(e) =>
+            setUser((prev) => ({ ...prev, email: e.target.value }))
+          }
           placeholder="Enter your email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          className="border-2 rounded-[8px] p-[6px] text-[#71717b]"
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        <button
-          className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black"
-          onClick={validateEmail}
-        >
-          Lets go
-        </button>
+        <div>
+          <button
+            className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black"
+            onClick={nextStep}
+          >
+            Lets go
+          </button>
+          <div className="mt-2">
+            <div className="flex items-center gap-2 text-gray-500 ">
+              <span className="w-full h-px bg-gray-300" />
+              or
+              <span className="w-full h-px bg-gray-300" />
+            </div>
+            <div className="mt-2">
+              <GoogleLogin
+                onSuccess={handleGoogleSignUp}
+                onError={() => toast.error("Google login error")}
+              />
+            </div>
+          </div>
+        </div>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-3 justify-center ">
           <p className="text-[16px] text-[#71717a]">Already have an account?</p>
           <p
             className="text-[16px] text-[#2762ea] hover:cursor-pointer"
@@ -74,7 +116,8 @@ export const CreateEmail = ({ nextStep, setUser }: SignUpEmailStepType) => {
           </p>
         </div>
       </div>
-      <img src="./deliverM.png" className="w-[860px] h-[900px]" />
+
+      <img src="/deliverM.png" className="w-[860px] h-[900px]" />
     </div>
   );
 };

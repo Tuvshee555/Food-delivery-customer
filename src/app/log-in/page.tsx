@@ -2,47 +2,70 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import axios from "axios";
-import { ChevronLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { toast } from "sonner";
+import { ChevronLeft } from "lucide-react";
+
+import axios from "axios";
+import { loadFacebookSDK } from "@/utils/loadFacebookSDK";
 import { useAuth } from "../provider/AuthProvider";
 
+declare global {
+  interface Window {
+    FB: fb.FacebookStatic;
+  }
+}
+
+// type LoginResponse = {
+//   success: boolean;
+//   message?: string;
+//   token?: string;
+//   user?: {
+//     _id?: string;
+//     userId?: string;
+//     email: string;
+//   };
+// };
+
 export default function LogIn() {
-  const [user, setUser] = useState({
-    email: "",
-    password: "",
-    role: "USER",
-  });
+  const router = useRouter();
+  const { setAuthToken } = useAuth();
+
+  const [user, setUser] = useState({ email: "", password: "", role: "USER" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { setAuthToken } = useAuth();
-  const router = useRouter();
+  useEffect(() => {
+    loadFacebookSDK();
+  }, []);
 
-  // ------------------------
-  // Email/Password login
-  // ------------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const payload = {
+      email: user.email,
+      password: user.password,
+      role: user.role, // send only what backend expects
+    };
+
+    console.log("Sending login payload:", payload);
 
     try {
       setLoading(true);
       const response = await axios.post(
         "http://localhost:4000/user/login",
-        user
+        payload
       );
 
       if (response.data.success) {
         const { token, user: userData } = response.data;
-
         localStorage.setItem("token", token);
         localStorage.setItem("email", userData.email);
-        localStorage.setItem("userId", userData.userId || userData.user_id);
+        localStorage.setItem("userId", userData.userId || userData._id);
 
         setAuthToken(token);
         toast.success("Successfully logged in!");
@@ -51,23 +74,29 @@ export default function LogIn() {
         setError(response.data.message);
         toast.error(response.data.message);
       }
-    } catch (err) {
-      console.log(err);
-      setError("An error occurred while logging in.");
-      toast.error("An error occurred while logging in.");
+    } catch (err: unknown) {
+      console.error("Login error:", err);
+
+      if (axios.isAxiosError(err)) {
+        const message =
+          err.response?.data?.message || "An error occurred while logging in.";
+        setError(message);
+        toast.error(message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+        toast.error(err.message);
+      } else {
+        setError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------------------
-  // Google login
-  // ------------------------
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
-    if (!credentialResponse.credential) {
-      toast.error("No Google credentials received!");
-      return;
-    }
+    if (!credentialResponse.credential)
+      return toast.error("No Google credentials received!");
 
     try {
       const res = await fetch("http://localhost:4000/user/auth/google", {
@@ -75,13 +104,12 @@ export default function LogIn() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
-      const data = await res.json();
 
+      const data = await res.json();
       if (data.token && data.user) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("email", data.user.email);
         localStorage.setItem("userId", data.user._id);
-
         setAuthToken(data.token);
         toast.success("Successfully logged in with Google!");
         router.push("/home-page");
@@ -89,9 +117,45 @@ export default function LogIn() {
         toast.error("Google login failed!");
       }
     } catch (error) {
-      console.error("Google login failed:", error);
+      console.error(error);
       toast.error("Google login failed!");
     }
+  };
+
+  const handleFacebookLogin = () => {
+    if (!window.FB) return toast.error("Facebook SDK not loaded yet!");
+
+    // FB.login callback must NOT be async
+    window.FB.login(
+      (response: fb.StatusResponse) => {
+        if (response.authResponse) {
+          const token = response.authResponse.accessToken;
+
+          fetch("http://localhost:4000/user/auth/facebook", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.token && data.user) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("email", data.user.email);
+                localStorage.setItem("userId", data.user._id);
+                setAuthToken(data.token);
+                toast.success("Successfully logged in with Facebook!");
+                router.push("/home-page");
+              } else {
+                toast.error("Facebook login failed");
+              }
+            })
+            .catch(() => toast.error("Facebook login failed"));
+        } else {
+          toast.error("Facebook login cancelled or failed!");
+        }
+      },
+      { scope: "email,public_profile" }
+    );
   };
 
   return (
@@ -108,9 +172,8 @@ export default function LogIn() {
         </p>
 
         <form className="flex flex-col gap-4" onSubmit={handleLogin}>
-          {/* Email */}
           <input
-            className="text-[#71717b] border border-gray-300 rounded-[8px] p-2 focus:outline-none focus:ring-2 focus:ring-black"
+            className="text-[#71717b] border border-gray-300 rounded-[8px] p-2"
             placeholder="Enter your email address"
             type="email"
             value={user.email}
@@ -119,20 +182,16 @@ export default function LogIn() {
             }
           />
 
-          {/* Password */}
-          <div className="relative">
-            <input
-              className="text-[#71717b] border border-gray-300 rounded-[8px] p-2 w-full focus:outline-none focus:ring-2 focus:ring-black"
-              placeholder="Password"
-              type={showPassword ? "text" : "password"}
-              value={user.password}
-              onChange={(e) =>
-                setUser((prev) => ({ ...prev, password: e.target.value }))
-              }
-            />
-          </div>
+          <input
+            className="text-[#71717b] border border-gray-300 rounded-[8px] p-2"
+            placeholder="Password"
+            type={showPassword ? "text" : "password"}
+            value={user.password}
+            onChange={(e) =>
+              setUser((prev) => ({ ...prev, password: e.target.value }))
+            }
+          />
 
-          {/* Show password toggle */}
           <label className="flex items-center gap-2 text-black text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -142,10 +201,8 @@ export default function LogIn() {
             Show password
           </label>
 
-          {/* Error */}
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          {/* Forgot password */}
           <p
             className="text-[14px] underline text-black hover:text-red-500 cursor-pointer"
             onClick={() => router.push("/forgot-password")}
@@ -153,35 +210,34 @@ export default function LogIn() {
             Forgot your password?
           </p>
 
-          {/* Submit */}
-          <div>
-            {" "}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`h-[36px] w-full rounded-[8px] text-white transition duration-300 ${
-                loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#d1d1d1] hover:bg-black"
-              }`}
-            >
-              {loading ? "Logging in..." : "Log in"}
-            </button>
-            {/* Divider and Google Login */}
-            <div className="mt-2">
-              <div className="flex items-center gap-2 text-gray-500 ">
-                <span className="w-full h-px bg-gray-300" />
-                or
-                <span className="w-full h-px bg-gray-300" />
-              </div>
-              <div className="mt-2">
-                <GoogleLogin
-                  onSuccess={handleGoogleLogin}
-                  onError={() => toast.error("Google login error")}
-                />
-              </div>
-            </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`h-[36px] w-full rounded-[8px] text-white ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#d1d1d1] hover:bg-black"
+            }`}
+          >
+            {loading ? "Logging in..." : "Log in"}
+          </button>
+
+          <div className="mt-2 flex items-center gap-2 text-gray-500">
+            <span className="w-full h-px bg-gray-300" /> or{" "}
+            <span className="w-full h-px bg-gray-300" />
           </div>
+
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => toast.error("Google login error")}
+          />
+
+          <button
+            onClick={handleFacebookLogin}
+            className="mt-2 h-[36px] w-full bg-[#1877F2] text-white rounded-[8px] hover:bg-[#145dbf]"
+          >
+            Continue with Facebook
+          </button>
         </form>
 
         <div className="flex gap-3 justify-center">

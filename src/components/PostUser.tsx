@@ -32,7 +32,7 @@ export const PostUser = () => {
 
     try {
       const response = await axios.post(`http://localhost:4000/user`, user);
-      console.log("Created admin", response.data);
+      console.log("Created user", response.data);
       toast.success("Welcome aboard! You can now log in.");
       router.push("/log-in");
     } catch (err) {
@@ -65,7 +65,14 @@ export const PostUser = () => {
   return (
     <div>
       {signUpStep === 1 && (
-        <CreateEmail setUser={setUser} nextStep={nextStep} user={user} />
+        <CreateEmail
+          setUser={setUser}
+          nextStep={nextStep}
+          user={user}
+          stepBack={function (): void {
+            throw new Error("Function not implemented.");
+          }}
+        />
       )}
 
       {signUpStep >= 2 && (

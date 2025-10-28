@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import React, { createContext, useContext, useEffect, useState } from "react";
 import { useJwt } from "react-jwt";
 
 type UserType = {
@@ -14,27 +14,38 @@ type AuthContextType = {
   setAuthToken: (newToken: string | null) => void;
 };
 
-export const AuthContext = createContext<AuthContextType>(
-  {} as AuthContextType
-);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
-  const { decodedToken, reEvaluateToken } = useJwt<UserType>(token || "");
+  const [loading, setLoading] = useState(true);
+  const { decodedToken, reEvaluateToken, isExpired } = useJwt<UserType>(
+    token || ""
+  );
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
+
     if (!storedToken) {
       router.push("/log-in");
-    } else {
-      setToken(storedToken);
-      reEvaluateToken(storedToken);
+      setLoading(false);
+      return;
     }
+
+    setToken(storedToken);
+    reEvaluateToken(storedToken);
+
+    // ⚠️ Changed: Only redirect if token exists AND isExpired
+    if (storedToken && isExpired) {
+      localStorage.removeItem("token");
+      router.push("/log-in");
+    }
+
+    setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Call this after login
   const setAuthToken = (newToken: string | null) => {
     if (newToken) {
       localStorage.setItem("token", newToken);
@@ -43,8 +54,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       localStorage.removeItem("token");
       setToken(null);
+      router.push("/log-in"); // ⚠️ Added: redirect on logout
     }
   };
+
+  // Prevent children from flashing before redirect
+  if (loading) return <div>Loading...</div>;
 
   return (
     <AuthContext.Provider

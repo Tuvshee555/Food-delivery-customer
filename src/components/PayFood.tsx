@@ -50,7 +50,7 @@ export const PayFood = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:4000/order`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
         {
           userId: decodedToken?.userId,
           items: cartItems.map((item) => ({

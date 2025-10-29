@@ -31,7 +31,10 @@ export const PostUser = () => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:4000/user`, user);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user`,
+        user
+      );
       console.log("Created user", response.data);
       toast.success("Welcome aboard! You can now log in.");
       router.push("/log-in");

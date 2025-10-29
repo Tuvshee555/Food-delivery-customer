@@ -57,7 +57,7 @@ export default function LogIn() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:4000/user/login",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/login`,
         payload
       );
 
@@ -99,11 +99,14 @@ export default function LogIn() {
       return toast.error("No Google credentials received!");
 
     try {
-      const res = await fetch("http://localhost:4000/user/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: credentialResponse.credential }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/google`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: credentialResponse.credential }),
+        }
+      );
 
       const data = await res.json();
       if (data.token && data.user) {
@@ -131,7 +134,7 @@ export default function LogIn() {
         if (response.authResponse) {
           const token = response.authResponse.accessToken;
 
-          fetch("http://localhost:4000/user/auth/facebook", {
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/facebook`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),

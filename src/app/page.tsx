@@ -9,7 +9,9 @@ export default function Home() {
 
   const GetData = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/user");
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user`
+      );
       console.log(response);
       setloading(false);
     } catch (error) {

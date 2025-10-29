@@ -23,7 +23,9 @@ export const FoodDataProvider = ({ children }: { children: ReactNode }) => {
 
   const getFoodData = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/food");
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/food`
+      );
       console.log(response.data);
       setFoodData(response.data);
     } catch (error) {

@@ -28,7 +28,7 @@ export const AddLocation = () => {
   const postAddress = async () => {
     try {
       const response = await axios.put(
-        `http://localhost:4000/user/${userId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`,
         { address: address },
         {
           headers: {

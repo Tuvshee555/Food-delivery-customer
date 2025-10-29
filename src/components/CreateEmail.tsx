@@ -49,14 +49,17 @@ export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
     }
 
     try {
-      const res = await fetch("http://localhost:4000/user/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: credentialResponse.credential,
-          role: "USER",
-        }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/google`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: credentialResponse.credential,
+            role: "USER",
+          }),
+        }
+      );
 
       const data = await res.json();
       if (!res.ok) {
@@ -89,7 +92,7 @@ export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
 
           try {
             const res = await fetch(
-              "http://localhost:4000/user/auth/facebook",
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/facebook`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

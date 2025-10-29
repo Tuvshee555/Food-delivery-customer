@@ -30,7 +30,9 @@ export const OrderHistory = () => {
         return;
       }
 
-      const response = await axios.get(`http://localhost:4000/order/${userId}`);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${userId}`
+      );
       setOrders(response.data);
     } catch (error) {
       console.log(error);

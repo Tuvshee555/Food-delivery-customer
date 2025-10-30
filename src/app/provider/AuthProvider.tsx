@@ -58,9 +58,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Prevent children from flashing before redirect
-  if (loading) return <div>Loading...</div>;
-
   return (
     <AuthContext.Provider
       value={{ userId: decodedToken?.userId, token, setAuthToken }}

@@ -1,4 +1,6 @@
 export type FoodType = {
+  id: string;
+  categoryId: string;
   _id: string;
   foodName: string;
   price: number;
@@ -53,6 +55,7 @@ export type InputEventType = {
 };
 
 export type Datas = {
+  id: string;
   categoryName: string;
   _id: string;
   foodCount: number;

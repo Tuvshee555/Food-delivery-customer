@@ -4,14 +4,12 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useJwt } from "react-jwt";
 
-type UserType = {
-  userId: string;
-};
-
+type UserType = { id: string };
 type AuthContextType = {
-  userId?: string;
+  userId?: string | null;
   token?: string | null;
-  setAuthToken: (newToken: string | null) => void;
+  setAuthToken: (token: string | null) => void;
+  loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,14 +17,18 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { decodedToken, reEvaluateToken, isExpired } = useJwt<UserType>(
+
+  const { decodedToken, isExpired, reEvaluateToken } = useJwt<UserType>(
     token || ""
   );
 
+  // Initialize token once on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    if (typeof window === "undefined") return; // prevent SSR errors
 
+    const storedToken = localStorage.getItem("token");
     if (!storedToken) {
       router.push("/log-in");
       setLoading(false);
@@ -34,17 +36,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     setToken(storedToken);
-    reEvaluateToken(storedToken);
-
-    // ⚠️ Changed: Only redirect if token exists AND isExpired
-    if (storedToken && isExpired) {
-      localStorage.removeItem("token");
-      router.push("/log-in");
-    }
-
+    reEvaluateToken(storedToken); // ⚠️ safe to call once
     setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // run only once on mount
+
+  // Update userId when decodedToken changes
+  useEffect(() => {
+    if (decodedToken) {
+      setUserId(decodedToken.id);
+    }
+  }, [decodedToken]);
 
   const setAuthToken = (newToken: string | null) => {
     if (newToken) {
@@ -54,14 +55,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       localStorage.removeItem("token");
       setToken(null);
-      router.push("/log-in"); // ⚠️ Added: redirect on logout
+      setUserId(null);
+      router.push("/log-in");
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{ userId: decodedToken?.userId, token, setAuthToken }}
-    >
+    <AuthContext.Provider value={{ userId, token, setAuthToken, loading }}>
       {children}
     </AuthContext.Provider>
   );

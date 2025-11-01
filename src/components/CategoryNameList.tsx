@@ -11,14 +11,13 @@ export const CategoryNameList = () => {
       ) : (
         <div className="flex flex-col gap-[16px] p-[24px] ">
           <div className="flex flex-wrap gap-[16px]">
-            {category.map((c) => (
+            {category.map((c, index) => (
               <div
-                key={c._id}
+                key={c._id || index} // fallback to index if _id missing
                 className="py-2 px-4 text-sm rounded-[20px] border border-gray-400 flex gap-[8px] bg-[white] hover:cursor-pointer"
                 onClick={() => router.push(`category-type/${c._id}`)}
               >
-                <div> {c.categoryName}</div>
-
+                <div>{c.categoryName}</div>
                 <p className="text-gray-500">{c.foodCount}</p>
               </div>
             ))}

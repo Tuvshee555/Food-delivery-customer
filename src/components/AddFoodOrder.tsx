@@ -17,23 +17,16 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
-    // ✅ Load address from localStorage whenever component mounts
     setAddress(localStorage.getItem("address"));
   }, []);
 
-  const handleIncrease = (): void => setQuantity((prev) => prev + 1);
-  const handleDecrease = (): void => {
+  const handleIncrease = () => setQuantity((prev) => prev + 1);
+  const handleDecrease = () => {
     if (quantity > 1) setQuantity((prev) => prev - 1);
   };
 
-  const createOrder = async () => {
-    // ✅ Prevent adding to cart if no address
-    if (
-      !address ||
-      address.trim() === "" ||
-      address === "null" ||
-      address === "undefined"
-    ) {
+  const createOrder = () => {
+    if (!address || address.trim() === "" || address === "null") {
       toast.error("❌ No address provided! Please add a delivery address.");
       return;
     }

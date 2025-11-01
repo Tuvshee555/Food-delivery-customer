@@ -1,17 +1,21 @@
+"use client";
+
 import { SheetClose, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "./ui/button";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { Key, ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
 
 type OrderType = {
-  _id: string;
-  totalprice: number;
+  location: ReactNode;
+  id: string;
+  totalPrice: number;
   createdAt: string;
   foodOrderItems: {
-    foodId: {
-      _id: string;
+    id: Key | null | undefined;
+    food: {
+      id: string;
       foodName: string;
     };
     quantity: number;
@@ -31,20 +35,17 @@ export const OrderHistory = () => {
       }
 
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${userId}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/user/${userId}`
       );
       setOrders(response.data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("Failed to fetch orders");
     }
   };
 
   useEffect(() => {
-    if (userId) {
-      getOrders();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (userId) getOrders();
   }, [userId]);
 
   const getStatusColor = (status: OrderType["status"]) => {
@@ -66,10 +67,10 @@ export const OrderHistory = () => {
       {orders.length > 0 ? (
         <div className="space-y-4 max-h-[400px] overflow-y-auto">
           {orders.map((order) => (
-            <div key={order._id} className="border p-4 rounded-lg shadow-sm">
+            <div key={order.id} className="border p-4 rounded-lg shadow-sm">
               <div className="flex justify-between">
                 <span className="text-lg font-semibold">
-                  ${order.totalprice.toFixed(2)}
+                  ${order.totalPrice.toFixed(2)}
                 </span>
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
@@ -80,18 +81,21 @@ export const OrderHistory = () => {
                 </span>
               </div>
               <div className="text-gray-600 text-sm mt-2">
-                Order ID: {order._id}
+                Order ID: {order.id}
               </div>
               <div className="text-gray-600 text-sm">
                 Date: {new Date(order.createdAt).toLocaleDateString()}
               </div>
+              <div className="text-gray-600 text-sm mt-1">
+                Delivery: {order.location}
+              </div>
               <ul className="mt-2 text-sm">
                 {order.foodOrderItems.map((item) => (
                   <li
-                    key={item.foodId._id}
+                    key={item.id}
                     className="flex justify-between border-b py-1"
                   >
-                    <span>Food name: {item.foodId.foodName}</span>
+                    <span>Food name: {item.food.foodName}</span>
                     <span>Qty: {item.quantity}</span>
                   </li>
                 ))}
@@ -105,7 +109,7 @@ export const OrderHistory = () => {
       <SheetFooter className="mt-4">
         <SheetClose asChild>
           <Button
-            type="submit"
+            type="button"
             className="bg-red-500 text-white w-full rounded-lg py-3 text-lg font-semibold"
           >
             Close

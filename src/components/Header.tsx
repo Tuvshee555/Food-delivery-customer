@@ -21,7 +21,12 @@ export const Header = () => {
           </div>
         </Link>
         <div className="flex gap-[8px]">
-          <AddLocation />
+          <AddLocation
+            open={false}
+            onOpenChange={function (v: boolean): void {
+              throw new Error("Function not implemented.");
+            }}
+          />
           <SheetRight />
           <Email />
         </div>

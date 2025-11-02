@@ -1,8 +1,9 @@
 "use client";
 
-import { PostUser } from "@/components/PostUser";
+// import { PostUser } from "@/components/PostUser";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import QPayPage from "./qpay/page";
 
 export default function Home() {
   const [loading, setloading] = useState(true);
@@ -33,7 +34,8 @@ export default function Home() {
 
   return (
     <>
-      <PostUser />
+      {/* <PostUser /> */}
+      <QPayPage />
     </>
   );
 }

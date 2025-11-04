@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useAuth } from "@/app/provider/AuthProvider";
 import { AddLocation } from "./AddLocation";
+import { QPayDialog } from "@/app/qpay/page";
 
 type FoodType = {
   id?: string;
@@ -27,7 +28,10 @@ export const PayFood = () => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentDone, setPaymentDone] = useState(false);
 
+  // 🛒 Load cart from localStorage
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(storedCart);
@@ -40,6 +44,7 @@ export const PayFood = () => {
     setTotalPrice(total);
   }, []);
 
+  // ✅ Only called AFTER payment success
   const postFoodItems = async () => {
     if (!userId) {
       toast.error("User not authenticated!");
@@ -54,7 +59,7 @@ export const PayFood = () => {
     const location = localStorage.getItem("address");
     if (!location) {
       toast.error("Please provide a delivery address!");
-      setLocationDialogOpen(true); // open dialog
+      setLocationDialogOpen(true);
       return;
     }
 
@@ -76,27 +81,35 @@ export const PayFood = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Order response:", response.data);
+      console.log("✅ Order created:", response.data);
       toast.success("Order placed successfully!");
       localStorage.removeItem("cart");
       setCartItems([]);
       setTotalPrice(0);
     } catch (error) {
-      console.error("Error placing order:", error);
+      console.error("❌ Error placing order:", error);
       toast.error("Failed to place order. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // 🔁 Trigger order placement automatically once payment is confirmed
+  useEffect(() => {
+    if (paymentDone) {
+      postFoodItems();
+    }
+  }, [paymentDone]);
+
   return (
     <>
-      {/* Controlled Address Dialog */}
+      {/* Address Dialog */}
       <AddLocation
         open={locationDialogOpen}
         onOpenChange={setLocationDialogOpen}
       />
 
+      {/* Cart Section */}
       <div className="w-full bg-white rounded-[10px] p-[16px] shadow-lg">
         <h1 className="text-lg font-semibold mb-4">My Cart</h1>
 
@@ -121,7 +134,7 @@ export const PayFood = () => {
                   </span>
                 </div>
                 <span className="font-semibold text-lg">
-                  ${(item.food.price * item.quantity).toFixed(2)}
+                  ₮{(item.food.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))
@@ -133,21 +146,32 @@ export const PayFood = () => {
         {cartItems.length > 0 && (
           <div className="mt-6 flex justify-between text-lg font-semibold">
             <span>Total:</span>
-            <span>${totalPrice.toFixed(2)}</span>
+            <span>₮{totalPrice.toFixed(2)}</span>
           </div>
         )}
       </div>
 
+      {/* Checkout Button */}
       <SheetFooter className="mt-4">
-        {/* No SheetClose here — we handle it manually */}
         <Button
           className="bg-red-500 text-white w-full rounded-lg py-3 text-lg font-semibold"
-          onClick={postFoodItems}
-          disabled={isSubmitting}
+          onClick={() => {
+            if (totalPrice <= 0) return toast.error("Cart is empty.");
+            setShowPaymentDialog(true);
+          }}
+          disabled={isSubmitting || totalPrice <= 0}
         >
           {isSubmitting ? "Processing..." : "Proceed to Checkout"}
         </Button>
       </SheetFooter>
+
+      {/* QPay Dialog */}
+      <QPayDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        amount={totalPrice}
+        onSuccess={() => setPaymentDone(true)} // ✅ callback when paid
+      />
     </>
   );
 };

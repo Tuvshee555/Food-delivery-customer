@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import axios from "axios";
 import { useAuth } from "@/app/provider/AuthProvider";
 import { AddLocation } from "./AddLocation";
-import { QPayDialog } from "@/app/qpay/page";
+import { QPayDialog } from "@/app/qpay/QPayDialog";
 
 type FoodType = {
   id?: string;
@@ -25,36 +24,55 @@ type CartItemType = {
 export const PayFood = () => {
   const { userId, token } = useAuth();
   const [cartItems, setCartItems] = useState<CartItemType[]>([]);
-  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [totalPrice, setTotalPrice] = useState(0);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
-  // 🛒 Load cart from localStorage
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartItems(storedCart);
-
-    const total = storedCart.reduce(
-      (sum: number, item: CartItemType) =>
-        sum + item.food.price * item.quantity,
+  const calculateTotal = useCallback((items: CartItemType[]) => {
+    return items.reduce(
+      (sum, item) => sum + item.food.price * item.quantity,
       0
     );
-    setTotalPrice(total);
   }, []);
 
-  // ✅ Only called AFTER payment success
-  const postFoodItems = async () => {
-    if (!userId) {
-      toast.error("User not authenticated!");
-      return;
-    }
+  useEffect(() => {
+    try {
+      const storedCart: CartItemType[] = JSON.parse(
+        localStorage.getItem("cart") || "[]"
+      );
+      setCartItems(storedCart);
+      setTotalPrice(calculateTotal(storedCart));
 
-    if (!cartItems.length) {
-      toast.error("Your cart is empty.");
-      return;
+      let existingOrderId = localStorage.getItem("currentOrderId");
+      if (!existingOrderId) {
+        existingOrderId = `ORDER_${Date.now()}`;
+        localStorage.setItem("currentOrderId", existingOrderId);
+      }
+      setOrderId(existingOrderId);
+    } catch {
+      setCartItems([]);
+      setTotalPrice(0);
     }
+  }, [calculateTotal]);
+
+  const removeCartItem = (index: number) => {
+    const newCart = cartItems.filter((_, i) => i !== index);
+    setCartItems(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+    setTotalPrice(calculateTotal(newCart));
+
+    if (!newCart.length) {
+      localStorage.removeItem("currentOrderId");
+      setOrderId(null);
+    }
+  };
+
+  const postFoodItems = useCallback(async () => {
+    if (!userId) return toast.error("User not authenticated!");
+    if (!cartItems.length) return toast.error("Your cart is empty.");
 
     const location = localStorage.getItem("address");
     if (!location) {
@@ -75,44 +93,49 @@ export const PayFood = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
-        { userId, items: normalizedItems, totalPrice, location },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId,
+          items: normalizedItems,
+          totalPrice,
+          location,
+        }),
+      });
 
-      console.log("✅ Order created:", response.data);
+      if (!res.ok) throw new Error("Failed to place order");
+
       toast.success("Order placed successfully!");
-      localStorage.removeItem("cart");
       setCartItems([]);
       setTotalPrice(0);
-    } catch (error) {
-      console.error("❌ Error placing order:", error);
-      toast.error("Failed to place order. Please try again.");
+      localStorage.removeItem("cart");
+      localStorage.removeItem("currentOrderId");
+      setOrderId(null);
+    } catch (err: any) {
+      console.error("Error placing order:", err);
+      toast.error(err.message || "Failed to place order.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [cartItems, token, totalPrice, userId]);
 
-  // 🔁 Trigger order placement automatically once payment is confirmed
   useEffect(() => {
-    if (paymentDone) {
-      postFoodItems();
-    }
-  }, [paymentDone]);
+    if (paymentDone) postFoodItems();
+  }, [paymentDone, postFoodItems]);
 
   return (
     <>
-      {/* Address Dialog */}
       <AddLocation
         open={locationDialogOpen}
         onOpenChange={setLocationDialogOpen}
       />
 
-      {/* Cart Section */}
       <div className="w-full bg-white rounded-[10px] p-[16px] shadow-lg">
         <h1 className="text-lg font-semibold mb-4">My Cart</h1>
-
         <div className="mt-2 space-y-4 max-h-[300px] overflow-y-auto">
           {cartItems.length > 0 ? (
             cartItems.map((item, index) => (
@@ -122,8 +145,8 @@ export const PayFood = () => {
               >
                 <img
                   src={item.food.image}
-                  className="w-[64px] h-[64px] rounded-lg object-cover"
                   alt={item.food.foodName}
+                  className="w-[64px] h-[64px] rounded-lg object-cover"
                 />
                 <div className="flex flex-col flex-1 ml-4">
                   <span className="text-red-500 font-semibold text-base">
@@ -133,16 +156,23 @@ export const PayFood = () => {
                     x{item.quantity}
                   </span>
                 </div>
-                <span className="font-semibold text-lg">
-                  ₮{(item.food.price * item.quantity).toFixed(2)}
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold text-lg">
+                    ₮{(item.food.price * item.quantity).toFixed(2)}
+                  </span>
+                  <Button
+                    className="text-gray-400 hover:text-red-500"
+                    onClick={() => removeCartItem(index)}
+                  >
+                    ✕
+                  </Button>
+                </div>
               </div>
             ))
           ) : (
             <p className="text-gray-500 text-center">Your cart is empty</p>
           )}
         </div>
-
         {cartItems.length > 0 && (
           <div className="mt-6 flex justify-between text-lg font-semibold">
             <span>Total:</span>
@@ -151,7 +181,6 @@ export const PayFood = () => {
         )}
       </div>
 
-      {/* Checkout Button */}
       <SheetFooter className="mt-4">
         <Button
           className="bg-red-500 text-white w-full rounded-lg py-3 text-lg font-semibold"
@@ -165,13 +194,15 @@ export const PayFood = () => {
         </Button>
       </SheetFooter>
 
-      {/* QPay Dialog */}
-      <QPayDialog
-        open={showPaymentDialog}
-        onOpenChange={setShowPaymentDialog}
-        amount={totalPrice}
-        onSuccess={() => setPaymentDone(true)} // ✅ callback when paid
-      />
+      {orderId && (
+        <QPayDialog
+          open={showPaymentDialog}
+          onOpenChange={setShowPaymentDialog}
+          amount={totalPrice}
+          orderId={orderId}
+          onSuccess={() => setPaymentDone(true)}
+        />
+      )}
     </>
   );
 };

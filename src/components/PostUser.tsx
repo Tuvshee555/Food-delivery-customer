@@ -37,7 +37,7 @@ export const PostUser = () => {
       );
       console.log("Created user", response.data);
       toast.success("Welcome aboard! You can now log in.");
-      router.push("/log-in");
+      router.push("/home-page");
     } catch (err) {
       const error = err as AxiosError<{ message: string }>;
       const message = error.response?.data?.message;

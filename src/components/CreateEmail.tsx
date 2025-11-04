@@ -71,7 +71,7 @@ export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
       localStorage.setItem("email", data.user.email);
       setUser(data.user);
       toast.success("Signed up with Google successfully!");
-      router.push("/log-in");
+      router.push("/home-page");
     } catch (error) {
       console.error(error);
       toast.error("Google signup failed!");

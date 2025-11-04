@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { motion } from "framer-motion";
@@ -13,27 +14,35 @@ type QPayDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   amount: number;
+  orderId: string;
   onSuccess?: () => void;
+};
+
+type QPayCreateResponse = {
+  qr_text: string;
+  qr_image: string;
+  invoice_id: string;
+};
+
+type QPayCheckResponse = {
+  paid: boolean;
 };
 
 export const QPayDialog = ({
   open,
   onOpenChange,
   amount,
+  orderId,
   onSuccess,
 }: QPayDialogProps) => {
   const [qrText, setQrText] = useState<string | null>(null);
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
-  const [status, setStatus] = useState("Ready to create invoice");
+  const [status, setStatus] = useState<string>("Ready to create invoice");
   const [paid, setPaid] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const createPayment = async () => {
-    if (amount <= 0) {
-      setStatus("❌ Invalid amount");
-      return;
-    }
-
+    if (amount <= 0) return setStatus("❌ Invalid amount");
     setLoading(true);
     setStatus("Creating invoice...");
     setPaid(false);
@@ -45,12 +54,11 @@ export const QPayDialog = ({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId: `ORDER_${Date.now()}`, amount }),
+          body: JSON.stringify({ orderId, amount }),
         }
       );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create invoice");
+      const data: QPayCreateResponse = await res.json();
+      if (!res.ok) throw new Error(data?.qr_text || "Failed to create invoice");
 
       setQrText(data.qr_text);
       setInvoiceId(data.invoice_id);
@@ -61,11 +69,11 @@ export const QPayDialog = ({
       setLoading(false);
     }
   };
-
   useEffect(() => {
     if (!invoiceId || paid) return;
+    let interval: number | null = null; // ✅ browser-safe
 
-    const interval = setInterval(async () => {
+    const checkPayment = async () => {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/check`,
@@ -75,26 +83,24 @@ export const QPayDialog = ({
             body: JSON.stringify({ invoiceId }),
           }
         );
-
-        const data = await res.json();
+        const data: QPayCheckResponse = await res.json();
         if (data.paid) {
           setPaid(true);
           setStatus("✅ Payment successful!");
-          clearInterval(interval);
-
-          // ✅ trigger callback
           onSuccess?.();
-
-          // ✅ auto close
           setTimeout(() => onOpenChange(false), 2000);
+          if (interval) clearInterval(interval);
         }
       } catch {
         setStatus("⚠️ Retrying payment check...");
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
-  }, [invoiceId, paid]);
+    interval = window.setInterval(checkPayment, 5000); // ✅ use window.setInterval
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [invoiceId, paid, onOpenChange, onSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

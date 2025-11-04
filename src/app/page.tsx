@@ -1,41 +1,11 @@
 "use client";
 
-// import { PostUser } from "@/components/PostUser";
-import axios from "axios";
-import { useEffect, useState } from "react";
-// import QPayPage from "./qpay/page";
-import { PostUser } from "@/components/PostUser";
+import LogIn from "./log-in/page";
 
 export default function Home() {
-  const [loading, setloading] = useState(true);
-
-  const GetData = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user`
-      );
-      console.log(response);
-      setloading(false);
-    } catch (error) {
-      console.log(error);
-      setloading(false);
-    }
-  };
-
-  useEffect(() => {
-    GetData();
-  }, []);
-
-  if (loading)
-    return (
-      <div className="flex jusitfy-center items-center text-[30px] text-[white]">
-        loading...
-      </div>
-    );
-
   return (
     <>
-      <PostUser />
+      <LogIn />
       {/* <QPayPage /> */}
     </>
   );

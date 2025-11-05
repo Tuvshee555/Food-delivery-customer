@@ -20,7 +20,7 @@ type QPayDialogProps = {
 
 type QPayCreateResponse = {
   qr_text: string;
-  qr_image: string;
+  qr_image?: string;
   invoice_id: string;
 };
 
@@ -69,9 +69,11 @@ export const QPayDialog = ({
       setLoading(false);
     }
   };
+
+  // Polling payment status
   useEffect(() => {
     if (!invoiceId || paid) return;
-    let interval: number | null = null; // ✅ browser-safe
+    let interval: number | null = null;
 
     const checkPayment = async () => {
       try {
@@ -96,7 +98,7 @@ export const QPayDialog = ({
       }
     };
 
-    interval = window.setInterval(checkPayment, 5000); // ✅ use window.setInterval
+    interval = window.setInterval(checkPayment, 5000);
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -104,28 +106,39 @@ export const QPayDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md flex flex-col items-center gap-4">
+      <DialogContent className="max-w-md flex flex-col items-center gap-6">
         <DialogHeader>
           <DialogTitle>QPay Checkout</DialogTitle>
         </DialogHeader>
 
+        {/* Create Payment Button */}
         {!paid && !qrText && (
           <button
             onClick={createPayment}
             disabled={loading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 w-full"
           >
             {loading ? "Processing..." : `Pay ₮${amount}`}
           </button>
         )}
 
+        {/* QR Code + Deep Link */}
         {!paid && qrText && (
-          <div className="flex flex-col items-center gap-3 mt-2">
+          <div className="flex flex-col items-center gap-4 mt-4">
             <QRCodeCanvas value={qrText} size={220} />
-            <p className="text-lg font-medium">{status}</p>
+            <a
+              href={`https://qpay.mn/q?q=${encodeURIComponent(qrText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Open in QPay
+            </a>
+            <p className="text-gray-500 text-sm mt-2">{status}</p>
           </div>
         )}
 
+        {/* Success Animation */}
         {paid && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -164,8 +177,6 @@ export const QPayDialog = ({
             </motion.p>
           </motion.div>
         )}
-
-        <p className="text-gray-600">{status}</p>
       </DialogContent>
     </Dialog>
   );

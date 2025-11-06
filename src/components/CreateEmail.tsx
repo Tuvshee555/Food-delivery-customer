@@ -9,6 +9,7 @@ import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
 import { UserType } from "@/type/type";
+import { motion } from "framer-motion";
 
 declare global {
   interface Window {
@@ -20,10 +21,8 @@ declare global {
 export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
   const router = useRouter();
 
-  // Load Facebook SDK
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.FB) return;
+    if (typeof window === "undefined" || window.FB) return;
 
     window.fbAsyncInit = function () {
       window.FB.init({
@@ -41,7 +40,6 @@ export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
     document.body.appendChild(script);
   }, []);
 
-  // Google signup
   const handleGoogleSignUp = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential) {
       toast.error("No Google credentials received!");
@@ -78,7 +76,6 @@ export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
     }
   };
 
-  // Facebook signup
   const handleFacebookSignUp = () => {
     if (!window.FB) {
       toast.error("Facebook SDK not loaded yet!");
@@ -124,71 +121,95 @@ export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
   };
 
   return (
-    <div className="h-screen w-screen bg-white flex items-center justify-center gap-12">
-      <div className="flex flex-col gap-6 w-[416px]">
-        <ChevronLeft
-          className="bg-white rounded-[6px] hover:cursor-pointer"
-          onClick={() => router.back()}
-        />
-        <h1 className="text-[24px] font-semibold text-black">
-          Create your account
-        </h1>
-        <p className="text-[16px] text-[#71717a]">
-          Sign up to explore your favorite dishes.
-        </p>
+    <div className="min-h-screen w-full flex flex-col md:flex-row items-center justify-center bg-gradient-to-br from-white via-[#f9f9f9] to-[#fff5f5] relative overflow-hidden px-4 py-8 sm:px-6 md:px-12 lg:px-20">
+      <div className="absolute inset-0 bg-[url('/deliverM.png')] opacity-5" />
 
-        <input
-          value={user.email}
-          onChange={(e) =>
-            setUser((prev: any) => ({ ...prev, email: e.target.value }))
-          }
-          placeholder="Enter your email address"
-          className="border-2 rounded-[8px] p-[6px] text-[#71717b]"
-        />
-
-        <button
-          className="h-[36px] w-full rounded-[8px] text-white bg-[#d1d1d1] hover:bg-black"
-          onClick={nextStep}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16 z-10 w-full max-w-6xl">
+        {/* ===== Left section ===== */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-col gap-6 w-full sm:w-[380px] md:w-[420px] bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-100"
         >
-          Lets go
-        </button>
+          <ChevronLeft
+            className="w-6 h-6 text-gray-600 hover:text-black hover:scale-110 transition cursor-pointer"
+            onClick={() => router.back()}
+          />
 
-        <div className="mt-2">
-          <div className="flex items-center gap-2 text-gray-500">
-            <span className="w-full h-px bg-gray-300" />
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 text-center md:text-left">
+            Create your account
+          </h1>
+          <p className="text-gray-500 text-sm text-center md:text-left">
+            Sign up to explore your favorite dishes.
+          </p>
+
+          <input
+            value={user.email}
+            onChange={(e) =>
+              setUser((prev: any) => ({ ...prev, email: e.target.value }))
+            }
+            placeholder="Enter your email address"
+            className="border border-gray-300 rounded-xl p-3 text-gray-700 text-sm focus:ring-2 focus:ring-red-500 outline-none transition"
+          />
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="h-[42px] w-full rounded-xl text-white bg-gradient-to-r from-red-500 to-orange-500 
+                       hover:from-red-600 hover:to-orange-600 font-medium shadow-md hover:shadow-lg transition-all"
+            onClick={nextStep}
+          >
+            Let’s go
+          </motion.button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-2 text-gray-400 text-sm mt-2">
+            <span className="w-full h-px bg-gray-200" />
             or
-            <span className="w-full h-px bg-gray-300" />
+            <span className="w-full h-px bg-gray-200" />
           </div>
 
-          <div className="mt-2">
+          {/* Google */}
+          <div className="mt-3 flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSignUp}
               onError={() => toast.error("Google login error")}
             />
           </div>
 
-          <div className="mt-2">
-            <button
-              onClick={handleFacebookSignUp}
-              className="h-[36px] w-full bg-[#1877F2] text-white rounded-[8px] hover:bg-[#145dbf]"
-            >
-              Continue with Facebook
-            </button>
-          </div>
-        </div>
-
-        <div className="flex gap-3 justify-center">
-          <p className="text-[16px] text-[#71717a]">Already have an account?</p>
-          <p
-            className="text-[16px] text-[#2762ea] hover:cursor-pointer"
-            onClick={() => router.push("/log-in")}
+          {/* Facebook */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleFacebookSignUp}
+            className="h-[42px] w-full bg-[#1877F2] text-white rounded-xl font-medium 
+                       hover:bg-[#145dbf] shadow-md hover:shadow-lg transition-all"
           >
-            Log in
-          </p>
-        </div>
-      </div>
+            Continue with Facebook
+          </motion.button>
 
-      <img src="/deliverM.png" className="w-[860px] h-[900px]" />
+          <div className="flex flex-wrap justify-center items-center gap-2 mt-4 text-sm text-center">
+            <p className="text-gray-500">Already have an account?</p>
+            <span
+              className="text-red-500 font-medium hover:underline cursor-pointer"
+              onClick={() => router.push("/log-in")}
+            >
+              Log in
+            </span>
+          </div>
+        </motion.div>
+
+        {/* ===== Right image ===== */}
+        <motion.img
+          src="/deliverM.png"
+          alt="Delivery illustration"
+          className="hidden md:block md:w-[420px] lg:w-[700px] rounded-2xl shadow-xl object-cover"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        />
+      </div>
     </div>
   );
 };

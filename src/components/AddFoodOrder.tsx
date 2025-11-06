@@ -11,6 +11,7 @@ import {
 import { Plus, Minus } from "lucide-react";
 import { AddFoodOrderProps } from "@/type/type";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const [quantity, setQuantity] = useState<number>(1);
@@ -42,7 +43,7 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
         localStorage.setItem("cart", JSON.stringify([newItem]));
       }
 
-      toast.success("✅ Successfully added to cart");
+      toast.success("✅ Added to cart successfully!");
     } catch (error) {
       console.error(error);
       toast.error("❌ Failed to add order");
@@ -52,13 +53,17 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg hover:cursor-pointer">
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute bottom-3 right-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/80 backdrop-blur-md shadow-lg hover:bg-white hover:shadow-xl cursor-pointer transition-all"
+        >
           <Plus className="text-red-500" />
-        </div>
+        </motion.div>
       </DialogTrigger>
 
-      <DialogContent className="w-[826px] h-[412px] p-0 flex overflow-hidden rounded-lg">
-        <div className="w-[377px] h-[412px]">
+      <DialogContent className="w-full max-w-[820px] md:h-[420px] h-auto p-0 flex flex-col md:flex-row overflow-hidden rounded-2xl bg-white/90 backdrop-blur-lg shadow-2xl border border-gray-200">
+        <div className="md:w-[380px] h-[260px] md:h-auto">
           <img
             className="w-full h-full object-cover"
             src={typeof food.image === "string" ? food.image : ""}
@@ -66,47 +71,51 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
           />
         </div>
 
-        <div className="flex flex-col flex-1 p-[26px]">
-          <div className="flex flex-col justify-between h-[300px]">
+        <div className="flex flex-col flex-1 p-6 justify-between">
+          <div>
+            <DialogTitle className="text-red-500 text-2xl font-semibold mb-2">
+              {food.foodName}
+            </DialogTitle>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              {food.ingredients}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-6 mt-6">
             <div>
-              <DialogTitle className="text-red-500 text-lg font-semibold">
-                {food.foodName}
-              </DialogTitle>
-              <p className="text-gray-600">{food.ingredients}</p>
+              <h3 className="text-gray-600 text-sm">Total price</h3>
+              <h2 className="text-2xl font-semibold text-gray-900">
+                ${(food.price * quantity).toFixed(2)}
+              </h2>
             </div>
 
-            <div className="flex flex-col gap-6 mt-6">
-              <div>
-                <h3 className="text-gray-600 text-sm">Total price</h3>
-                <h2 className="text-xl font-semibold">
-                  ${(food.price * quantity).toFixed(2)}
-                </h2>
-              </div>
+            <div className="flex items-center gap-6">
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={handleDecrease}
+                className="border border-gray-300 rounded-full p-2 hover:bg-gray-100 transition"
+              >
+                <Minus />
+              </motion.button>
 
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleDecrease}
-                  className="border border-gray-400 rounded-full p-2 hover:bg-gray-100"
-                >
-                  <Minus />
-                </button>
-                <span className="text-lg font-semibold">{quantity}</span>
-                <button
-                  onClick={handleIncrease}
-                  className="border border-gray-400 rounded-full p-2 hover:bg-gray-100"
-                >
-                  <Plus />
-                </button>
-              </div>
+              <span className="text-lg font-semibold">{quantity}</span>
+
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={handleIncrease}
+                className="border border-gray-300 rounded-full p-2 hover:bg-gray-100 transition"
+              >
+                <Plus />
+              </motion.button>
             </div>
           </div>
 
-          <DialogFooter className="mt-auto">
+          <DialogFooter className="mt-8">
             <Button
-              className="bg-black text-white rounded-lg w-full p-3"
+              className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-base font-medium rounded-xl w-full py-3 transition-all shadow-md hover:shadow-lg"
               onClick={createOrder}
             >
-              Add to cart
+              Add to Cart
             </Button>
           </DialogFooter>
         </div>

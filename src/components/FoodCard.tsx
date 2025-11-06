@@ -1,38 +1,39 @@
 /* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
 import { FoodCardPropsType } from "@/type/type";
 import { AddFoodOrder } from "./AddFoodOrder";
 
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4 flex flex-col items-center w-full max-w-[271px]">
-      {/* Food Image */}
-      <div className="relative w-full">
-        <img
-          src={
-            typeof food.image === "string"
-              ? food.image
-              : food.image
-              ? URL.createObjectURL(food.image)
-              : ""
-          }
-          alt={food.foodName}
-          className="w-full h-[130px] rounded-2xl object-cover"
-        />
-        <AddFoodOrder food={food} />
-      </div>
-
-      {/* Food Info */}
-      <div className="mt-3 w-full flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <h3 className="text-gray-800 font-semibold text-base">
-            {food.foodName}
-          </h3>
-          <span className="text-gray-700 font-medium text-sm">
-            ${food.price}
-          </span>
+    <Link href={`/food/${food.id}`} className="w-full max-w-[271px]">
+      <div className="bg-white shadow-md p-4 gap-5 border border-gray-200 rounded-2xl flex flex-col items-center hover:shadow-lg transition-all duration-200 cursor-pointer">
+        {/* Food Image */}
+        <div className="relative w-full">
+          <img
+            src={
+              typeof food.image === "string"
+                ? food.image
+                : food.image
+                ? URL.createObjectURL(food.image)
+                : ""
+            }
+            className="w-full h-[130px] rounded-2xl object-cover"
+            alt={food.foodName}
+          />
+          <AddFoodOrder food={food} />
         </div>
-        <p className="text-gray-600 text-sm line-clamp-2">{food.ingredients}</p>
+
+        {/* Food Info */}
+        <div className="text-center mt-2 w-full gap-[8px]">
+          <div className="flex justify-between">
+            <h3 className="text-red-500 font-semibold">{food.foodName}</h3>
+            <h3 className="text-black font-semibold">${food.price}</h3>
+          </div>
+          <p className="text-gray-700 text-sm line-clamp-2 text-start">
+            {food.ingredients}
+          </p>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };

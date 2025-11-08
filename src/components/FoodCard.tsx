@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { FoodCardPropsType } from "@/type/type";
-import { AddFoodOrder } from "./AddFoodOrder";
+// import { AddFoodOrder } from "./AddFoodOrder";
 
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   return (
@@ -20,7 +20,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
             className="w-full h-[130px] rounded-2xl object-cover"
             alt={food.foodName}
           />
-          <AddFoodOrder food={food} />
+          {/* <AddFoodOrder food={food} /> */}
         </div>
 
         {/* Food Info */}

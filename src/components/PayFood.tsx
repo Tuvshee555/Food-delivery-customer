@@ -40,11 +40,19 @@ export const PayFood = () => {
 
   useEffect(() => {
     try {
-      const storedCart: CartItemType[] = JSON.parse(
-        localStorage.getItem("cart") || "[]"
-      );
-      setCartItems(storedCart);
-      setTotalPrice(calculateTotal(storedCart));
+      const storedRaw = localStorage.getItem("cart") || "[]";
+      const parsedCart: any[] = JSON.parse(storedRaw);
+
+      const normalized = parsedCart.map((item) => {
+        if (item.food) return item;
+        const { quantity, ...food } = item;
+        return { food, quantity: quantity || 1 };
+      });
+
+      setCartItems(normalized);
+      setTotalPrice(calculateTotal(normalized));
+
+      localStorage.setItem("cart", JSON.stringify(normalized)); // optional cleanup
 
       let existingOrderId = localStorage.getItem("currentOrderId");
       if (!existingOrderId) {

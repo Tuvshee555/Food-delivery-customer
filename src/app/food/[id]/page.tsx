@@ -8,15 +8,14 @@ import { ShareButton } from "@/components/ShareButton";
 import { Header } from "@/components/Header";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 // Fetch food item from backend
 async function getFood(id: string): Promise<FoodType | null> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/food/${id}`,
-      {
-        cache: "no-store",
-      }
+      { cache: "no-store" }
     );
     if (!res.ok) return null;
     return res.json();
@@ -37,30 +36,36 @@ export default function FoodDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // ✅ unwrap params safely with React.use()
+  const router = useRouter();
   const { id } = use(params);
-
   const [food, setFood] = useState<FoodType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
-  const [mainMedia, setMainMedia] = useState<{
-    type: "image" | "video";
-    src: string;
-  }>({
-    type: "image",
+  const [mainMedia, setMainMedia] = useState({
+    type: "image" as "image" | "video",
     src: "",
   });
 
+  // ✅ Fetch food & initialize address
   useEffect(() => {
-    setAddress(localStorage.getItem("address"));
+    const savedAddress = localStorage.getItem("address");
+    if (savedAddress) setAddress(savedAddress);
+
+    // Keep address reactive if changed elsewhere (like AddLocation)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "address") setAddress(e.newValue);
+    };
+    window.addEventListener("storage", handleStorageChange);
+
     (async () => {
       const data = await getFood(id);
       if (!data) notFound();
       setFood(data);
-      const mainImage = getMediaUrl(data.image);
-      setMainMedia({ type: "image", src: mainImage });
+      setMainMedia({ type: "image", src: getMediaUrl(data.image) });
     })();
+
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [id]);
 
   if (!food) return null;
@@ -79,12 +84,13 @@ export default function FoodDetailPage({
 
   const totalPrice = food.price * quantity;
 
-  // ✅ Fixed Add to Cart
+  // ✅ Fixed Add to Cart logic
   const handleAddToCart = () => {
     if (!address || address.trim() === "") {
-      toast.error(
-        "❌ No address found. Please add your delivery address first."
-      );
+      toast.error("📍 Please add your delivery address before ordering.", {
+        description:
+          "Tap the location icon on the top bar to add your address.",
+      });
       return;
     }
 
@@ -93,7 +99,6 @@ export default function FoodDetailPage({
       return;
     }
 
-    // ✅ Cart item formatted correctly for PayFood
     const newCartItem = {
       food: {
         id: food.id,
@@ -109,6 +114,7 @@ export default function FoodDetailPage({
       },
       quantity,
       selectedSize: selectedSize || null,
+      address, // ✅ include user's current address
     };
 
     try {
@@ -117,9 +123,8 @@ export default function FoodDetailPage({
         "cart",
         JSON.stringify([...existingCart, newCartItem])
       );
-      toast.success("✅ Added to cart successfully!");
-      const item = localStorage.getItem("cart");
-      console.log(item, "item");
+      toast.success("✅ Added to cart!");
+      setTimeout(() => router.push("/checkout"), 800);
     } catch (error) {
       console.error(error);
       toast.error("❌ Failed to add to cart");
@@ -256,7 +261,7 @@ export default function FoodDetailPage({
             </motion.button>
           </div>
 
-          {/* Add to Cart Button */}
+          {/* Add to Cart */}
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleAddToCart}
@@ -268,7 +273,7 @@ export default function FoodDetailPage({
           {/* Footer */}
           <div className="flex justify-between items-center text-gray-400 text-sm pt-5 border-t border-gray-800">
             <span className="truncate max-w-[60%]">
-              📍 Хаяг: {food.address || "Тодорхойгүй"}
+              📍 Хаяг: {address || "Хаяг оруулаагүй байна"}
             </span>
             <ShareButton title={food.foodName} />
           </div>

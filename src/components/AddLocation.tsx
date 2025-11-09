@@ -1,7 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation"; // ✅ Added
+import { useAuth } from "@/app/provider/AuthProvider";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, X, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "sonner";
-import { useAuth } from "@/app/provider/AuthProvider";
-import { motion } from "framer-motion";
+import { ChevronRight, MapPin, X } from "lucide-react";
 
 export const AddLocation = ({
   open,
@@ -24,104 +25,120 @@ export const AddLocation = ({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) => {
-  const [address, setAddress] = useState("");
-  const [storedAddress, setStoredAddress] = useState<string | null>(null);
   const { userId, token } = useAuth();
+  const router = useRouter(); // ✅ Router for soft refresh
+  const [address, setAddress] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // ✅ Load saved address on mount
   useEffect(() => {
-    const add = localStorage.getItem("address");
-    if (add) setStoredAddress(add);
+    const saved = localStorage.getItem("address");
+    if (saved) setAddress(saved);
   }, []);
 
-  const postAddress = async () => {
-    if (!userId) {
-      toast.error("User not authenticated!");
+  // ✅ Save to backend + local
+  const handleSave = async () => {
+    if (!address.trim()) {
+      toast.error("Please enter a valid address.");
+      return;
+    }
+    if (!userId || !token) {
+      toast.error("You must be logged in.");
       return;
     }
 
     try {
+      setLoading(true);
       await axios.put(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`,
         { address },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success("✅ Successfully added location");
       localStorage.setItem("address", address);
-      setStoredAddress(address);
+      toast.success("✅ Address saved successfully!");
+
+      // ✅ Close dialog first for smooth UX
       onOpenChange(false);
+
+      // ✅ Wait a bit for dialog to close, then refresh
+      setTimeout(() => {
+        router.refresh(); // soft refresh — best for Next.js
+        // window.location.reload(); // alternative: full reload
+      }, 400);
     } catch (error) {
-      console.error("Error updating address:", error);
-      toast.error("❌ Failed to add location");
+      console.error(error);
+      toast.error("❌ Could not save address. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // ✅ Clear stored address
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    localStorage.removeItem("address");
+    setAddress("");
+    toast.info("Address cleared");
+    router.refresh(); // ✅ Refresh after clearing too
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <motion.div
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="flex py-2 px-4 sm:px-5 gap-2 bg-black/90 hover:bg-black rounded-full text-sm sm:text-base items-center cursor-pointer shadow-lg transition-all"
+          className="flex items-center gap-2 py-2 px-4 bg-neutral-900 hover:bg-neutral-800 rounded-full shadow-md cursor-pointer transition-all"
         >
-          <MapPin stroke="#EF4444" className="w-5 h-5 sm:w-6 sm:h-6" />
-          {!address && !storedAddress ? (
-            <span className="text-[#EF4444] font-medium tracking-wide">
-              Delivery address
-            </span>
-          ) : (
-            <div className="flex items-center gap-2 max-w-[150px] sm:max-w-[200px] truncate">
-              <p className="text-white text-sm sm:text-base truncate">
-                {address || storedAddress}
-              </p>
-              <X
-                stroke="white"
-                className="cursor-pointer hover:scale-110 transition"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAddress("");
-                  setStoredAddress(null);
-                  localStorage.removeItem("address");
-                }}
-              />
-            </div>
+          <MapPin className="text-red-500 w-5 h-5" />
+          <p className="text-sm sm:text-base text-white truncate max-w-[160px] sm:max-w-[220px]">
+            {address || "Add delivery address"}
+          </p>
+          {address && (
+            <X
+              className="text-gray-300 hover:text-white w-4 h-4 cursor-pointer transition"
+              onClick={handleClear}
+            />
           )}
-          <ChevronRight stroke="#a1a1aa" className="ml-1" />
+          <ChevronRight className="text-gray-400 w-4 h-4" />
         </motion.div>
       </DialogTrigger>
 
-      <DialogContent className="w-full max-w-sm sm:max-w-md rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-lg shadow-2xl p-4 sm:p-6">
+      <DialogContent className="w-full max-w-md rounded-2xl border border-gray-200 bg-white/95 backdrop-blur-lg shadow-2xl p-6">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-800">
             Delivery address
           </DialogTitle>
           <DialogDescription className="text-gray-500 text-sm sm:text-base">
-            Please enter your address details below.
+            Please enter your delivery address below.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-3">
+        <div className="py-4">
           <textarea
-            className="border border-gray-300 w-full rounded-xl h-[100px] sm:h-[120px] p-3 text-gray-800 text-sm sm:text-base focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all resize-none"
-            placeholder={storedAddress || "Please provide your location"}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            placeholder="Enter your delivery address..."
+            className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 text-sm sm:text-base focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none resize-none h-[100px] transition-all"
           />
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-2">
+        <DialogFooter className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
-            onClick={() => setAddress("")}
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
             className="w-full sm:w-1/2 border-gray-300 hover:bg-gray-100 text-gray-700 font-medium rounded-lg"
           >
             Cancel
           </Button>
           <Button
-            onClick={postAddress}
-            className="w-full sm:w-1/2 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg"
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full sm:w-1/2 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition"
           >
-            Deliver here
+            {loading ? "Saving..." : "Deliver here"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,7 +4,7 @@
 import { use, useEffect, useState } from "react";
 import { FoodType } from "@/type/type";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header/Header";
 import { FoodMedia } from "@/components/food/FoodMedia";
 import { FoodInfo } from "@/components/food/FoodInfo";
 import { SimilarFoods } from "@/components/food/SimilarFoods";

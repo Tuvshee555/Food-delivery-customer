@@ -21,12 +21,12 @@ export const FoodInfo = ({
 
   const handleAddToCart = () => {
     if (!address) {
-      toast.error("📍 Please add your address first.");
+      toast.error("📍 Та эхлээд хаягаа оруулна уу.");
       return;
     }
 
     if (Array.isArray(food.sizes) && food.sizes.length > 0 && !selectedSize) {
-      toast.error("⚠️ Please select a size before ordering.");
+      toast.error("⚠️ Хэмжээг сонгоно уу.");
       return;
     }
 
@@ -51,14 +51,20 @@ export const FoodInfo = ({
     };
 
     localStorage.setItem("cart", JSON.stringify([...cart, newItem]));
-    toast.success("✅ Added to cart!");
-    setTimeout(() => router.push("/checkout"), 800);
+    toast.success("✅ Сагсанд нэмэгдлээ!");
+    setTimeout(() => router.push("/checkout"), 700);
   };
 
   return (
-    <div className="flex-1 flex flex-col gap-6 bg-[#0e0e0e]/90 border border-gray-800 rounded-3xl p-6 md:p-8 shadow-lg backdrop-blur-md">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex-1 flex flex-col gap-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-[0_0_40px_-10px_rgba(250,204,21,0.1)]"
+    >
+      {/* Title + Price */}
       <div className="border-b border-gray-800 pb-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
           {food.foodName}
         </h1>
         <p className="text-3xl font-semibold text-[#facc15]">
@@ -66,20 +72,22 @@ export const FoodInfo = ({
         </p>
       </div>
 
+      {/* Ingredients */}
       {food.ingredients && (
         <div>
           <h3 className="text-gray-400 mb-2 text-sm uppercase tracking-wide">
             Орц:
           </h3>
-          <p className="text-gray-300 text-sm md:text-base">
+          <p className="text-gray-300 text-sm md:text-base leading-relaxed">
             {food.ingredients}
           </p>
         </div>
       )}
 
+      {/* Sizes */}
       {Array.isArray(food.sizes) && food.sizes.length > 0 && (
         <div>
-          <h3 className="text-gray-400 mb-2 text-sm uppercase">Хэмжээ:</h3>
+          <h3 className="text-gray-400 mb-3 text-sm uppercase">Хэмжээ:</h3>
           <div className="flex flex-wrap gap-3">
             {food.sizes.map((s: any, i: number) => {
               const label =
@@ -91,56 +99,63 @@ export const FoodInfo = ({
               const active = selectedSize === label;
 
               return (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   key={i}
                   onClick={() => setSelectedSize(label)}
-                  className={`px-4 py-2 rounded-full font-medium text-sm ${
+                  className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
                     active
-                      ? "bg-[#facc15] text-black"
+                      ? "bg-[#facc15] text-black shadow-[0_0_15px_rgba(250,204,21,0.3)]"
                       : "bg-[#1a1a1a] text-gray-300 border border-gray-700 hover:border-[#facc15]"
                   }`}
                 >
                   {label}
-                </button>
+                </motion.button>
               );
             })}
           </div>
         </div>
       )}
 
-      {/* Quantity */}
-      <div className="flex items-center gap-6 mt-1">
+      {/* Quantity Controls */}
+      <div className="flex items-center gap-6 mt-2">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-          className="w-9 h-9 rounded-full bg-[#1a1a1a] border border-gray-700 text-lg hover:border-[#facc15]"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1a1a1a] border border-gray-700 text-xl hover:border-[#facc15] hover:text-[#facc15] transition"
         >
           −
         </motion.button>
-        <span className="text-xl font-semibold">{quantity}</span>
+        <span className="text-2xl font-semibold text-gray-100">{quantity}</span>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setQuantity((q) => q + 1)}
-          className="w-9 h-9 rounded-full bg-[#1a1a1a] border border-gray-700 text-lg hover:border-[#facc15]"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1a1a1a] border border-gray-700 text-xl hover:border-[#facc15] hover:text-[#facc15] transition"
         >
           +
         </motion.button>
       </div>
 
+      {/* Add to Cart Button */}
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={handleAddToCart}
-        className="mt-4 py-4 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:brightness-110 transition-all"
+        className="mt-6 py-4 rounded-2xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_25px_rgba(250,204,21,0.4)] hover:brightness-110 transition-all"
       >
-        Захиалах
+        🛒 Сагсанд нэмэх
       </motion.button>
 
-      <div className="flex justify-between items-center text-gray-400 text-sm pt-5 border-t border-gray-800">
-        <span className="truncate max-w-[60%]">
-          📍 Хаяг: {address || "Хаяг оруулаагүй байна"}
+      {/* Address + Share */}
+      <div className="flex justify-between items-center text-gray-400 text-sm pt-5 border-t border-gray-800 mt-6">
+        <span className="truncate max-w-[65%]">
+          📍 Хаяг:{" "}
+          <span className="text-gray-300">
+            {address || "Хаяг оруулаагүй байна"}
+          </span>
         </span>
         <ShareButton title={food.foodName} />
       </div>
-    </div>
+    </motion.div>
   );
 };

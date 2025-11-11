@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, useMemo } from "react";
 import { FoodCard } from "@/components/FoodCard";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header/Header";
 import { CategorySidebar } from "@/components/category/CategorySidebar";
 import { CategoryHeader } from "@/components/category/CategoryHeader";
 import { FoodType } from "@/type/type";

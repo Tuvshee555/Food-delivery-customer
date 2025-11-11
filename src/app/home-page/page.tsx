@@ -3,7 +3,7 @@
 "use client";
 import { CategoryNameList } from "@/components/CategoryNameList";
 import { FoodCategoryList } from "@/components/FoodCategoryList";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header/Header";
 
 export default function Home() {
   return (

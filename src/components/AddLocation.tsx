@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { useRouter } from "next/navigation"; // ✅ Added
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/provider/AuthProvider";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ChevronRight, MapPin, X } from "lucide-react";
+import { MapPin, X, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const AddLocation = ({
   open,
@@ -26,7 +26,7 @@ export const AddLocation = ({
   onOpenChange: (v: boolean) => void;
 }) => {
   const { userId, token } = useAuth();
-  const router = useRouter(); // ✅ Router for soft refresh
+  const router = useRouter();
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +36,7 @@ export const AddLocation = ({
     if (saved) setAddress(saved);
   }, []);
 
-  // ✅ Save to backend + local
+  // ✅ Save to backend + local storage
   const handleSave = async () => {
     if (!address.trim()) {
       toast.error("Please enter a valid address.");
@@ -58,14 +58,9 @@ export const AddLocation = ({
       localStorage.setItem("address", address);
       toast.success("✅ Address saved successfully!");
 
-      // ✅ Close dialog first for smooth UX
+      // ✅ Close dialog and reload smoothly
       onOpenChange(false);
-
-      // ✅ Wait a bit for dialog to close, then refresh
-      setTimeout(() => {
-        router.refresh(); // soft refresh — best for Next.js
-        // window.location.reload(); // alternative: full reload
-      }, 400);
+      setTimeout(() => window.location.reload(), 500);
     } catch (error) {
       console.error(error);
       toast.error("❌ Could not save address. Please try again.");
@@ -80,68 +75,88 @@ export const AddLocation = ({
     localStorage.removeItem("address");
     setAddress("");
     toast.info("Address cleared");
-    router.refresh(); // ✅ Refresh after clearing too
+    setTimeout(() => window.location.reload(), 400);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* 🧭 Trigger - Matches Email/Search/Cart Style */}
       <DialogTrigger asChild>
-        <motion.div
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 py-2 px-4 bg-neutral-900 hover:bg-neutral-800 rounded-full shadow-md cursor-pointer transition-all"
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative flex items-center justify-center w-auto sm:w-auto px-4 h-[42px] rounded-full 
+                     border border-gray-700 bg-[#1a1a1a] hover:border-[#facc15] transition-all duration-300 
+                     hover:shadow-[0_0_12px_rgba(250,204,21,0.3)] text-sm text-gray-200"
         >
-          <MapPin className="text-red-500 w-5 h-5" />
-          <p className="text-sm sm:text-base text-white truncate max-w-[160px] sm:max-w-[220px]">
-            {address || "Add delivery address"}
-          </p>
+          <MapPin className="text-[#facc15] w-5 h-5 mr-2" />
+          <span className="truncate max-w-[150px] sm:max-w-[220px] text-gray-300">
+            {address ? address : "Add delivery address"}
+          </span>
           {address && (
             <X
-              className="text-gray-300 hover:text-white w-4 h-4 cursor-pointer transition"
+              className="text-gray-400 hover:text-[#facc15] w-4 h-4 ml-2 cursor-pointer transition"
               onClick={handleClear}
             />
           )}
-          <ChevronRight className="text-gray-400 w-4 h-4" />
-        </motion.div>
+          <ChevronRight className="text-gray-500 w-4 h-4 ml-1" />
+        </motion.button>
       </DialogTrigger>
 
-      <DialogContent className="w-full max-w-md rounded-2xl border border-gray-200 bg-white/95 backdrop-blur-lg shadow-2xl p-6">
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-800">
-            Delivery address
-          </DialogTitle>
-          <DialogDescription className="text-gray-500 text-sm sm:text-base">
-            Please enter your delivery address below.
-          </DialogDescription>
-        </DialogHeader>
+      {/* 📍 Dialog */}
+      <AnimatePresence>
+        <DialogContent
+          className="w-[90%] max-w-[420px] bg-[#0e0e0e] text-white border border-gray-800 
+                     rounded-2xl shadow-[0_0_40px_-10px_rgba(250,204,21,0.15)] p-6 animate-in fade-in duration-300"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-[#facc15]">
+              Delivery Address
+            </DialogTitle>
+            <DialogDescription className="text-gray-400 text-sm mt-1">
+              Please enter your delivery address below.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="py-4">
-          <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter your delivery address..."
-            className="w-full border border-gray-300 rounded-xl p-3 text-gray-800 text-sm sm:text-base focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none resize-none h-[100px] transition-all"
-          />
-        </div>
+          {/* Address input */}
+          <div className="py-4">
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Enter your delivery address..."
+              className="w-full bg-[#1a1a1a] border border-gray-700 rounded-xl p-3 text-sm text-gray-200
+                         focus:border-[#facc15] focus:ring-1 focus:ring-[#facc15] outline-none resize-none
+                         h-[100px] transition-all"
+            />
+          </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-            className="w-full sm:w-1/2 border-gray-300 hover:bg-gray-100 text-gray-700 font-medium rounded-lg"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={loading}
-            className="w-full sm:w-1/2 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition"
-          >
-            {loading ? "Saving..." : "Deliver here"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+          {/* Footer buttons */}
+          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-3">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+              className="w-full sm:w-1/2 h-[42px] rounded-lg border border-gray-700 text-gray-300 
+                         hover:border-[#facc15] hover:text-[#facc15] transition-all duration-200"
+            >
+              Cancel
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleSave}
+              disabled={loading}
+              className="w-full sm:w-1/2 h-[42px] rounded-lg bg-gradient-to-r from-[#facc15] to-[#fbbf24] 
+                         text-black font-semibold shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:brightness-110 
+                         transition-all duration-200"
+            >
+              {loading ? "Saving..." : "Deliver Here"}
+            </motion.button>
+          </DialogFooter>
+        </DialogContent>
+      </AnimatePresence>
     </Dialog>
   );
 };

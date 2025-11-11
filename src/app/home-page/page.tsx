@@ -12,15 +12,18 @@ export default function Home() {
         <Header />
         <img src="./BackMain.png" className="h-[668px] w-full" />
         <div className="bg-[#404040] rounded-[8px] p-[24px]">
-          <div className="text-[20px] font-semibold text-[white]">
-            Categories
-          </div>
-          <div className="flex">
-            <CategoryNameList />
-          </div>
           <FoodCategoryList />
         </div>
       </div>
     </>
   );
+}
+
+{
+  /* <div className="text-[20px] font-semibold text-[white]">
+  Categories
+</div> */
+}
+{
+  /* <div className="flex"><CategoryNameList /></div> */
 }

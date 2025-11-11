@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 export default function CartStep({
   cart,
@@ -14,44 +15,84 @@ export default function CartStep({
   const grandTotal = total + delivery;
 
   return (
-    <main className="min-h-screen bg-black text-white p-8 flex flex-col md:flex-row gap-10">
-      <div className="flex-1 bg-[#111] p-6 rounded-2xl">
-        <h1 className="text-2xl font-semibold mb-4">🛒 Таны сагс</h1>
+    <main className="min-h-screen bg-[#0a0a0a] text-white flex flex-col md:flex-row gap-8 p-6 md:p-10">
+      {/* LEFT: CART ITEMS */}
+      <div className="flex-1 bg-[#0e0e0e]/90 border border-gray-800 rounded-3xl p-6 shadow-[0_0_30px_-10px_rgba(250,204,21,0.1)]">
+        <h1 className="text-3xl font-bold mb-6 border-b border-gray-800 pb-3">
+          🛒 Таны сагс
+        </h1>
+
         {cart.length ? (
-          cart.map((item, i) => (
-            <div
-              key={i}
-              className="flex justify-between border-b border-gray-800 py-3"
-            >
-              <div>
-                <p className="font-semibold">{item.food.foodName}</p>
-                <p className="text-gray-400 text-sm">x{item.quantity}</p>
-              </div>
-              <p>{(item.food.price * item.quantity).toLocaleString()}₮</p>
-            </div>
-          ))
+          <div className="space-y-5">
+            {cart.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex justify-between items-center border-b border-gray-800 pb-4"
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={item.food.image}
+                    alt={item.food.foodName}
+                    className="w-16 h-16 object-cover rounded-xl border border-gray-700"
+                  />
+                  <div>
+                    <p className="font-semibold text-lg">
+                      {item.food.foodName}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      x{item.quantity}
+                      {item.selectedSize && (
+                        <span className="ml-1 text-gray-500">
+                          ({item.selectedSize})
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <p className="font-semibold text-[#facc15] text-lg">
+                  {(item.food.price * item.quantity).toLocaleString()}₮
+                </p>
+              </motion.div>
+            ))}
+          </div>
         ) : (
-          <p>Сагс хоосон байна.</p>
+          <p className="text-gray-400 text-center mt-8">Сагс хоосон байна.</p>
         )}
       </div>
 
-      <div className="w-full md:w-[380px] bg-[#111] p-6 rounded-2xl h-fit">
+      {/* RIGHT: TOTAL SUMMARY */}
+      <div className="w-full md:w-[400px] bg-[#0e0e0e]/90 border border-gray-800 rounded-3xl p-6 shadow-[0_0_40px_-10px_rgba(250,204,21,0.15)] h-fit">
+        <h2 className="text-xl font-semibold mb-4 border-b border-gray-800 pb-3">
+          Захиалгын дэлгэрэнгүй
+        </h2>
+
         <div className="flex justify-between text-gray-300 mb-2">
-          <span>Бүтээгдэхүүн</span> <span>{total.toLocaleString()}₮</span>
-        </div>
-        <div className="flex justify-between text-gray-300 mb-2">
-          <span>Хүргэлт</span> <span>{delivery.toLocaleString()}₮</span>
-        </div>
-        <div className="flex justify-between font-semibold text-lg border-t border-gray-700 pt-2">
-          <span>Нийт</span> <span>{grandTotal.toLocaleString()}₮</span>
+          <span>Бүтээгдэхүүн</span>
+          <span>{total.toLocaleString()}₮</span>
         </div>
 
-        <Button
+        <div className="flex justify-between text-gray-300 mb-2">
+          <span>Хүргэлт</span>
+          <span>{delivery.toLocaleString()}₮</span>
+        </div>
+
+        <div className="flex justify-between items-center text-lg font-semibold border-t border-gray-700 pt-3 mt-3">
+          <span>Нийт</span>
+          <span className="text-[#facc15] text-2xl">
+            {grandTotal.toLocaleString()}₮
+          </span>
+        </div>
+
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           onClick={() => router.push("/checkout?step=info")}
-          className="w-full mt-6 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold py-3 rounded-lg"
+          className="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:brightness-110 transition-all"
         >
           Үргэлжлүүлэх
-        </Button>
+        </motion.button>
       </div>
     </main>
   );

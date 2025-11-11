@@ -18,7 +18,6 @@ export const Email = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
 
-  // ✅ Load saved email from localStorage
   useEffect(() => {
     const email = localStorage.getItem("email");
     setUserEmail(email);
@@ -33,7 +32,6 @@ export const Email = () => {
 
   return (
     <Sheet>
-      {/* 🟡 Avatar Trigger */}
       <SheetTrigger asChild>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -49,13 +47,11 @@ export const Email = () => {
         </motion.button>
       </SheetTrigger>
 
-      {/* 📩 Sheet Content */}
       <SheetContent
         side="right"
         className="w-full sm:max-w-[420px] bg-[#0a0a0a] text-white border-l border-gray-800 
                    flex flex-col justify-between p-0 overflow-hidden"
       >
-        {/* ✅ Hidden accessible title (fixes Radix warning) */}
         <VisuallyHidden>
           <SheetTitle>User Profile Menu</SheetTitle>
         </VisuallyHidden>
@@ -73,7 +69,7 @@ export const Email = () => {
         {/* Body */}
         <div className="flex-1 flex flex-col px-6 py-5 gap-4">
           <button
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/profile?tab=profile")}
             className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/80 border border-gray-800 hover:border-[#facc15] transition-all"
           >
             <User className="w-5 h-5 text-[#facc15]" />
@@ -86,7 +82,7 @@ export const Email = () => {
           </button>
 
           <button
-            onClick={() => router.push("/orders")}
+            onClick={() => router.push("/profile?tab=orders")}
             className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/80 border border-gray-800 hover:border-[#facc15] transition-all"
           >
             <Package className="w-5 h-5 text-[#facc15]" />
@@ -99,7 +95,7 @@ export const Email = () => {
           </button>
 
           <button
-            onClick={() => router.push("/tickets")}
+            onClick={() => router.push("/profile?tab=tickets")}
             className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/80 border border-gray-800 hover:border-[#facc15] transition-all"
           >
             <Ticket className="w-5 h-5 text-[#facc15]" />
@@ -114,7 +110,6 @@ export const Email = () => {
           </button>
         </div>
 
-        {/* Footer */}
         <SheetFooter className="border-t border-gray-800 p-5 bg-[#111]/80">
           <motion.button
             whileHover={{ scale: 1.02 }}

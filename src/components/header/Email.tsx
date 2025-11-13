@@ -25,6 +25,12 @@ export const Email = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("cart");
+    localStorage.removeItem("checkout_info");
+    localStorage.clear(); // safest option
+
     router.push("/log-in");
   };
 

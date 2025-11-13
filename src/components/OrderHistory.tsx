@@ -37,7 +37,9 @@ export const OrderHistory = () => {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/user/${userId}`
       );
-      setOrders(response.data);
+
+      // ⬇️ FIX HERE
+      setOrders(response.data.orders || []);
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch orders");

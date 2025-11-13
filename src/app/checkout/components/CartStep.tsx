@@ -21,7 +21,7 @@ export default function CartStep({
   }, [cart]);
 
   const total = items.reduce((sum, i) => sum + i.food.price * i.quantity, 0);
-  const delivery = 9000;
+  const delivery = 100;
   const grandTotal = total + delivery;
 
   // Quantity controls

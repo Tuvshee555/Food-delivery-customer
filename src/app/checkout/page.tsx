@@ -3,8 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import InfoStep from "./components/InfoStep";
-import PaymentStep from "./components/PaymentStep";
-import SuccessStep from "./components/SuccessStep";
 import CartStep from "./components/CartStep";
 
 export default function CheckoutPage() {
@@ -19,8 +17,9 @@ export default function CheckoutPage() {
   }, []);
 
   if (step === "info") return <InfoStep router={router} />;
-  if (step === "payment") return <PaymentStep cart={cart} router={router} />;
-  if (step === "done") return <SuccessStep />;
 
   return <CartStep cart={cart} router={router} />;
 }
+
+// if (step === "payment") return <PaymentStep cart={cart} router={router} />;
+// if (step === "done") return <SuccessStep />;

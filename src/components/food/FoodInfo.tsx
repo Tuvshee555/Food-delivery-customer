@@ -17,42 +17,94 @@ export const FoodInfo = ({
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const totalPrice = food.price * quantity;
 
-  const handleAddToCart = () => {
+  const resolveImageUrl = () =>
+    typeof food.image === "string"
+      ? food.image
+      : food.image
+      ? URL.createObjectURL(food.image as Blob)
+      : "";
+
+  const resolveFoodId = () => food.id || (food as any)._id || null;
+
+  const addToCartInternal = (opts?: { gotoCheckout?: boolean }) => {
     if (!address) {
       toast.error("📍 Та эхлээд хаягаа оруулна уу.");
-      return;
+      return false;
     }
 
     if (Array.isArray(food.sizes) && food.sizes.length > 0 && !selectedSize) {
       toast.error("⚠️ Хэмжээг сонгоно уу.");
-      return;
+      return false;
     }
 
-    const imageUrl =
-      typeof food.image === "string"
-        ? food.image
-        : food.image
-        ? URL.createObjectURL(food.image as Blob)
-        : "";
+    const foodId = resolveFoodId();
+    if (!foodId) {
+      toast.error("❌ Хоолны ID байхгүй байна. Дахин оролдоно уу.");
+      return false;
+    }
 
+    // load cart
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const newItem = {
-      food: {
-        _id: food._id,
-        foodName: food.foodName,
-        price: food.price,
-        image: imageUrl,
-      },
-      quantity,
-      selectedSize,
-      address,
-    };
 
-    localStorage.setItem("cart", JSON.stringify([...cart, newItem]));
+    // find existing item (compare by id + size)
+    const existingIndex = cart.findIndex(
+      (item: any) =>
+        (item.food?.id || item.food?._id || item.id || item._id) === foodId &&
+        item.selectedSize === selectedSize
+    );
+
+    if (existingIndex >= 0) {
+      cart[existingIndex].quantity =
+        (cart[existingIndex].quantity || 0) + quantity;
+    } else {
+      const newItem = {
+        food: {
+          id: foodId,
+          foodName: food.foodName,
+          price: food.price,
+          image: resolveImageUrl(),
+        },
+        quantity,
+        selectedSize,
+        address,
+      };
+      cart.push(newItem);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
     toast.success("✅ Сагсанд нэмэгдлээ!");
-    setTimeout(() => router.push("/checkout"), 700);
+
+    if (opts?.gotoCheckout) {
+      setTimeout(() => router.push("/checkout"), 250);
+    }
+
+    return true;
+  };
+
+  const handleAddToCart = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      addToCartInternal({ gotoCheckout: false });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleOrderNow = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const ok = addToCartInternal({ gotoCheckout: true });
+      if (!ok) {
+        // addToCartInternal already showed toast on failure
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -137,14 +189,26 @@ export const FoodInfo = ({
         </motion.button>
       </div>
 
-      {/* Add to Cart Button */}
-      <motion.button
-        whileTap={{ scale: 0.98 }}
-        onClick={handleAddToCart}
-        className="mt-6 py-4 rounded-2xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_25px_rgba(250,204,21,0.4)] hover:brightness-110 transition-all"
-      >
-        🛒 Сагсанд нэмэх
-      </motion.button>
+      {/* Buttons: Add to Cart (stays) + Order Now (goto checkout) */}
+      <div className="flex gap-4 mt-6">
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={handleAddToCart}
+          disabled={isProcessing}
+          className="flex-1 py-4 rounded-2xl bg-[#111] border border-gray-700 text-white font-semibold text-lg hover:border-[#facc15] transition-all disabled:opacity-60"
+        >
+          🛒 Сагсанд нэмэх
+        </motion.button>
+
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={handleOrderNow}
+          disabled={isProcessing}
+          className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_25px_rgba(250,204,21,0.4)] hover:brightness-110 transition-all disabled:opacity-60"
+        >
+          Захиалах
+        </motion.button>
+      </div>
 
       {/* Address + Share */}
       <div className="flex justify-between items-center text-gray-400 text-sm pt-5 border-t border-gray-800 mt-6">

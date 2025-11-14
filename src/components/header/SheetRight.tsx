@@ -12,29 +12,60 @@ import {
 import { useState, useEffect } from "react";
 import { PayFood } from "../PayFood";
 import { OrderHistory } from "../OrderHistory";
+import { useAuth } from "@/app/provider/AuthProvider";
+import { toast } from "sonner";
 
 export const SheetRight = () => {
+  const { userId, token } = useAuth();
   const [page, setPage] = useState<number>(1);
   const [cartCount, setCartCount] = useState<number>(0);
 
-  // ✅ Load cart count from localStorage
-  useEffect(() => {
-    const loadCart = () => {
-      const stored = localStorage.getItem("cart");
-      const items = stored ? JSON.parse(stored) : [];
-      // Count total quantity (not just items)
+  // ✅ Load cart from SERVER instead of localStorage
+  const loadServerCart = async () => {
+    if (!userId || !token) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch cart");
+
+      const data = await res.json();
+
+      const items = data.cart || [];
+
+      // Count total QTY
       const totalQty = items.reduce(
         (sum: number, item: any) => sum + (item.quantity || 1),
         0
       );
+
       setCartCount(totalQty);
-    };
+    } catch (err) {
+      console.error("Cart load error:", err);
+      // optional toast:
+      // toast.error("Failed to load cart");
+    }
+  };
 
-    loadCart();
+  // 🔄 Load cart on mount AND when user logs in
+  useEffect(() => {
+    loadServerCart();
+  }, [userId]);
 
-    // ✅ Listen for storage updates
+  // 🔄 Listen for cart updates from other components
+  useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "cart") loadCart();
+      if (e.key === "cart-updated") {
+        // whenever someone dispatches this event:
+        loadServerCart();
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -58,6 +89,7 @@ export const SheetRight = () => {
             className="w-[20px] h-[20px] text-gray-300 group-hover:text-[#facc15] transition-colors"
             strokeWidth={1.8}
           />
+
           {/* 🧮 Real-time cart count badge */}
           {cartCount > 0 && (
             <motion.span

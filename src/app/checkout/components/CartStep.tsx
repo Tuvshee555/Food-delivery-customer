@@ -5,45 +5,113 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/header/Header";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import { useAuth } from "@/app/provider/AuthProvider";
 
 export default function CartStep({
   cart,
   router,
+  refreshCart,
 }: {
   cart: any[];
   router: any;
+  refreshCart: () => Promise<void>;
 }) {
-  const [items, setItems] = useState<any[]>(cart || []);
+  const { userId, token } = useAuth();
+  const [items, setItems] = useState<any[]>([]);
 
+  // 🟡 1. Load cart from server
   useEffect(() => {
-    const stored = localStorage.getItem("cart");
-    if (stored) setItems(JSON.parse(stored));
-  }, [cart]);
+    if (!userId) return;
 
-  const total = items.reduce((sum, i) => sum + i.food.price * i.quantity, 0);
+    const fetchCart = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`
+        );
+        setItems(res.data.items || []);
+      } catch (err) {
+        console.log(err);
+        toast.error("Сагс ачаалахад алдаа гарлаа.");
+      }
+    };
+
+    fetchCart();
+  }, [userId]);
+
+  const total = items.reduce(
+    (sum, i) => sum + (i.food?.price || 0) * i.quantity,
+    0
+  );
   const delivery = 100;
   const grandTotal = total + delivery;
 
-  // Quantity controls
-  const increaseQuantity = (index: number) => {
-    const updated = [...items];
-    updated[index].quantity++;
-    setItems(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-  };
+  // 🟡 2. Increase quantity (server)
+  const increaseQuantity = async (index: number) => {
+    const item = items[index];
 
-  const decreaseQuantity = (index: number) => {
-    const updated = [...items];
-    if (updated[index].quantity > 1) {
-      updated[index].quantity--;
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/update`, {
+        id: item.id,
+        quantity: item.quantity + 1,
+      });
+
+      const updated = [...items];
+      updated[index].quantity++;
       setItems(updated);
-      localStorage.setItem("cart", JSON.stringify(updated));
+    } catch (err) {
+      toast.error("Тоо ширхэг нэмэхэд алдаа гарлаа.");
     }
   };
 
-  const clearCart = () => {
-    setItems([]);
-    localStorage.removeItem("cart");
+  // 🟡 3. Decrease quantity (server)
+  const decreaseQuantity = async (index: number) => {
+    const item = items[index];
+    if (item.quantity <= 1) return;
+
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/update`, {
+        id: item.id,
+        quantity: item.quantity - 1,
+      });
+
+      const updated = [...items];
+      updated[index].quantity--;
+      setItems(updated);
+    } catch (err) {
+      toast.error("Тоо ширхэг хасахад алдаа гарлаа.");
+    }
+  };
+
+  // 🟡 4. Remove single item
+  const removeItem = async (index: number) => {
+    const item = items[index];
+
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/remove`, {
+        id: item.id,
+      });
+
+      toast.success("Бараа устгагдлаа.");
+      setItems(items.filter((_, i) => i !== index));
+    } catch {
+      toast.error("Устгахад алдаа гарлаа.");
+    }
+  };
+
+  // 🟡 5. Clear entire cart
+  const clearCart = async () => {
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/clear`, {
+        userId,
+      });
+
+      toast.success("Сагс хоослогдлоо.");
+      setItems([]);
+    } catch {
+      toast.error("Сагс хоослох үед алдаа гарлаа.");
+    }
   };
 
   return (
@@ -78,7 +146,7 @@ export default function CartStep({
               <div className="space-y-6">
                 {items.map((item, i) => (
                   <motion.div
-                    key={item.food._id || i}
+                    key={item.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
@@ -87,13 +155,13 @@ export default function CartStep({
                     {/* LEFT: Image + Info */}
                     <div className="flex items-center gap-5">
                       <img
-                        src={item.food.image}
-                        alt={item.food.foodName}
+                        src={item.food?.image}
+                        alt={item.food?.foodName}
                         className="w-24 h-24 object-cover rounded-2xl border border-gray-700"
                       />
                       <div>
                         <p className="font-semibold text-lg">
-                          {item.food.foodName}
+                          {item.food?.foodName}
                         </p>
                         {item.selectedSize && (
                           <p className="text-gray-400 text-sm mt-1">
@@ -106,8 +174,9 @@ export default function CartStep({
                     {/* RIGHT: Price + Controls */}
                     <div className="flex flex-col items-end gap-2">
                       <p className="font-semibold text-[#facc15] text-lg">
-                        {(item.food.price * item.quantity).toLocaleString()}₮
+                        {(item.food?.price * item.quantity).toLocaleString()}₮
                       </p>
+
                       <div className="flex items-center rounded-full bg-[#1c1c1c] border border-gray-700 overflow-hidden">
                         <button
                           onClick={() => decreaseQuantity(i)}
@@ -115,9 +184,11 @@ export default function CartStep({
                         >
                           <Minus className="w-4 h-4" />
                         </button>
+
                         <span className="px-4 py-1 bg-[#facc15] text-black font-semibold">
                           {item.quantity}
                         </span>
+
                         <button
                           onClick={() => increaseQuantity(i)}
                           className="px-3 py-1.5 text-gray-300 hover:bg-[#2a2a2a] transition"
@@ -125,13 +196,20 @@ export default function CartStep({
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
+
+                      <button
+                        onClick={() => removeItem(i)}
+                        className="text-red-400 text-xs hover:underline"
+                      >
+                        Устгах
+                      </button>
                     </div>
                   </motion.div>
                 ))}
               </div>
             ) : (
               <p className="text-gray-400 text-center mt-20 text-lg">
-                🛍 Сагс хоосон байна.
+                🛍 Сагс хоосон байна22.
               </p>
             )}
           </motion.section>
@@ -166,18 +244,6 @@ export default function CartStep({
               </span>
             </div>
 
-            {/* Coupon input */}
-            <div className="flex mt-8 gap-2">
-              <input
-                type="text"
-                placeholder="Купон код"
-                className="flex-1 bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-[#facc15] outline-none transition"
-              />
-              <button className="bg-[#facc15] text-black px-5 py-2 rounded-lg font-semibold hover:brightness-110 transition">
-                Шалгах
-              </button>
-            </div>
-
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => router.push("/checkout?step=info")}
@@ -185,11 +251,6 @@ export default function CartStep({
             >
               Үргэлжлүүлэх
             </motion.button>
-
-            <p className="text-gray-500 text-sm mt-6 leading-snug flex gap-2 items-start">
-              ⚠️ Хүргэлтийн бүсээс хамаарч хүргэлтийн төлбөрт өөрчлөлт орж
-              болохыг анхаарна уу.
-            </p>
           </motion.section>
         </div>
       </main>

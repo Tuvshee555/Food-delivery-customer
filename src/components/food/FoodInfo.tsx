@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ShareButton } from "@/components/ShareButton";
+import { useAuth } from "@/app/provider/AuthProvider";
 
 export const FoodInfo = ({
   food,
@@ -15,9 +16,12 @@ export const FoodInfo = ({
   address: string | null;
 }) => {
   const router = useRouter();
+  const { userId, token } = useAuth();
+
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
   const totalPrice = food.price * quantity;
 
   const resolveImageUrl = () =>
@@ -27,86 +31,93 @@ export const FoodInfo = ({
       ? URL.createObjectURL(food.image as Blob)
       : "";
 
-  const resolveFoodId = () => food.id || (food as any)._id || null;
+  const getFoodId = () => food.id || food._id || null;
 
-  const addToCartInternal = (opts?: { gotoCheckout?: boolean }) => {
+  // ----------------------------------------------------------------------
+  // 🛒 ADD TO SERVER CART
+  // ----------------------------------------------------------------------
+  const addToCartServer = async (gotoCheckout = false) => {
+    if (!userId || !token) {
+      toast.error("❌ Нэвтэрч ороогүй байна. Эхлээд нэвтэрнэ үү.");
+      return false;
+    }
+
     if (!address) {
       toast.error("📍 Та эхлээд хаягаа оруулна уу.");
       return false;
     }
 
+    // Only check if sizes exist
     if (Array.isArray(food.sizes) && food.sizes.length > 0 && !selectedSize) {
       toast.error("⚠️ Хэмжээг сонгоно уу.");
       return false;
     }
 
-    const foodId = resolveFoodId();
+    const foodId = getFoodId();
     if (!foodId) {
-      toast.error("❌ Хоолны ID байхгүй байна. Дахин оролдоно уу.");
+      toast.error("❌ Хоолны ID олдсонгүй.");
       return false;
     }
 
-    // load cart
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            foodId,
+            quantity,
+            selectedSize,
+          }),
+        }
+      );
 
-    // find existing item (compare by id + size)
-    const existingIndex = cart.findIndex(
-      (item: any) =>
-        (item.food?.id || item.food?._id || item.id || item._id) === foodId &&
-        item.selectedSize === selectedSize
-    );
+      const data = await res.json();
 
-    if (existingIndex >= 0) {
-      cart[existingIndex].quantity =
-        (cart[existingIndex].quantity || 0) + quantity;
-    } else {
-      const newItem = {
-        food: {
-          id: foodId,
-          foodName: food.foodName,
-          price: food.price,
-          image: resolveImageUrl(),
-        },
-        quantity,
-        selectedSize,
-        address,
-      };
-      cart.push(newItem);
+      if (!res.ok) {
+        toast.error(data.message || "❌ Сагс руу нэмэхэд алдаа гарлаа.");
+        return false;
+      }
+
+      toast.success("🛒 Амжилттай сагсанд нэмэгдлээ!");
+
+      if (gotoCheckout) {
+        setTimeout(() => router.push("/checkout"), 200);
+      }
+
+      return true;
+    } catch (error) {
+      console.error(error);
+      toast.error("❌ Сервертэй холбогдож чадсангүй.");
+      return false;
     }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    toast.success("✅ Сагсанд нэмэгдлээ!");
-
-    if (opts?.gotoCheckout) {
-      setTimeout(() => router.push("/checkout"), 250);
-    }
-
-    return true;
   };
 
+  // ----------------------------------------------------------------------
+  // BUTTON HANDLERS
+  // ----------------------------------------------------------------------
   const handleAddToCart = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
-    try {
-      addToCartInternal({ gotoCheckout: false });
-    } finally {
-      setIsProcessing(false);
-    }
+    await addToCartServer(false);
+    setIsProcessing(false);
   };
 
   const handleOrderNow = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
-    try {
-      const ok = addToCartInternal({ gotoCheckout: true });
-      if (!ok) {
-        // addToCartInternal already showed toast on failure
-      }
-    } finally {
-      setIsProcessing(false);
-    }
+    await addToCartServer(true);
+    setIsProcessing(false);
   };
 
+  // ----------------------------------------------------------------------
+  // UI
+  // ----------------------------------------------------------------------
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -148,6 +159,7 @@ export const FoodInfo = ({
                   : typeof s === "object" && "label" in s
                   ? s.label
                   : "";
+
               const active = selectedSize === label;
 
               return (
@@ -179,7 +191,9 @@ export const FoodInfo = ({
         >
           −
         </motion.button>
+
         <span className="text-2xl font-semibold text-gray-100">{quantity}</span>
+
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setQuantity((q) => q + 1)}
@@ -189,7 +203,7 @@ export const FoodInfo = ({
         </motion.button>
       </div>
 
-      {/* Buttons: Add to Cart (stays) + Order Now (goto checkout) */}
+      {/* Buttons */}
       <div className="flex gap-4 mt-6">
         <motion.button
           whileTap={{ scale: 0.98 }}

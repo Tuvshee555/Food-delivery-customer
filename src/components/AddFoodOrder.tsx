@@ -42,7 +42,7 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
       return;
     }
 
-    const foodId = food._id || food.id;
+    const foodId = food.id || food.id;
     if (!foodId) {
       toast.error("❌ Invalid food item.");
       return;

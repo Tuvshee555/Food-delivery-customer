@@ -127,13 +127,13 @@ export const SearchDialog = () => {
 
               {filteredFoods.map((item, index) => (
                 <motion.div
-                  key={item._id || `${item.foodName}-${index}`}
+                  key={item.id || `${item.foodName}-${index}`}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
                 >
                   <Link
-                    href={`/food/${item.id || item._id || ""}`}
+                    href={`/food/${item.id || item.id || ""}`}
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#1a1a1a]/70 transition"
                   >

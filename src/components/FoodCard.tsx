@@ -34,7 +34,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
 
   return (
     <Link
-      href={`/food/${food.id || food._id}`}
+      href={`/food/${food.id || food.id}`}
       className="block w-full max-w-[280px]"
     >
       <div

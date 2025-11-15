@@ -55,11 +55,11 @@ export const CategorySidebar = () => {
             <li className="text-gray-500 text-xs italic">Хоосон байна</li>
           )}
           {filtered.map((cat) => {
-            const isActive = pathname.includes(cat._id || cat.id);
+            const isActive = pathname.includes(cat.id || cat.id);
             return (
               <Link
-                key={cat._id || cat.id}
-                href={`/category/${cat._id || cat.id}`}
+                key={cat.id || cat.id}
+                href={`/category/${cat.id || cat.id}`}
                 className={`relative px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                   isActive
                     ? "text-[#facc15] bg-[#1f1f1f] shadow-[0_0_8px_rgba(250,204,21,0.15)]"

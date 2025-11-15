@@ -16,6 +16,7 @@ import AuthDrawer from "../AuthDrawer";
 
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { toast } from "sonner";
+import { saveAuth } from "@/utils/auth";
 
 export const Email = () => {
   const router = useRouter();
@@ -72,9 +73,16 @@ export const Email = () => {
       localStorage.setItem("email", data.user.email);
       localStorage.setItem("userId", data.user.id);
 
+      console.log("GOOGLE LOGIN TOKEN:", localStorage.getItem("token"));
+      console.log("GOOGLE LOGIN EMAIL:", localStorage.getItem("email"));
+      console.log("GOOGLE LOGIN USERID:", localStorage.getItem("userId"));
+
+      saveAuth(data);
+      // window.location.href = "/home-page";
+
       toast.success("Google-р амжилттай нэвтэрлээ");
 
-      setTimeout(() => window.location.reload(), 300);
+      // setTimeout(() => window.location.reload(), 300);
     } catch {
       toast.error("Google login error");
     }

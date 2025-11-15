@@ -31,7 +31,7 @@ export const FoodInfo = ({
       ? URL.createObjectURL(food.image as Blob)
       : "";
 
-  const getFoodId = () => food.id || food._id || null;
+  const getFoodId = () => food.id || food.id || null;
 
   // ----------------------------------------------------------------------
   // 🛒 ADD TO SERVER CART

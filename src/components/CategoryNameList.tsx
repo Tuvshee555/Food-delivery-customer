@@ -21,10 +21,10 @@ export const CategoryNameList = () => {
       <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
         {category.map((c, index) => (
           <motion.div
-            key={c._id || index}
+            key={c.id || index}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => router.push(`category-type/${c._id}`)}
+            onClick={() => router.push(`category-type/${c.id}`)}
             className="py-2 sm:py-3 px-4 sm:px-6 text-xs sm:text-sm md:text-base 
               rounded-full border border-gray-300 flex items-center gap-2 
               bg-white/90 backdrop-blur-md shadow-md hover:shadow-lg hover:border-red-500 

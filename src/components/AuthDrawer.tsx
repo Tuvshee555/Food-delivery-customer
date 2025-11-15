@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { saveAuth } from "@/utils/auth";
 
 export default function AuthDrawer() {
   const router = useRouter();
@@ -96,6 +97,9 @@ export default function AuthDrawer() {
 
   const handleVerify = async () => {
     const code = digits.join("");
+    const normalizedEmail = email.trim().toLowerCase();
+
+    console.log("DEBUG verify -> email:", normalizedEmail, "code:", code);
     if (code.length !== 6) {
       toast.error("6 оронтой код оруулна уу");
       return;
@@ -110,36 +114,50 @@ export default function AuthDrawer() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email,
+            email: normalizedEmail,
             code,
-            role: "USER", // 🔥 FIXED → send role
+            role: "USER",
           }),
         }
       );
 
-      const data = await res.json();
+      const text = await res.text();
+      // Популяр алдаануудын тулд response-ийг raw хэлбэрээр авна
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = { raw: text };
+      }
+
+      console.log("DEBUG verify -> status:", res.status, "body:", data);
 
       if (!res.ok) {
-        toast.error(data.message || "Код буруу байна");
+        toast.error(data?.message || "Код буруу байна");
         setIsLoading(false);
         return;
       }
 
-      // 🔥 FIXED → use data.userId (not _id)
+      // Амжилт
       localStorage.setItem("token", data.token);
       localStorage.setItem("email", data.user.email);
       localStorage.setItem("userId", data.user.id);
+      console.log("OTP LOGIN: token =", localStorage.getItem("token"));
+      console.log("OTP LOGIN: email =", localStorage.getItem("email"));
+      console.log("OTP LOGIN: userId =", localStorage.getItem("userId"));
 
-      // localStorage.setItem("token", data.token);
-      // localStorage.setItem("email", data.user.email);
-      // localStorage.setItem("userId", data.user._id);
+      saveAuth(data);
+      // window.location.href = "/home-page";
 
-      window.dispatchEvent(new Event("auth-changed"));
+      // window.dispatchEvent(new Event("auth-changed"));
       toast.success("Амжилттай нэвтэрлээ");
 
-      setTimeout(() => window.location.reload(), 300);
-      router.push("/home-page");
+      // 🚀 reload AFTER keys are safely written
+      // setTimeout(() => {
+      //   window.location.href = "/home-page";
+      // }, 100);
     } catch (err) {
+      console.error("verify error:", err);
       toast.error("Сервер алдаа");
     } finally {
       setIsLoading(false);

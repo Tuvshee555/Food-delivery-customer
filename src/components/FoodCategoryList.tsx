@@ -17,7 +17,7 @@ export const FoodCategoryList = () => {
   return (
     <div className="w-full flex flex-col gap-16 mt-10 px-6 md:px-10">
       {category.map((cat) => {
-        const catId = cat._id || cat.id;
+        const catId = cat.id || cat.id;
 
         // Get all foods belonging to this category
         const filteredFood = foodData.filter(
@@ -58,7 +58,7 @@ export const FoodCategoryList = () => {
             {filteredFood.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
                 {filteredFood.map((dish) => (
-                  <FoodCard key={dish._id || dish.id} food={dish} />
+                  <FoodCard key={dish.id || dish.id} food={dish} />
                 ))}
               </div>
             ) : (

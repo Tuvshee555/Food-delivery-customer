@@ -14,7 +14,7 @@ const normalizeId = (v: any): string | null => {
   if (typeof v === "string" || typeof v === "number") return String(v);
   // handle objects that contain id-like fields
   if (typeof v === "object") {
-    if ("_id" in v && v._id) return String(v._id);
+    if ("_id" in v && v.id) return String(v.id);
     if ("id" in v && v.id) return String(v.id);
     if ("categoryId" in v && v.categoryId) return String(v.categoryId);
     // fallback: try JSON
@@ -38,10 +38,10 @@ export const SimilarFoods = ({
   const currentCategory = normalizeId(
     (food as any).categoryId ??
       (food as any).category ??
-      (food as any).category?._id
+      (food as any).category?.id
   );
   const currentFoodId = normalizeId(
-    (food as any)._id ?? (food as any).id ?? food
+    (food as any).id ?? (food as any).id ?? food
   );
 
   // Debug (remove if you don't want logs)
@@ -58,12 +58,12 @@ export const SimilarFoods = ({
   }
 
   const similar = (allFoods || []).filter((item) => {
-    const itemId = normalizeId((item as any)._id ?? (item as any).id ?? item);
+    const itemId = normalizeId((item as any).id ?? (item as any).id ?? item);
     const itemCategory =
       normalizeId(
         (item as any).categoryId ??
           (item as any).category ??
-          (item as any).category?._id
+          (item as any).category?.id
       ) || normalizeId((item as any).category);
 
     // exclude same item
@@ -86,7 +86,7 @@ export const SimilarFoods = ({
         return (
           itemCatName &&
           itemCatName === catName &&
-          normalizeId((item as any)._id) !== currentFoodId
+          normalizeId((item as any).id) !== currentFoodId
         );
       });
       if (fallback.length > 0) {
@@ -103,7 +103,7 @@ export const SimilarFoods = ({
               </h2>
               <Link
                 href={`/category/${
-                  food.categoryId ?? food.category ?? (food as any)._id
+                  food.categoryId ?? food.category ?? (food as any).id
                 }`}
                 className="flex items-center gap-1 text-gray-400 text-sm hover:text-[#facc15] transition"
               >
@@ -114,7 +114,7 @@ export const SimilarFoods = ({
               {fallback.map((item) => (
                 <FoodCard
                   key={
-                    normalizeId((item as any)._id ?? (item as any).id) ||
+                    normalizeId((item as any).id ?? (item as any).id) ||
                     Math.random()
                   }
                   food={item}
@@ -148,7 +148,7 @@ export const SimilarFoods = ({
           href={`/category/${
             (food as any).categoryId ??
             (food as any).category ??
-            (food as any)._id
+            (food as any).id
           }`}
           className="flex items-center gap-1 text-gray-400 text-sm hover:text-[#facc15] transition"
         >
@@ -160,8 +160,7 @@ export const SimilarFoods = ({
         {similar.map((item) => (
           <FoodCard
             key={
-              normalizeId((item as any)._id ?? (item as any).id) ||
-              Math.random()
+              normalizeId((item as any).id ?? (item as any).id) || Math.random()
             }
             food={item}
           />

@@ -26,7 +26,7 @@ export default function CategoryPage({
         if (Array.isArray(data)) {
           const filtered = data.filter(
             (f) =>
-              f.category === id || f.categoryId === id || f.category?._id === id
+              f.category === id || f.categoryId === id || f.category?.id === id
           );
           setFoods(filtered);
           if (filtered.length > 0) {
@@ -89,7 +89,7 @@ export default function CategoryPage({
           {/* Food Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 mt-6">
             {pagedFoods.map((item) => (
-              <FoodCard key={item._id || item.id} food={item} />
+              <FoodCard key={item.id || item.id} food={item} />
             ))}
           </div>
 

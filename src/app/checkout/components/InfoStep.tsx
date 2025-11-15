@@ -89,7 +89,7 @@ export default function InfoStep({
 
       const mappedItems = cart.map((item) => ({
         foodId:
-          item.food?.id || item.food?._id || item.foodId || item._id || item.id,
+          item.food?.id || item.food?.id || item.foodId || item.id || item.id,
         quantity: item.quantity,
         selectedSize: item.selectedSize || null,
       }));

@@ -2,7 +2,6 @@
 
 import { use, useEffect, useState, useMemo } from "react";
 import { FoodCard } from "@/components/FoodCard";
-import { Header } from "@/components/header/Header";
 import { CategorySidebar } from "@/components/category/CategorySidebar";
 import { CategoryHeader } from "@/components/category/CategoryHeader";
 import { FoodType } from "@/type/type";
@@ -73,8 +72,6 @@ export default function CategoryPage({
 
   return (
     <>
-      <Header compact />
-
       <main className="min-h-screen w-full bg-[#0a0a0a] text-white pt-[90px] px-6 md:px-12 flex flex-col md:flex-row gap-8">
         {/* Left Sidebar */}
         <div className="md:w-[250px] w-full">

@@ -11,9 +11,16 @@ export default function CheckoutPage() {
   const router = useRouter();
   const step = useSearchParams().get("step") || "cart";
 
-  const { userId, token } = useAuth();
+  const { userId, token, loading: authLoading } = useAuth();
   const [cart, setCart] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 🚨 PROTECT CHECKOUT
+  useEffect(() => {
+    if (!authLoading && !token) {
+      router.push("/log-in?redirect=checkout");
+    }
+  }, [authLoading, token]);
 
   const fetchCart = async () => {
     if (!userId || !token) {
@@ -28,7 +35,6 @@ export default function CheckoutPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // FIXED HERE ⚠️
       setCart(res.data.items || []);
     } catch (error) {
       console.error("Cart fetch error:", error);
@@ -39,13 +45,18 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
-    fetchCart();
+    if (token) fetchCart();
   }, [userId, token]);
 
-  if (loading) return <p className="text-white p-10">Түр хүлээнэ үү...</p>;
+  // While checking auth OR fetching cart
+  if (authLoading || loading) {
+    return <p className="text-white p-10">Түр хүлээнэ үү...</p>;
+  }
 
-  if (step === "info")
+  // Render steps
+  if (step === "info") {
     return <InfoStep router={router} cart={cart} refreshCart={fetchCart} />;
+  }
 
   return <CartStep cart={cart} router={router} refreshCart={fetchCart} />;
 }

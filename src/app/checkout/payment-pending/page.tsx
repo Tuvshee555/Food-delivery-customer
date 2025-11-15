@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { Header } from "@/components/header/Header";
 
 type OrderData = {
   id?: string;
@@ -128,7 +127,6 @@ export default function PaymentPendingPage() {
 
   return (
     <>
-      <Header compact />
       <main className="min-h-screen bg-[#0a0a0a] text-white pt-[130px] pb-24">
         <div className="max-w-6xl mx-auto px-6 flex flex-col lg:flex-row gap-10">
           {/* LEFT: QR SECTION */}

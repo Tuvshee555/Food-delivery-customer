@@ -42,7 +42,7 @@ export default function ProfilePage() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     toast.success("✅ Системээс гарлаа");
-    router.push("/log-in");
+    router.push("/home-page");
   };
 
   // Update URL + state

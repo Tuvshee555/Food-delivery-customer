@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Header } from "@/components/header/Header";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -116,8 +115,6 @@ export default function CartStep({
 
   return (
     <>
-      <Header compact />
-
       <main className="min-h-screen bg-[#0a0a0a] text-white pt-[130px] pb-24">
         <div className="max-w-7xl mx-auto px-6 md:px-10 flex flex-col lg:flex-row gap-10">
           {/* 🧾 LEFT: CART ITEMS */}

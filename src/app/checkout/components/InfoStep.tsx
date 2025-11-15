@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
-import { Header } from "@/components/header/Header";
 import { QPayDialog } from "@/app/qpay/QPayDialog";
 import PaymentSummary from "./PaymentSummary";
 import DeliveryForm from "./DeliveryForm";
@@ -132,8 +131,6 @@ export default function InfoStep({
 
   return (
     <>
-      <Header compact />
-
       <main className="min-h-screen bg-[#0a0a0a] text-white pt-[130px] pb-24">
         <div className="max-w-7xl mx-auto px-6 md:px-10 flex flex-col lg:flex-row gap-10">
           {/* LEFT: Payment summary */}

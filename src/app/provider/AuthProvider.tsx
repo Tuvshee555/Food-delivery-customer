@@ -20,27 +20,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { decodedToken, isExpired, reEvaluateToken } = useJwt<UserType>(
-    token || ""
-  );
+  const { decodedToken, reEvaluateToken } = useJwt<UserType>(token || "");
 
-  // Initialize token once on mount
+  // Only load token. Do NOT redirect.
   useEffect(() => {
-    if (typeof window === "undefined") return; // prevent SSR errors
+    if (typeof window === "undefined") return;
 
     const storedToken = localStorage.getItem("token");
+
     if (!storedToken) {
-      router.push("/log-in");
       setLoading(false);
-      return;
+      return; // allow public pages
     }
 
     setToken(storedToken);
-    reEvaluateToken(storedToken); // ⚠️ safe to call once
+    reEvaluateToken(storedToken);
     setLoading(false);
-  }, []); // run only once on mount
+  }, []);
 
-  // Update userId when decodedToken changes
+  // update userId when decoded
   useEffect(() => {
     if (decodedToken) {
       setUserId(decodedToken.id);

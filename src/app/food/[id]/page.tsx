@@ -4,7 +4,6 @@
 import { use, useEffect, useState } from "react";
 import { FoodType } from "@/type/type";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/header/Header";
 import { FoodMedia } from "@/components/food/FoodMedia";
 import { FoodInfo } from "@/components/food/FoodInfo";
 import { SimilarFoods } from "@/components/food/SimilarFoods";
@@ -46,7 +45,6 @@ export default function FoodDetailPage({
 
   return (
     <>
-      <Header compact />
       <main className="min-h-screen w-full bg-[#0a0a0a] text-white relative pt-[90px] pb-20">
         <section className="flex flex-col lg:flex-row items-start justify-center gap-10 p-6 md:p-10 max-w-7xl mx-auto">
           <FoodMedia food={food} />

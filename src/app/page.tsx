@@ -1,12 +1,7 @@
 "use client";
 
-import LogIn from "./log-in/page";
+import HomePage from "./home-page/page";
 
 export default function Home() {
-  return (
-    <>
-      <LogIn />
-      {/* <QPayPage /> */}
-    </>
-  );
+  return <HomePage />;
 }

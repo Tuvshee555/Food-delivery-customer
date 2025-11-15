@@ -1,250 +1,240 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { saveAuth } from "@/utils/auth";
 
-export default function AuthDrawer() {
-  const router = useRouter();
-
+export default function AuthDrawer({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const [email, setEmail] = useState("");
-  const [phase, setPhase] = useState<"idle" | "sent" | "verifying">("idle");
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [phase, setPhase] = useState<"idle" | "otp">("idle");
+  const [loading, setLoading] = useState(false);
   const [digits, setDigits] = useState(Array(6).fill(""));
+  const [isCorrect, setIsCorrect] = useState<null | boolean>(null);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
-  const [cooldown, setCooldown] = useState<number>(0);
-  const COOLDOWN_SECONDS = 30;
 
-  useEffect(() => {
-    if (cooldown > 0) {
-      const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
-      return () => clearTimeout(t);
-    }
-  }, [cooldown]);
-
-  const validateEmail = (e: string) =>
-    /^\S+@\S+\.\S+$/.test(e.trim().toLowerCase());
-
-  const resetCodes = () => {
-    setDigits(Array(6).fill(""));
-    inputsRef.current = [];
-  };
-
-  const handleSendCode = async () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!validateEmail(trimmed)) {
+  // ----------------------------
+  // SEND OTP
+  // ----------------------------
+  const sendOTP = async () => {
+    const normalized = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(normalized)) {
       toast.error("Имэйл буруу байна");
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/email/send-otp`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: trimmed }),
-        }
-      );
-
-      if (!res.ok) {
-        const err = await res.json();
-        toast.error(err?.message || "Илгээхэд алдаа гарлаа");
-        setIsLoading(false);
-        return;
+    setLoading(true);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/email/send-otp`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalized }),
       }
+    );
 
-      toast.success("Баталгаажуулах код илгээлээ");
-      setPhase("sent");
-      setCooldown(COOLDOWN_SECONDS);
-      resetCodes();
+    setLoading(false);
 
-      setTimeout(() => inputsRef.current[0]?.focus(), 50);
-    } catch (err) {
-      toast.error("Сервертэй холбогдох үед алдаа гарлаа");
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) return toast.error("Код илгээхэд алдаа гарлаа");
+
+    toast.success("Код илгээлээ");
+    setPhase("otp");
+
+    setTimeout(() => inputsRef.current[0]?.focus(), 50);
+  };
+
+  // ----------------------------
+  // HANDLE PASTE
+  // ----------------------------
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const paste = e.clipboardData.getData("text");
+    if (/^\d{6}$/.test(paste)) {
+      const arr = paste.split("");
+      setDigits(arr);
+      autoVerify(arr.join(""));
     }
   };
 
-  const handleResend = async () => {
-    if (cooldown > 0) return;
-    await handleSendCode();
-  };
-
+  // ----------------------------
+  // CHANGE DIGIT
+  // ----------------------------
   const handleDigitChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return;
-    const newDigits = [...digits];
-    newDigits[i] = val;
-    setDigits(newDigits);
 
-    if (val && i < 5) {
-      inputsRef.current[i + 1]?.focus();
-    }
+    const next = [...digits];
+    next[i] = val;
+    setDigits(next);
+
+    if (val && i < 5) inputsRef.current[i + 1]?.focus();
+
+    const full = next.join("");
+
+    if (full.length === 6) autoVerify(full);
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    i: number
-  ) => {
-    if (e.key === "Backspace" && !digits[i] && i > 0) {
-      inputsRef.current[i - 1]?.focus();
-    }
-  };
-
-  const handleVerify = async () => {
-    const code = digits.join("");
+  // ----------------------------
+  // AUTO VERIFY
+  // ----------------------------
+  const autoVerify = async (code: string) => {
     const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
 
-    console.log("DEBUG verify -> email:", normalizedEmail, "code:", code);
-    if (code.length !== 6) {
-      toast.error("6 оронтой код оруулна уу");
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/email/verify-otp`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail, code }),
+      }
+    );
+
+    if (!res.ok) {
+      setIsCorrect(false);
       return;
     }
 
-    setIsLoading(true);
+    const data = await res.json();
+    setIsCorrect(true);
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/email/verify-otp`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: normalizedEmail,
-            code,
-            role: "USER",
-          }),
-        }
-      );
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("email", data.user.email);
+    localStorage.setItem("userId", data.user.id);
 
-      const text = await res.text();
-      // Популяр алдаануудын тулд response-ийг raw хэлбэрээр авна
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        data = { raw: text };
-      }
+    saveAuth(data);
 
-      console.log("DEBUG verify -> status:", res.status, "body:", data);
+    toast.success("Амжилттай нэвтэрлээ!");
 
-      if (!res.ok) {
-        toast.error(data?.message || "Код буруу байна");
-        setIsLoading(false);
-        return;
-      }
-
-      // Амжилт
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("email", data.user.email);
-      localStorage.setItem("userId", data.user.id);
-      console.log("OTP LOGIN: token =", localStorage.getItem("token"));
-      console.log("OTP LOGIN: email =", localStorage.getItem("email"));
-      console.log("OTP LOGIN: userId =", localStorage.getItem("userId"));
-
-      saveAuth(data);
-      // window.location.href = "/home-page";
-
-      // window.dispatchEvent(new Event("auth-changed"));
-      toast.success("Амжилттай нэвтэрлээ");
-
-      // 🚀 reload AFTER keys are safely written
-      // setTimeout(() => {
-      //   window.location.href = "/home-page";
-      // }, 100);
-    } catch (err) {
-      console.error("verify error:", err);
-      toast.error("Сервер алдаа");
-    } finally {
-      setIsLoading(false);
-    }
+    setTimeout(() => window.location.reload(), 300);
   };
 
+  if (!open) return null;
+
   return (
-    <div className="p-6 max-w-md">
-      {/* ========== PHASE 1 → EMAIL INPUT ========== */}
-      {phase === "idle" && (
-        <>
-          <h2 className="text-2xl font-bold mb-4">Нэвтрэх</h2>
+    <AnimatePresence>
+      {/* Background Blur */}
+      <motion.div
+        key="bg"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
 
-          <label className="block text-sm mb-2">Имэйл</label>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Имэйл"
-            className="w-full px-4 py-3 rounded-xl bg-[#111] border border-gray-700 text-white mb-4"
-          />
+      {/* Modal */}
+      <motion.div
+        key="modal"
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.92 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-lg p-8 text-white relative shadow-2xl">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">Нэвтрэх</h2>
+            <button onClick={onClose} className="text-xl">
+              ×
+            </button>
+          </div>
 
-          <button
-            onClick={handleSendCode}
-            className="w-full bg-white text-black py-3 rounded-xl font-semibold"
-            disabled={isLoading}
-          >
-            {isLoading ? "Түр хүлээнэ үү..." : "Үргэлжлүүлэх"}
-          </button>
-        </>
-      )}
-
-      {/* ========== PHASE 2 → OTP INPUT ========== */}
-      {phase === "sent" && (
-        <>
-          <h2 className="text-2xl font-bold mb-2">Баталгаажуулах код</h2>
-          <p className="text-sm text-gray-400 mb-4">
-            {email} хаяг руу 6 оронтой код илгээлээ.
-          </p>
-
-          <div className="flex gap-2 mb-4">
-            {digits.map((d, i) => (
+          {/* ------------------- PHASE 1: EMAIL ------------------- */}
+          {phase === "idle" && (
+            <>
+              <label className="text-sm mb-2 block">Имэйл</label>
               <input
-                key={i}
-                ref={(el) => {
-                  inputsRef.current[i] = el;
-                }}
-                onKeyDown={(e) => handleKeyDown(e, i)}
-                onChange={(e) => handleDigitChange(i, e.target.value)}
-                value={d}
-                maxLength={1}
-                className="w-12 h-12 text-center rounded-xl bg-[#111] border border-gray-700 text-white text-lg"
+                className="w-full px-4 py-3 rounded-xl bg-[#111] border border-gray-700 mb-6"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Имэйл"
               />
-            ))}
-          </div>
 
-          <div className="flex justify-between mb-4">
-            <button
-              className="px-4 py-2 border border-gray-700 rounded-xl"
-              onClick={() => {
-                setPhase("idle");
-                setEmail("");
-                resetCodes();
-              }}
-            >
-              Буцах
-            </button>
+              <button
+                onClick={sendOTP}
+                disabled={loading}
+                className="w-full bg-[#fff] text-black py-3 rounded-xl font-semibold"
+              >
+                {loading ? "Түр хүлээнэ үү..." : "Үргэлжлүүлэх"}
+              </button>
+            </>
+          )}
 
-            <button
-              onClick={handleResend}
-              disabled={cooldown > 0}
-              className={`underline text-sm ${
-                cooldown > 0 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              Дахин илгээх {cooldown > 0 && `(${cooldown}s)`}
-            </button>
-          </div>
+          {/* ------------------- PHASE 2: OTP ------------------- */}
+          {phase === "otp" && (
+            <>
+              <label className="text-sm mb-2 block">Баталгаажуулах код</label>
 
-          <button
-            onClick={handleVerify}
-            disabled={isLoading}
-            className="w-full bg-white text-black py-3 rounded-xl font-semibold"
-          >
-            Баталгаажуулах
-          </button>
-        </>
-      )}
-    </div>
+              {/* Centered OTP box container */}
+              <div className="flex justify-center gap-3 mb-3">
+                {digits.map((d, i) => (
+                  <motion.input
+                    key={i}
+                    ref={(el) => {
+                      inputsRef.current[i] = el;
+                    }}
+                    onPaste={handlePaste}
+                    onChange={(e) => handleDigitChange(i, e.target.value)}
+                    value={d}
+                    maxLength={1}
+                    className={`
+      w-14 h-14 text-center text-lg rounded-xl bg-[#111] border 
+      transition-all duration-200
+      ${
+        isCorrect === true
+          ? "border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+          : isCorrect === false
+          ? "border-red-500"
+          : "border-gray-700"
+      }
+    `}
+                    animate={
+                      isCorrect === false ? { x: [-5, 5, -5, 5, 0] } : {}
+                    }
+                  />
+                ))}
+              </div>
+
+              <p className="text-gray-400 text-sm mb-6 text-center">
+                Таны <span className="text-white">{email}</span> хаяг руу 6
+                оронтой код илгээлээ.
+              </p>
+
+              <div className="flex justify-between mb-4">
+                <button
+                  onClick={() => {
+                    setPhase("idle");
+                    setDigits(Array(6).fill(""));
+                  }}
+                  className="px-4 py-2 border border-gray-700 rounded-xl"
+                >
+                  Буцах
+                </button>
+
+                <button
+                  onClick={sendOTP}
+                  className="flex items-center gap-1 text-gray-300 underline"
+                >
+                  ⟳ Дахин илгээх
+                </button>
+              </div>
+
+              <button
+                onClick={() => autoVerify(digits.join(""))}
+                className="w-full bg-white text-black py-3 rounded-xl font-semibold"
+              >
+                Баталгаажүүлэх
+              </button>
+            </>
+          )}
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

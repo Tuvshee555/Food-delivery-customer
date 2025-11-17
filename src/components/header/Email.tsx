@@ -33,34 +33,42 @@ export const Email = () => {
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // 🔥 Facebook SDK loader (ADDED — but does NOT replace anything)
+  // Combined useEffect: Loads Facebook SDK + restores email listener
   useEffect(() => {
-    if (typeof window === "undefined" || window.FB) return;
+    // -------------------------
+    // FACEBOOK SDK INITIALIZER
+    // -------------------------
+    if (typeof window !== "undefined" && !window.FB) {
+      window.fbAsyncInit = function () {
+        window.FB.init({
+          appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
+          cookie: true,
+          xfbml: true,
+          version: "v20.0",
+        });
+      };
 
-    window.fbAsyncInit = function () {
-      window.FB.init({
-        appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
-        cookie: true,
-        xfbml: true,
-        version: "v20.0",
-      });
-    };
+      const script = document.createElement("script");
+      script.id = "facebook-jssdk";
+      script.src = "https://connect.facebook.net/en_US/sdk.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
 
-    const script = document.createElement("script");
-    script.id = "facebook-jssdk";
-    script.src = "https://connect.facebook.net/en_US/sdk.js";
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
-
-  // 🔥 Your original code stays 100% unchanged
-  useEffect(() => {
+    // -------------------------
+    // LOCAL STORAGE EMAIL RESTORE
+    // -------------------------
     const updateEmail = () => {
       setUserEmail(localStorage.getItem("email"));
     };
+
     updateEmail();
     window.addEventListener("auth-changed", updateEmail);
-    return () => window.removeEventListener("auth-changed", updateEmail);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("auth-changed", updateEmail);
+    };
   }, []);
 
   const handleLogout = () => {

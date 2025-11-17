@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, User, Package, Ticket, LayoutDashboard } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/app/provider/AuthProvider";
 import { toast } from "sonner";
 import { OrdersList } from "@/components/profile/OrdersList";
 import { TicketsList } from "@/components/profile/TicketsList";
@@ -14,7 +13,6 @@ import { Header } from "@/components/header/Header";
 export default function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { userId } = useAuth();
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<

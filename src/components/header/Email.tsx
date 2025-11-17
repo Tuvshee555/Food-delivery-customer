@@ -19,6 +19,13 @@ import { saveAuth } from "@/utils/auth";
 import { useAuth } from "@/app/provider/AuthProvider";
 import AuthDrawer from "../AuthDrawer";
 
+declare global {
+  interface Window {
+    FB: any;
+    fbAsyncInit: () => void;
+  }
+}
+
 export const Email = () => {
   const router = useRouter();
   const { token, setAuthToken } = useAuth();
@@ -26,7 +33,27 @@ export const Email = () => {
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // 🔥 Reactively track email from storage
+  // 🔥 Facebook SDK loader (ADDED — but does NOT replace anything)
+  useEffect(() => {
+    if (typeof window === "undefined" || window.FB) return;
+
+    window.fbAsyncInit = function () {
+      window.FB.init({
+        appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
+        cookie: true,
+        xfbml: true,
+        version: "v20.0",
+      });
+    };
+
+    const script = document.createElement("script");
+    script.id = "facebook-jssdk";
+    script.src = "https://connect.facebook.net/en_US/sdk.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  // 🔥 Your original code stays 100% unchanged
   useEffect(() => {
     const updateEmail = () => {
       setUserEmail(localStorage.getItem("email"));
@@ -86,6 +113,56 @@ export const Email = () => {
     }
   };
 
+  // ⭐ Facebook login handler (ADDED)
+  const handleFacebookLogin = () => {
+    if (!window.FB) {
+      toast.error("Facebook SDK not loaded yet!");
+      return;
+    }
+
+    window.FB.login(
+      async (response: any) => {
+        if (!response.authResponse) {
+          toast.error("Facebook login cancelled!");
+          return;
+        }
+
+        const token = response.authResponse.accessToken;
+
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/facebook`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token, role: "USER" }),
+            }
+          );
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            toast.error(data.message || "Facebook login failed");
+            return;
+          }
+
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("email", data.user.email);
+          localStorage.setItem("userId", data.user.id);
+
+          saveAuth(data);
+          window.dispatchEvent(new Event("auth-changed"));
+          window.location.reload();
+
+          toast.success("Facebook-ээр амжилттай нэвтэрлээ!");
+        } catch {
+          toast.error("Facebook login error!");
+        }
+      },
+      { scope: "email,public_profile" }
+    );
+  };
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -136,6 +213,15 @@ export const Email = () => {
                 onError={() => toast.error("Google login error")}
               />
             </div>
+
+            {/* ⭐ Facebook button (ADDED) */}
+            <button
+              onClick={handleFacebookLogin}
+              className="w-full bg-[#1877F2] text-white py-3 rounded-xl 
+                         font-semibold hover:bg-[#145dbf] transition"
+            >
+              Facebook-р нэвтрэх
+            </button>
 
             <button
               onClick={() => {

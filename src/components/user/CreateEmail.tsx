@@ -11,12 +11,12 @@ import { ChevronLeft } from "lucide-react";
 import { UserType } from "@/type/type";
 import { motion } from "framer-motion";
 
-declare global {
-  interface Window {
-    FB: fb.FacebookStatic;
-    fbAsyncInit: () => void;
-  }
-}
+// declare global {
+//   interface Window {
+//     FB: fb.FacebookStatic;
+//     fbAsyncInit: () => void;
+//   }
+// }
 
 export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
   const router = useRouter();

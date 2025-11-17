@@ -12,11 +12,11 @@ import { loadFacebookSDK } from "@/utils/loadFacebookSDK";
 import { useAuth } from "../provider/AuthProvider";
 import { motion } from "framer-motion";
 
-declare global {
-  interface Window {
-    FB: fb.FacebookStatic;
-  }
-}
+// declare global {
+//   interface Window {
+//     FB: fb.FacebookStatic;
+//   }
+// }
 
 export default function LogIn() {
   const router = useRouter();

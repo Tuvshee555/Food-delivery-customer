@@ -8,7 +8,7 @@ import { AddLocation } from "./AddLocation";
 import { SheetRight } from "./SheetRight";
 import { Email } from "./Email";
 import { SearchDialog } from "./SearchDialog";
-import { ProfileMenu } from "../profile-menu/ProfileMenu";
+// import { ProfileMenu } from "../profile-menu/ProfileMenu";
 
 interface HeaderProps {
   compact?: boolean;

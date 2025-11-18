@@ -76,48 +76,35 @@ export const ProfileMenu = () => {
 
   // Facebook login
   const handleFacebookLogin = () => {
-    if (!window.FB) {
-      toast.error("Facebook SDK not loaded yet!");
-      return;
-    }
+    if (!window.FB) return toast.error("Facebook SDK not loaded yet!");
 
+    // FB.login callback must NOT be async
     window.FB.login(
-      async (response: any) => {
-        if (!response.authResponse) {
-          toast.error("Facebook login cancelled!");
-          return;
-        }
+      (response: fb.StatusResponse) => {
+        if (response.authResponse) {
+          const token = response.authResponse.accessToken;
 
-        const token = response.authResponse.accessToken;
-
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/facebook`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token, role: "USER" }),
-            }
-          );
-
-          const data = await res.json();
-
-          if (!res.ok) {
-            toast.error(data.message || "Facebook login failed");
-            return;
-          }
-
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("email", data.user.email);
-          localStorage.setItem("userId", data.user.id);
-
-          saveAuth(data);
-          window.dispatchEvent(new Event("auth-changed"));
-          window.location.reload();
-
-          toast.success("Facebook-ээр амжилттай нэвтэрлээ!");
-        } catch {
-          toast.error("Facebook login error!");
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/facebook`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.token && data.user) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("email", data.user.email);
+                localStorage.setItem("userId", data.user.id);
+                setAuthToken(data.token);
+                toast.success("Successfully logged in with Facebook!");
+                router.push("/home-page");
+              } else {
+                toast.error("Facebook login failed");
+              }
+            })
+            .catch(() => toast.error("Facebook login failed"));
+        } else {
+          toast.error("Facebook login cancelled or failed!");
         }
       },
       { scope: "email,public_profile" }

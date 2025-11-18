@@ -121,56 +121,6 @@ export const Email = () => {
     }
   };
 
-  // ⭐ Facebook login handler (ADDED)
-  // const handleFacebookLogin = () => {
-  //   if (!window.FB) {
-  //     toast.error("Facebook SDK not loaded yet!");
-  //     return;
-  //   }
-
-  //   window.FB.login(
-  //     async (response: any) => {
-  //       if (!response.authResponse) {
-  //         toast.error("Facebook login cancelled!");
-  //         return;
-  //       }
-
-  //       const token = response.authResponse.accessToken;
-
-  //       try {
-  //         const res = await fetch(
-  //           `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/auth/facebook`,
-  //           {
-  //             method: "POST",
-  //             headers: { "Content-Type": "application/json" },
-  //             body: JSON.stringify({ token, role: "USER" }),
-  //           }
-  //         );
-
-  //         const data = await res.json();
-
-  //         if (!res.ok) {
-  //           toast.error(data.message || "Facebook login failed");
-  //           return;
-  //         }
-
-  //         localStorage.setItem("token", data.token);
-  //         localStorage.setItem("email", data.user.email);
-  //         localStorage.setItem("userId", data.user.id);
-
-  //         saveAuth(data);
-  //         window.dispatchEvent(new Event("auth-changed"));
-  //         window.location.reload();
-
-  //         toast.success("Facebook-ээр амжилттай нэвтэрлээ!");
-  //       } catch {
-  //         toast.error("Facebook login error!");
-  //       }
-  //     },
-  //     { scope: "email,public_profile" }
-  //   );
-  // };
-
   const handleFacebookLogin = () => {
     if (!window.FB) return toast.error("Facebook SDK not loaded yet!");
 

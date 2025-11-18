@@ -16,9 +16,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Food delivery customer",
   description: "Manage foods, categories, and orders",
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 export default function RootLayout({

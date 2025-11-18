@@ -11,7 +11,7 @@ export const loadFacebookSDK = (): Promise<void> => {
         xfbml: true,
         version: "v20.0",
       });
-      // resolve();
+      resolve();
     };
 
     const script = document.createElement("script");

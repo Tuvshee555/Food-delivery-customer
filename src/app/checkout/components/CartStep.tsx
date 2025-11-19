@@ -7,24 +7,39 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
+import { useRouter } from "next/navigation";
 
-export default function CartStep({
-  cart,
-  router,
-  refreshCart,
-}: {
-  cart: any[];
-  router: any;
-  refreshCart: () => Promise<void>;
-}) {
+export default function CartStep({}: {}) {
   const { userId, token } = useAuth();
+
   const [items, setItems] = useState<any[]>([]);
+  const router = useRouter();
+
+  const syncLocalCart = async () => {
+    if (!userId || !token) return;
+
+    const local = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!local.length) return;
+
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
+        userId,
+        items: local,
+      });
+
+      localStorage.removeItem("cart");
+      localStorage.setItem("cart-updated", Date.now().toString());
+    } catch (err) {
+      console.log("Sync failed:", err);
+    }
+  };
 
   // 🟡 1. Load cart from server
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !token) return;
 
-    const fetchCart = async () => {
+    const load = async () => {
+      await syncLocalCart();
       try {
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`
@@ -36,8 +51,8 @@ export default function CartStep({
       }
     };
 
-    fetchCart();
-  }, [userId]);
+    load();
+  }, [userId, token]);
 
   const total = items.reduce(
     (sum, i) => sum + (i.food?.price || 0) * i.quantity,
@@ -243,7 +258,12 @@ export default function CartStep({
 
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={() => router.push("/checkout?step=info")}
+              onClick={() => {
+                if (!token) {
+                  return;
+                }
+                router.push("/checkout?step=info");
+              }}
               className="w-full mt-8 py-4 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_25px_rgba(250,204,21,0.3)] hover:brightness-110 transition-all"
             >
               Үргэлжлүүлэх

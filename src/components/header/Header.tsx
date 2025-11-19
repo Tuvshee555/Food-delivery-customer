@@ -8,7 +8,6 @@ import { AddLocation } from "./AddLocation";
 import { SheetRight } from "./SheetRight";
 import { Email } from "./Email";
 import { SearchDialog } from "./SearchDialog";
-import { ProfileMenu } from "../profile-menu/ProfileMenu";
 
 interface HeaderProps {
   compact?: boolean;
@@ -98,13 +97,11 @@ export const Header = ({ compact = false }: HeaderProps) => {
               </div>
             </Link>
 
-            {/* ⚙️ Right-side buttons */}
             <div className="flex items-center gap-3 sm:gap-[10px]">
               <AddLocation open={open} onOpenChange={setOpen} />
               <SearchDialog />
               <SheetRight />
               <Email />
-              {/* <ProfileMenu /> */}
             </div>
           </div>
         </motion.header>

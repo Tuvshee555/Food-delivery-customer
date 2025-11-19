@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,12 +9,6 @@ import axios from "axios";
 import { loadFacebookSDK } from "@/utils/loadFacebookSDK";
 import { useAuth } from "../provider/AuthProvider";
 import { motion } from "framer-motion";
-
-// declare global {
-//   interface Window {
-//     FB: fb.FacebookStatic;
-//   }
-// }
 
 export default function LogIn() {
   const router = useRouter();

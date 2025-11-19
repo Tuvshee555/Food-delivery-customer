@@ -9,7 +9,7 @@ import { useAuth } from "@/app/provider/AuthProvider";
 import { AddLocation } from "./header/AddLocation";
 
 type CartItem = {
-  id: string;
+  id?: string; // server ID (optional when local)
   foodId: string;
   quantity: number;
   selectedSize: string | null;
@@ -27,15 +27,30 @@ export const PayFood = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
 
-  // -------------------------------------------------------
-  // 1) Load cart from BACKEND
-  // -------------------------------------------------------
-  const loadCart = useCallback(async () => {
-    if (!userId) return;
+  // ------------------------------------------------------------------
+  // 🟡 Load LOCAL cart (not logged in)
+  // ------------------------------------------------------------------
+  const loadLocalCart = () => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCartItems(cart);
+
+    const total = cart.reduce(
+      (sum: number, item: CartItem) => sum + item.food.price * item.quantity,
+      0
+    );
+    setTotalPrice(total);
+  };
+
+  // ------------------------------------------------------------------
+  // 🟡 Load SERVER cart (logged in)
+  // ------------------------------------------------------------------
+  const loadServerCart = useCallback(async () => {
+    if (!userId || !token) return;
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const data = await res.json();
@@ -51,18 +66,73 @@ export const PayFood = () => {
     } catch (err) {
       console.error("Cart load error:", err);
     }
-  }, [userId]);
+  }, [userId, token]);
 
+  // ------------------------------------------------------------------
+  // 🟡 Sync Local → Server when user logs in
+  // ------------------------------------------------------------------
+  const syncLocalCart = useCallback(async () => {
+    if (!userId || !token) return;
+
+    const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!localCart.length) {
+      loadServerCart();
+      return;
+    }
+
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId, items: localCart }),
+      });
+
+      localStorage.removeItem("cart");
+      localStorage.setItem("cart-updated", Date.now().toString());
+      loadServerCart();
+    } catch (error) {
+      console.error("Sync error:", error);
+    }
+  }, [userId, token, loadServerCart]);
+
+  // ------------------------------------------------------------------
+  // 🔄 Load correct cart on mount
+  // ------------------------------------------------------------------
   useEffect(() => {
-    loadCart();
-  }, [loadCart]);
+    if (!userId || !token) {
+      loadLocalCart();
+    } else {
+      syncLocalCart();
+    }
+  }, [userId, token, syncLocalCart]);
 
-  // -------------------------------------------------------
-  // 2) Update quantity
-  // -------------------------------------------------------
+  // ------------------------------------------------------------------
+  // 🟡 Update quantity (local OR server)
+  // ------------------------------------------------------------------
   const updateQuantity = async (item: CartItem, change: number) => {
     const newQty = Math.max(1, item.quantity + change);
 
+    // NOT LOGGED IN → update LS
+    if (!userId || !token) {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+      const target = cart.find(
+        (i: any) =>
+          i.foodId === item.foodId && i.selectedSize === item.selectedSize
+      );
+      if (!target) return;
+
+      target.quantity = newQty;
+
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadLocalCart();
+      return;
+    }
+
+    // LOGGED IN → update server
     try {
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/update`, {
         method: "POST",
@@ -76,16 +146,34 @@ export const PayFood = () => {
         }),
       });
 
-      loadCart();
+      loadServerCart();
     } catch {
       toast.error("Алдаа гарлаа.");
     }
   };
 
-  // -------------------------------------------------------
-  // 3) Remove item
-  // -------------------------------------------------------
-  const removeItem = async (itemId: string) => {
+  // ------------------------------------------------------------------
+  // 🟡 Remove item (local OR server)
+  // ------------------------------------------------------------------
+  const removeItem = async (
+    itemIdOrFoodId: string,
+    selectedSize: string | null
+  ) => {
+    // NOT LOGGED IN → local only
+    if (!userId || !token) {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+      const filtered = cart.filter(
+        (i: any) =>
+          !(i.foodId === itemIdOrFoodId && i.selectedSize === selectedSize)
+      );
+
+      localStorage.setItem("cart", JSON.stringify(filtered));
+      loadLocalCart();
+      return;
+    }
+
+    // LOGGED IN → remove from server
     try {
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/remove`, {
         method: "POST",
@@ -93,19 +181,25 @@ export const PayFood = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId, itemId }),
+        body: JSON.stringify({ id: itemIdOrFoodId }),
       });
 
-      loadCart();
+      loadServerCart();
     } catch {
       toast.error("Алдаа гарлаа.");
     }
   };
 
-  // -------------------------------------------------------
-  // 4) Clear cart
-  // -------------------------------------------------------
+  // ------------------------------------------------------------------
+  // 🟡 Clear cart (local OR server)
+  // ------------------------------------------------------------------
   const clearAll = async () => {
+    if (!userId || !token) {
+      localStorage.removeItem("cart");
+      loadLocalCart();
+      return;
+    }
+
     try {
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/clear`, {
         method: "POST",
@@ -116,15 +210,15 @@ export const PayFood = () => {
         body: JSON.stringify({ userId }),
       });
 
-      loadCart();
+      loadServerCart();
     } catch {
       toast.error("Алдаа гарлаа.");
     }
   };
 
-  // -------------------------------------------------------
-  // UI — NO PAYMENT HERE
-  // -------------------------------------------------------
+  // ------------------------------------------------------------------
+  // UI
+  // ------------------------------------------------------------------
   return (
     <>
       <AddLocation
@@ -150,7 +244,7 @@ export const PayFood = () => {
           {cartItems.length ? (
             cartItems.map((item) => (
               <div
-                key={item.id}
+                key={item.id || item.foodId}
                 className="flex justify-between items-center border-b border-gray-800 pb-4"
               >
                 <div className="flex items-center gap-3">
@@ -186,7 +280,11 @@ export const PayFood = () => {
                     <Plus className="w-4 h-4" />
                   </button>
 
-                  <button onClick={() => removeItem(item.id)}>
+                  <button
+                    onClick={() =>
+                      removeItem(item.id || item.foodId, item.selectedSize)
+                    }
+                  >
                     <X className="w-5 h-5 text-red-500" />
                   </button>
                 </div>
@@ -208,12 +306,11 @@ export const PayFood = () => {
               </span>
             </div>
 
-            {/* 🚀 FIX: Navigate to checkout */}
             <Button
               className="w-full py-3 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg"
               onClick={() => (window.location.href = "/checkout")}
             >
-              Төлбөр төлөх11
+              Төлбөр төлөх
             </Button>
           </div>
         )}

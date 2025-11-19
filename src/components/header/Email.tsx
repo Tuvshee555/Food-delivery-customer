@@ -35,9 +35,6 @@ export const Email = () => {
 
   // Combined useEffect: Loads Facebook SDK + restores email listener
   useEffect(() => {
-    // -------------------------
-    // FACEBOOK SDK INITIALIZER
-    // -------------------------
     if (typeof window !== "undefined" && !window.FB) {
       window.fbAsyncInit = function () {
         window.FB.init({

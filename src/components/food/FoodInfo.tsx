@@ -31,23 +31,9 @@ export const FoodInfo = ({
       ? URL.createObjectURL(food.image as Blob)
       : "";
 
-  const getFoodId = () => food.id || food.id || null;
+  const getFoodId = () => food.id || null;
 
-  // ----------------------------------------------------------------------
-  // 🛒 ADD TO SERVER CART
-  // ----------------------------------------------------------------------
-  const addToCartServer = async (gotoCheckout = false) => {
-    if (!userId || !token) {
-      toast.error("❌ Нэвтэрч ороогүй байна. Эхлээд нэвтэрнэ үү.");
-      return false;
-    }
-
-    if (!address) {
-      toast.error("📍 Та эхлээд хаягаа оруулна уу.");
-      return false;
-    }
-
-    // Only check if sizes exist
+  const addToCartLocal = () => {
     if (Array.isArray(food.sizes) && food.sizes.length > 0 && !selectedSize) {
       toast.error("⚠️ Хэмжээг сонгоно уу.");
       return false;
@@ -59,65 +45,84 @@ export const FoodInfo = ({
       return false;
     }
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/add`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId,
-            foodId,
-            quantity,
-            selectedSize,
-          }),
-        }
-      );
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-      const data = await res.json();
+    // check if item exists
+    const exist = cart.find(
+      (item: any) =>
+        item.foodId === foodId && item.selectedSize === selectedSize
+    );
 
-      if (!res.ok) {
-        toast.error(data.message || "❌ Сагс руу нэмэхэд алдаа гарлаа.");
-        return false;
-      }
-
-      toast.success("🛒 Амжилттай сагсанд нэмэгдлээ!");
-
-      if (gotoCheckout) {
-        setTimeout(() => router.push("/checkout"), 200);
-      }
-
-      return true;
-    } catch (error) {
-      console.error(error);
-      toast.error("❌ Сервертэй холбогдож чадсангүй.");
-      return false;
+    if (exist) {
+      exist.quantity += quantity;
+    } else {
+      cart.push({
+        foodId,
+        quantity,
+        selectedSize,
+        food: {
+          id: food.id,
+          foodName: food.foodName,
+          price: food.price,
+          image: resolveImageUrl(),
+        },
+      });
     }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem("cart-updated", Date.now().toString());
+
+    toast.success("🛒 Амжилттай сагсанд нэмэгдлээ!");
+    return true;
   };
 
-  // ----------------------------------------------------------------------
-  // BUTTON HANDLERS
-  // ----------------------------------------------------------------------
+  const syncLocalCartToServer = async () => {
+    if (!userId || !token) return;
+
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!cart.length) return;
+
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ userId, items: cart }),
+    });
+
+    localStorage.removeItem("cart");
+    localStorage.setItem("cart-updated", Date.now().toString());
+  };
+
   const handleAddToCart = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
-    await addToCartServer(false);
+
+    addToCartLocal();
+
     setIsProcessing(false);
   };
 
   const handleOrderNow = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
-    await addToCartServer(true);
+
+    addToCartLocal();
+
+    // 🔥 Not logged in → use full-page login (NOT modal)
+    if (!userId || !token) {
+      router.push(`/sign-in?redirect=checkout`);
+      setIsProcessing(false);
+      return;
+    }
+
+    await syncLocalCartToServer();
+    router.push("/checkout");
+
     setIsProcessing(false);
   };
 
-  // ----------------------------------------------------------------------
-  // UI
-  // ----------------------------------------------------------------------
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

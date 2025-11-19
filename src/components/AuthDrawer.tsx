@@ -49,9 +49,6 @@ export default function AuthDrawer({
     setTimeout(() => inputsRef.current[0]?.focus(), 50);
   };
 
-  // ----------------------------
-  // HANDLE PASTE
-  // ----------------------------
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const paste = e.clipboardData.getData("text");
     if (/^\d{6}$/.test(paste)) {
@@ -61,8 +58,6 @@ export default function AuthDrawer({
     }
   };
 
-  // ----------------------------
-  // CHANGE DIGIT
   // ----------------------------
   const handleDigitChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return;

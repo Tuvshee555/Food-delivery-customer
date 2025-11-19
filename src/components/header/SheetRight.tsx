@@ -9,19 +9,23 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PayFood } from "../PayFood";
 import { OrderHistory } from "../OrderHistory";
 import { useAuth } from "@/app/provider/AuthProvider";
-import { toast } from "sonner";
 
 export const SheetRight = () => {
   const { userId, token } = useAuth();
   const [page, setPage] = useState<number>(1);
   const [cartCount, setCartCount] = useState<number>(0);
 
-  // ✅ Load cart from SERVER instead of localStorage
-  const loadServerCart = async () => {
+  const loadLocalCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const qty = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    setCartCount(qty);
+  };
+
+  const loadServerCartCount = useCallback(async () => {
     if (!userId || !token) return;
 
     try {
@@ -34,47 +38,73 @@ export const SheetRight = () => {
         }
       );
 
-      if (!res.ok) throw new Error("Failed to fetch cart");
-
       const data = await res.json();
+      const items = data.items || [];
 
-      const items = data.cart || [];
-
-      // Count total QTY
-      const totalQty = items.reduce(
+      const qty = items.reduce(
         (sum: number, item: any) => sum + (item.quantity || 1),
         0
       );
 
-      setCartCount(totalQty);
+      setCartCount(qty);
     } catch (err) {
       console.error("Cart load error:", err);
-      // optional toast:
-      // toast.error("Failed to load cart");
     }
-  };
+  }, [userId, token]);
 
-  // 🔄 Load cart on mount AND when user logs in
+  const syncLocalToServer = useCallback(async () => {
+    if (!userId || !token) return;
+
+    const local = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!local.length) {
+      loadServerCartCount();
+      return;
+    }
+
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId, items: local }),
+      });
+
+      localStorage.removeItem("cart");
+      localStorage.setItem("cart-updated", Date.now().toString());
+
+      loadServerCartCount();
+    } catch (error) {
+      console.error("Cart sync error:", error);
+    }
+  }, [userId, token, loadServerCartCount]);
+
   useEffect(() => {
-    loadServerCart();
-  }, [userId]);
+    if (!userId || !token) {
+      loadLocalCartCount();
+    } else {
+      syncLocalToServer();
+    }
+  }, [userId, token, syncLocalToServer]);
 
-  // 🔄 Listen for cart updates from other components
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "cart-updated") {
-        // whenever someone dispatches this event:
-        loadServerCart();
+        if (!userId || !token) {
+          loadLocalCartCount();
+        } else {
+          loadServerCartCount();
+        }
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [userId, token, loadServerCartCount]);
 
   return (
     <Sheet>
-      {/* 🛒 Trigger button */}
       <SheetTrigger asChild>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -83,14 +113,12 @@ export const SheetRight = () => {
                      rounded-full border border-gray-700 bg-[#1a1a1a] 
                      hover:border-[#facc15] transition-all duration-300 
                      hover:shadow-[0_0_12px_rgba(250,204,21,0.3)] group"
-          aria-label="Open cart"
         >
           <ShoppingCart
-            className="w-[20px] h-[20px] text-gray-300 group-hover:text-[#facc15] transition-colors"
+            className="w-[20px] h-[20px] text-gray-300 group-hover:text-[#facc15]"
             strokeWidth={1.8}
           />
 
-          {/* 🧮 Real-time cart count badge */}
           {cartCount > 0 && (
             <motion.span
               key={cartCount}
@@ -107,7 +135,6 @@ export const SheetRight = () => {
         </motion.button>
       </SheetTrigger>
 
-      {/* 🧾 Drawer content */}
       <SheetContent className="sm:max-w-[538px] p-[32px] bg-[#101010] border-l border-gray-800 text-white flex flex-col gap-6">
         <SheetHeader>
           <div className="flex items-center gap-3">
@@ -117,7 +144,6 @@ export const SheetRight = () => {
           </div>
         </SheetHeader>
 
-        {/* 🟡 Tab switcher */}
         <div className="h-[44px] w-full bg-[#1a1a1a] p-1 gap-2 rounded-full flex border border-gray-800">
           <div
             className={`w-full h-full rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 ${
@@ -129,6 +155,7 @@ export const SheetRight = () => {
           >
             Cart
           </div>
+
           <div
             className={`w-full h-full rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 ${
               page === 2
@@ -141,7 +168,6 @@ export const SheetRight = () => {
           </div>
         </div>
 
-        {/* 🧾 Page content */}
         <div className="mt-3 flex-1 overflow-y-auto custom-scrollbar">
           {page === 1 && <PayFood />}
           {page === 2 && <OrderHistory />}

@@ -112,7 +112,7 @@ export const FoodInfo = ({
 
     // 🔥 Not logged in → use full-page login (NOT modal)
     if (!userId || !token) {
-      router.push(`/sign-in?redirect=checkout`);
+      router.push(`/sign-in?redirect=/checkout`);
       setIsProcessing(false);
       return;
     }

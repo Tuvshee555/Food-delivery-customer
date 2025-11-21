@@ -10,8 +10,7 @@ import { useAuth } from "@/app/provider/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export default function CartStep({}: {}) {
-  const { userId, token } = useAuth();
-
+  const { userId, token, loading: authLoading } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const router = useRouter();
 
@@ -36,10 +35,12 @@ export default function CartStep({}: {}) {
 
   // 🟡 1. Load cart from server
   useEffect(() => {
+    if (authLoading) return;
     if (!userId || !token) return;
 
     const load = async () => {
       await syncLocalCart();
+
       try {
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`
@@ -52,7 +53,11 @@ export default function CartStep({}: {}) {
     };
 
     load();
-  }, [userId, token]);
+  }, [authLoading, userId, token]);
+
+  if (authLoading) {
+    return <p className="text-white p-10">Түр хүлээнэ үү...</p>;
+  }
 
   const total = items.reduce(
     (sum, i) => sum + (i.food?.price || 0) * i.quantity,
@@ -234,7 +239,7 @@ export default function CartStep({}: {}) {
             className="w-full lg:w-[420px] bg-[#111111]/90 border border-gray-800 rounded-3xl p-8 shadow-[0_0_40px_-10px_rgba(250,204,21,0.15)] h-fit"
           >
             <h2 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-4">
-              Төлбөрийн мэдээлэл
+              Төлбөрийн мэдээлэл1
             </h2>
 
             <div className="flex justify-between text-gray-300 mb-3">

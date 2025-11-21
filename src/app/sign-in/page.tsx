@@ -20,12 +20,11 @@ export default function SignInPage() {
   const router = useRouter();
   const params = useSearchParams();
   const redirectUrl = params.get("redirect") || "/home-page";
-  //   const redirectUrl = "/home-page";
 
-  const { setAuthToken } = useAuth();
   const [openEmail, setOpenEmail] = useState(false);
+  const { setAuthToken } = useAuth();
 
-  // GOOGLE LOGIN
+  /** GOOGLE LOGIN */
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential)
       return toast.error("Google credential missing");
@@ -51,17 +50,18 @@ export default function SignInPage() {
       localStorage.setItem("userId", data.user.id);
 
       saveAuth(data);
-      window.dispatchEvent(new Event("auth-changed"));
-      toast.success("Google-р нэвтэрлээ!");
-      router.push(redirectUrl);
 
+      // 🔥 CRITICAL FIX
+      window.dispatchEvent(new Event("auth-changed"));
+
+      toast.success("Google-р нэвтэрлээ!");
       router.push(redirectUrl);
     } catch {
       toast.error("Google login error");
     }
   };
 
-  // FACEBOOK LOGIN
+  /** FACEBOOK LOGIN */
   const handleFacebookLogin = () => {
     if (!window.FB) return toast.error("Facebook SDK not loaded!");
 
@@ -85,9 +85,10 @@ export default function SignInPage() {
             localStorage.setItem("email", data.user.email);
             localStorage.setItem("userId", data.user.id);
 
-            setAuthToken(data.token);
-            toast.success("Facebook-р нэвтэрлээ!");
+            // 🔥 FIX - must fire this or AuthProvider won't update
+            window.dispatchEvent(new Event("auth-changed"));
 
+            toast.success("Facebook-р нэвтэрлээ!");
             router.push(redirectUrl);
           })
           .catch(() => toast.error("Facebook login failed"));
@@ -96,72 +97,67 @@ export default function SignInPage() {
     );
   };
 
-  // GUEST LOGIN
+  /** GUEST LOGIN */
   const handleGuest = () => {
-    localStorage.setItem("token", "guest-" + crypto.randomUUID());
+    const guestId = "guest-" + crypto.randomUUID();
+    const guestToken = "guest-token-" + crypto.randomUUID();
+
+    localStorage.setItem("token", guestToken);
+    localStorage.setItem("userId", guestId);
     localStorage.setItem("email", "Зочин хэрэглэгч");
     localStorage.setItem("guest", "true");
 
-    toast.success("Зочноор нэвтэрлээ");
+    window.dispatchEvent(new Event("auth-changed")); // CRITICAL
+
+    toast.success("Зочноор нэвтэрлээ!");
     router.push(redirectUrl);
   };
 
   return (
     <div className="min-h-screen w-full bg-[#0a0a0a] text-white px-6 pt-28 pb-12 flex flex-col items-center">
-      {/* TITLE */}
       <div className="w-full max-w-md text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Нэвтрэх</h1>
         <p className="text-gray-400">Үргэлжлүүлэхийн тулд нэвтэрнэ үү</p>
       </div>
 
-      {/* CONTENT */}
       <div className="w-full max-w-md flex flex-col gap-5">
-        {/* EMAIL LOGIN */}
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={() => setOpenEmail(true)}
-          className="w-full py-4 rounded-xl bg-[#1a1a1a] border border-gray-700 
-                     hover:border-[#facc15] transition font-semibold"
+          className="w-full py-4 rounded-xl bg-[#1a1a1a] border border-gray-700 hover:border-[#facc15] transition font-semibold"
         >
           Имэйлээр нэвтрэх
         </motion.button>
 
         <AuthDrawer open={openEmail} onClose={() => setOpenEmail(false)} />
 
-        {/* DIVIDER */}
         <div className="flex items-center my-2">
           <div className="flex-1 border-t border-gray-700" />
           <span className="px-3 text-gray-500 text-sm">эсвэл</span>
           <div className="flex-1 border-t border-gray-700" />
         </div>
 
-        {/* GOOGLE */}
         <div className="flex justify-center">
           <GoogleLogin onSuccess={handleGoogleLogin} />
         </div>
 
-        {/* FACEBOOK */}
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleFacebookLogin}
-          className="w-full py-4 rounded-xl bg-[#1877F2] text-white font-bold 
-                     hover:bg-[#1463c2] transition"
+          className="w-full py-4 rounded-xl bg-[#1877F2] text-white font-bold hover:bg-[#1463c2] transition"
         >
           Facebook-р нэвтрэх
         </motion.button>
 
-        {/* GUEST */}
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleGuest}
-          className="w-full py-4 rounded-xl border border-gray-700 
-                     font-semibold hover:border-[#facc15] transition"
+          className="w-full py-4 rounded-xl border border-gray-700 hover:border-[#facc15] transition font-semibold"
         >
           Зочноор нэвтрэх
         </motion.button>
       </div>
 
-      {/* FOOTER TEXT */}
       <p className="text-center text-gray-600 text-xs mt-8">
         Нэвтэрснээр та манай Үйлчилгээний нөхцөл болон Нууцлалын бодлогыг
         зөвшөөрнө.

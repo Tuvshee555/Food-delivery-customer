@@ -4,8 +4,6 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useJwt } from "react-jwt";
 
-// JWT can contain either `id` (Google login)
-// or `userId` (OTP login)
 type UserType = {
   id?: string;
   userId?: string;
@@ -29,44 +27,91 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const { decodedToken, reEvaluateToken } = useJwt<UserType>(token || "");
 
-  // 🔥 Load token from localStorage
+  /** ─────────────────────────────
+   *  1️⃣ Load stored token on page load
+   *  ───────────────────────────── */
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("token");
+    const storedUserId = localStorage.getItem("userId");
 
-    const storedToken = localStorage.getItem("token");
-
-    if (!storedToken) {
-      setLoading(false);
-      return;
+    if (stored) {
+      setToken(stored);
+      reEvaluateToken(stored);
     }
 
-    setToken(storedToken);
-    reEvaluateToken(storedToken);
+    // Guest users DO NOT have JWT → set userId manually
+    if (stored?.startsWith("guest-token-") && storedUserId) {
+      setUserId(storedUserId);
+    }
+
     setLoading(false);
   }, []);
 
-  // 🔥 Extract correct userId from decoded token
+  /** ─────────────────────────────
+   *  2️⃣ Extract userId from token OR guest fallback
+   *  ───────────────────────────── */
   useEffect(() => {
-    if (decodedToken) {
-      const finalId = decodedToken.id || decodedToken.userId;
-      setUserId(finalId ?? null);
+    if (!token) return;
 
-      console.log("AUTH PROVIDER → Loaded userId:", finalId);
+    // 🔥 Guest login → NOT a JWT
+    if (token.startsWith("guest-token-")) {
+      const guestId = localStorage.getItem("userId");
+      setUserId(guestId);
+      return;
     }
-  }, [decodedToken]);
 
-  // 🔥 Update token from login actions
+    // 🔥 Normal JWT login
+    if (decodedToken) {
+      const finalId = decodedToken.id || decodedToken.userId || null;
+      setUserId(finalId);
+    }
+  }, [token, decodedToken]);
+
+  /** ─────────────────────────────
+   *  3️⃣ Listen for login/logout events
+   *  ───────────────────────────── */
+  useEffect(() => {
+    const handler = () => {
+      const newToken = localStorage.getItem("token");
+      const newUserId = localStorage.getItem("userId");
+
+      if (newToken) {
+        setToken(newToken);
+        reEvaluateToken(newToken);
+
+        // If guest login, update userId manually
+        if (newToken.startsWith("guest-token-") && newUserId) {
+          setUserId(newUserId);
+        }
+      } else {
+        // Logout
+        setToken(null);
+        setUserId(null);
+      }
+    };
+
+    window.addEventListener("auth-changed", handler);
+    return () => window.removeEventListener("auth-changed", handler);
+  }, []);
+
+  /** ─────────────────────────────
+   *  4️⃣ Allow manual login/logout
+   *  ───────────────────────────── */
   const setAuthToken = (newToken: string | null) => {
     if (newToken) {
       localStorage.setItem("token", newToken);
       setToken(newToken);
       reEvaluateToken(newToken);
+      window.dispatchEvent(new Event("auth-changed"));
     } else {
       // Logout
       localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("guest");
       setToken(null);
       setUserId(null);
-      router.push("/log-in");
+      window.dispatchEvent(new Event("auth-changed"));
+      router.push("/sign-in");
     }
   };
 

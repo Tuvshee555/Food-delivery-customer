@@ -10,10 +10,19 @@ import axios from "axios";
 
 function CheckoutInner() {
   const router = useRouter();
-  const step = useSearchParams().get("step") || "cart";
+  const searchParams = useSearchParams();
+  const [step, setStep] = useState("cart");
+
   const { userId, token, loading: authLoading } = useAuth();
+
   const [cart, setCart] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Step loader fix
+  useEffect(() => {
+    const s = searchParams.get("step");
+    setStep(s || "cart");
+  }, [searchParams]);
 
   const syncLocalCart = useCallback(async () => {
     if (!userId || !token) return;
@@ -21,39 +30,27 @@ function CheckoutInner() {
     const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
     if (!localCart.length) return;
 
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId, items: localCart }),
-      });
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ userId, items: localCart }),
+    });
 
-      localStorage.removeItem("cart");
-      localStorage.setItem("cart-updated", Date.now().toString());
-    } catch (error) {
-      console.error("Checkout sync failed:", error);
-    }
+    localStorage.removeItem("cart");
+    localStorage.setItem("cart-updated", Date.now().toString());
   }, [userId, token]);
 
   const fetchCart = useCallback(async () => {
-    if (!userId || !token) {
-      setCart([]);
-      setLoading(false);
-      return;
-    }
-
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setCart(res.data.items || []);
-    } catch (error) {
-      console.error("Cart fetch error:", error);
+    } catch {
       setCart([]);
     } finally {
       setLoading(false);
@@ -61,23 +58,30 @@ function CheckoutInner() {
   }, [userId, token]);
 
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!userId || !token) {
+      router.push("/sign-in?redirect=/checkout");
+      return;
+    }
+
     const run = async () => {
-      if (!token) return;
       await syncLocalCart();
       await fetchCart();
     };
+
     run();
-  }, [userId, token, syncLocalCart, fetchCart]);
+  }, [authLoading, userId, token]);
 
   if (authLoading || loading) {
     return <p className="text-white p-10">Түр хүлээнэ үү...</p>;
   }
 
-  if (step === "info") {
-    return <InfoStep router={router} cart={cart} refreshCart={fetchCart} />;
-  }
-
-  return <CartStep />;
+  return step === "info" ? (
+    <InfoStep router={router} cart={cart} refreshCart={fetchCart} />
+  ) : (
+    <CartStep />
+  );
 }
 
 export default function CheckoutPage() {

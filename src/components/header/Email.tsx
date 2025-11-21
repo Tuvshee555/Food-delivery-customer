@@ -73,9 +73,10 @@ export const Email = () => {
     localStorage.clear();
     window.dispatchEvent(new Event("auth-changed"));
     setUserEmail(null);
-    window.location.reload();
+
     toast.success("Амжилттай истемээс гарлаа");
     router.push("/home-page");
+    window.location.reload();
   };
 
   const firstLetter = userEmail ? userEmail.charAt(0).toUpperCase() : "?";
@@ -282,7 +283,7 @@ export const Email = () => {
                 onClick={handleLogout}
                 className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-xl font-semibold"
               >
-                <LogOut className="w-4 h-4 inline-block" /> Системээс гарах
+                <LogOut className="w-4 h-4 inline-block" /> Системээс гарах1
               </motion.button>
             </SheetFooter>
           </>

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ShareButton } from "@/components/ShareButton";
 import { useAuth } from "@/app/provider/AuthProvider";
+import { useCart } from "@/app/store/cartStore";
 
 export const FoodInfo = ({
   food,
@@ -17,12 +18,27 @@ export const FoodInfo = ({
 }) => {
   const router = useRouter();
   const { userId, token } = useAuth();
+  const { add } = useCart();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const totalPrice = food.price * quantity;
+
+  const handleAdd = () => {
+    add({
+      foodId: food.id,
+      quantity,
+      selectedSize,
+      food: {
+        id: food.id,
+        foodName: food.foodName,
+        price: food.price,
+        image: resolveImageUrl(),
+      },
+    });
+  };
 
   const resolveImageUrl = () =>
     typeof food.image === "string" ? food.image : "";
@@ -67,58 +83,15 @@ export const FoodInfo = ({
     localStorage.setItem("cart", JSON.stringify(cart));
     localStorage.setItem("cart-updated", Date.now().toString());
 
-    window.dispatchEvent(new StorageEvent("storage", { key: "cart-updated" }));
+    window.dispatchEvent(new CustomEvent("cart-updated"));
 
     toast.success("🛒 Амжилттай сагсанд нэмэгдлээ!");
     return true;
   };
 
-  const syncLocalCartToServer = async () => {
-    if (!userId || !token) return;
-
-    const localCartRaw = localStorage.getItem("cart");
-    if (!localCartRaw) return;
-
-    const cart = JSON.parse(localCartRaw);
-    if (!cart.length) return;
-
-    // Backup before syncing
-    localStorage.setItem("cart-backup", localCartRaw);
-
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId, items: cart }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Sync failed");
-
-      // Remove ONLY after confirmed success
-      localStorage.removeItem("cart");
-      localStorage.removeItem("cart-backup");
-      localStorage.setItem("cart-updated", Date.now().toString());
-
-      window.dispatchEvent(
-        new StorageEvent("storage", { key: "cart-updated" })
-      );
-    } catch (error) {
-      console.error("Cart sync failed:", error);
-
-      // Recover backup so cart is not lost
-      const backup = localStorage.getItem("cart-backup");
-      if (backup) localStorage.setItem("cart", backup);
-    }
-  };
-
   const handleAddToCart = async () => {
     if (isProcessing) return;
+
     setIsProcessing(true);
 
     addToCartLocal();
@@ -130,7 +103,11 @@ export const FoodInfo = ({
     if (isProcessing) return;
     setIsProcessing(true);
 
-    addToCartLocal();
+    const ok = addToCartLocal();
+    if (!ok) {
+      setIsProcessing(false);
+      return;
+    }
 
     if (!userId || !token) {
       router.push(`/sign-in?redirect=/checkout`);
@@ -138,11 +115,7 @@ export const FoodInfo = ({
       return;
     }
 
-    await syncLocalCartToServer();
-
-    // Allow AuthProvider + storage events to complete
-    setTimeout(() => router.push("/checkout"), 120);
-
+    router.push("/checkout");
     setIsProcessing(false);
   };
 

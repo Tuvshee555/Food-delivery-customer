@@ -7,6 +7,7 @@ import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
 import { AddLocation } from "./header/AddLocation";
+import { useCart } from "@/app/store/cartStore";
 
 type CartItem = {
   id?: string; // server ID (optional when local)
@@ -23,10 +24,26 @@ type CartItem = {
 
 export const PayFood = () => {
   const { userId, token } = useAuth();
+  const { items, updateQty, remove, clear, load } = useCart();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [tick, setTick] = useState(0);
 
+  useEffect(() => {
+    const handler = () => {
+      setTick((t) => t + 1); // force re-render
+      if (!userId || !token) {
+        loadLocalCart();
+      } else {
+        loadServerCart();
+      }
+    };
+    load();
+
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []);
   // ------------------------------------------------------------------
   // 🟡 Load LOCAL cart (not logged in)
   // ------------------------------------------------------------------
@@ -39,6 +56,16 @@ export const PayFood = () => {
       0
     );
     setTotalPrice(total);
+  };
+
+  const ensureGuest = async () => {
+    if (token?.startsWith("guest-token-") && userId?.startsWith("guest-")) {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestId: userId }),
+      });
+    }
   };
 
   // ------------------------------------------------------------------
@@ -67,6 +94,19 @@ export const PayFood = () => {
       console.error("Cart load error:", err);
     }
   }, [userId, token]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (!userId || !token) {
+        loadLocalCart();
+      } else {
+        loadServerCart();
+      }
+    };
+
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []); // ⬅ NO DEPENDENCIES
 
   // ------------------------------------------------------------------
   // 🟡 Sync Local → Server when user logs in
@@ -124,18 +164,28 @@ export const PayFood = () => {
       return;
     }
 
-    if (token && !userId) {
-      // Wait for AuthProvider to finish decoding
-      return;
-    }
+    if (!userId) return;
 
     const run = async () => {
-      await new Promise((r) => setTimeout(r, 120)); // stabilize
-      await syncLocalCart();
+      await ensureGuest();
+
+      // Only PayFood syncs cart IF backend cart is empty
+      const serverRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = await serverRes.json();
+
+      if (!data.items || data.items.length === 0) {
+        await syncLocalCart();
+      }
+
+      await loadServerCart();
     };
 
     run();
-  }, [userId, token, syncLocalCart]);
+  }, [userId, token, syncLocalCart, loadServerCart]);
 
   // ------------------------------------------------------------------
   // 🟡 Update quantity (local OR server)

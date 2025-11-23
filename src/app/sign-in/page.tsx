@@ -98,29 +98,42 @@ export default function SignInPage() {
   };
 
   /** GUEST LOGIN */
-  const handleGuest = () => {
+  /** GUEST LOGIN */
+  const handleGuest = async () => {
     let guestId = localStorage.getItem("userId");
+
+    // Generate a new guest ID if none exists
     if (!guestId || !guestId.startsWith("guest-")) {
       guestId = "guest-" + crypto.randomUUID();
       localStorage.setItem("userId", guestId);
     }
 
-    let guestToken = localStorage.getItem("token");
-    if (!guestToken || !guestToken.startsWith("guest-token-")) {
-      guestToken = "guest-token-" + crypto.randomUUID();
-      localStorage.setItem("token", guestToken);
+    // Create guest token
+    const guestToken = "guest-token-" + crypto.randomUUID();
+    localStorage.setItem("token", guestToken);
+
+    // 🔥 CALL BACKEND → CREATE GUEST USER
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestId }),
+      });
+    } catch (err) {
+      console.error("Guest API create error:", err);
+      toast.error("Guest үүсгэхэд алдаа гарлаа!");
+      return;
     }
 
+    // Store display email
     localStorage.setItem("email", "Зочин хэрэглэгч");
     localStorage.setItem("guest", "true");
 
-    // notify auth system (AuthProvider listens for this)
+    // Notify auth listeners
     window.dispatchEvent(new Event("auth-changed"));
 
-    // also notify cart listeners (same-tab listeners)
-    window.dispatchEvent(new Event("cart-changed"));
-
     toast.success("Зочноор нэвтэрлээ!");
+
     setTimeout(() => router.push(redirectUrl), 150);
   };
 

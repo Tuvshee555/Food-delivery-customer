@@ -9,20 +9,38 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { PayFood } from "../PayFood";
 import { OrderHistory } from "../OrderHistory";
 import { useAuth } from "@/app/provider/AuthProvider";
+import { useCart } from "@/app/store/cartStore";
 
 export const SheetRight = () => {
   const { userId, token } = useAuth();
+  const { items, load } = useCart();
   const [page, setPage] = useState<number>(1);
   const [cartCount, setCartCount] = useState<number>(0);
+  const alreadySynced = useRef(false);
 
   const loadLocalCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const qty = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
     setCartCount(qty);
+  };
+
+  const ensureGuestExists = async () => {
+    if (!token?.startsWith("guest-token-")) return;
+    if (!userId?.startsWith("guest-")) return;
+
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestId: userId }),
+      });
+    } catch (err) {
+      console.error("Failed to ensure guest exists:", err);
+    }
   };
 
   const loadServerCartCount = useCallback(async () => {
@@ -52,21 +70,22 @@ export const SheetRight = () => {
 
   const syncLocalToServer = useCallback(async () => {
     if (!userId || !token) return;
+    if (alreadySynced.current) return; // prevent repeated sync loops
 
-    const localRaw = localStorage.getItem("cart");
-    if (!localRaw) {
+    const raw = localStorage.getItem("cart");
+    if (!raw) {
       await loadServerCartCount();
       return;
     }
 
-    const local = JSON.parse(localRaw);
+    const local = JSON.parse(raw);
     if (!local.length) {
       await loadServerCartCount();
       return;
     }
 
-    // Backup cart before syncing
-    localStorage.setItem("cart-backup", localRaw);
+    alreadySynced.current = true;
+    localStorage.setItem("cart-backup", raw);
 
     try {
       const res = await fetch(
@@ -83,16 +102,15 @@ export const SheetRight = () => {
 
       if (!res.ok) throw new Error("Sync failed");
 
-      // Remove ONLY after confirmed success
       localStorage.removeItem("cart");
       localStorage.removeItem("cart-backup");
       localStorage.setItem("cart-updated", Date.now().toString());
 
+      window.dispatchEvent(new Event("cart-updated"));
       await loadServerCartCount();
     } catch (err) {
       console.error("Cart sync error:", err);
 
-      // Restore backup to avoid disappearing cart
       const backup = localStorage.getItem("cart-backup");
       if (backup) localStorage.setItem("cart", backup);
 
@@ -101,30 +119,29 @@ export const SheetRight = () => {
   }, [userId, token, loadServerCartCount]);
 
   useEffect(() => {
-    if (!userId || !token) {
+    if (!token || !userId) {
       loadLocalCartCount();
-    } else {
-      syncLocalToServer().then(() => loadServerCartCount());
+      return;
     }
+
+    const run = async () => {
+      await ensureGuestExists();
+      await syncLocalToServer();
+      await loadServerCartCount();
+    };
+
+    run();
   }, [userId, token, syncLocalToServer, loadServerCartCount]);
 
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "cart-updated") {
-        if (!userId || !token) {
-          loadLocalCartCount();
-        } else {
-          loadServerCartCount();
-        }
-      }
+    const handler = () => {
+      if (!token || !userId) loadLocalCartCount();
+      else loadServerCartCount();
     };
 
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, [userId, token, loadServerCartCount]);
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, [token, userId, loadServerCartCount]);
 
   return (
     <Sheet>

@@ -45,7 +45,16 @@ function CheckoutInner() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ userId, items: localCart }),
+          body: JSON.stringify({
+            userId,
+            items: localCart.map(
+              (i: { foodId: any; quantity: any; selectedSize: any }) => ({
+                foodId: i.foodId,
+                quantity: i.quantity,
+                selectedSize: i.selectedSize || null,
+              })
+            ),
+          }),
         }
       );
 
@@ -115,3 +124,15 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
+
+// const res = await fetch(
+//   `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
+//   {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Bearer ${token}`,
+//     },
+//     body: JSON.stringify({ userId, items: localCart }),
+//   }
+// );

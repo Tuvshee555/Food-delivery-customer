@@ -32,9 +32,7 @@ export const SheetRight = () => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -55,28 +53,50 @@ export const SheetRight = () => {
   const syncLocalToServer = useCallback(async () => {
     if (!userId || !token) return;
 
-    const local = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (!local.length) {
-      loadServerCartCount();
+    const localRaw = localStorage.getItem("cart");
+    if (!localRaw) {
+      await loadServerCartCount();
       return;
     }
 
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId, items: local }),
-      });
+    const local = JSON.parse(localRaw);
+    if (!local.length) {
+      await loadServerCartCount();
+      return;
+    }
 
+    // Backup cart before syncing
+    localStorage.setItem("cart-backup", localRaw);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId, items: local }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Sync failed");
+
+      // Remove ONLY after confirmed success
       localStorage.removeItem("cart");
+      localStorage.removeItem("cart-backup");
       localStorage.setItem("cart-updated", Date.now().toString());
 
-      loadServerCartCount();
-    } catch (error) {
-      console.error("Cart sync error:", error);
+      await loadServerCartCount();
+    } catch (err) {
+      console.error("Cart sync error:", err);
+
+      // Restore backup to avoid disappearing cart
+      const backup = localStorage.getItem("cart-backup");
+      if (backup) localStorage.setItem("cart", backup);
+
+      await loadServerCartCount();
     }
   }, [userId, token, loadServerCartCount]);
 
@@ -84,9 +104,9 @@ export const SheetRight = () => {
     if (!userId || !token) {
       loadLocalCartCount();
     } else {
-      syncLocalToServer();
+      syncLocalToServer().then(() => loadServerCartCount());
     }
-  }, [userId, token, syncLocalToServer]);
+  }, [userId, token, syncLocalToServer, loadServerCartCount]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -100,7 +120,10 @@ export const SheetRight = () => {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, [userId, token, loadServerCartCount]);
 
   return (

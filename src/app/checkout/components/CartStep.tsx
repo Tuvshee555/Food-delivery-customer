@@ -15,39 +15,63 @@ export default function CartStep({}: {}) {
   const router = useRouter();
 
   const syncLocalCart = async () => {
-    if (!userId || !token) return;
+    if (token && !userId) return;
+    if (!token) return;
 
-    const local = JSON.parse(localStorage.getItem("cart") || "[]");
+    const localCartRaw = localStorage.getItem("cart");
+    if (!localCartRaw) return;
+
+    const local = JSON.parse(localCartRaw);
     if (!local.length) return;
 
-    try {
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
-        userId,
-        items: local,
-      });
+    // backup in case sync fails
+    localStorage.setItem("cart-backup", localCartRaw);
 
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
+        { userId, items: local },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.status !== 200) throw new Error("Sync failed");
+
+      // remove ONLY if successful
       localStorage.removeItem("cart");
+      localStorage.removeItem("cart-backup");
       localStorage.setItem("cart-updated", Date.now().toString());
+
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "cart-updated" })
+      );
     } catch (err) {
       console.log("Sync failed:", err);
+
+      // restore backup
+      const backup = localStorage.getItem("cart-backup");
+      if (backup) localStorage.setItem("cart", backup);
+
+      toast.error("Сагс синк хийхэд алдаа гарлаа.");
     }
   };
 
-  // 🟡 1. Load cart from server
   useEffect(() => {
     if (authLoading) return;
-    if (!userId || !token) return;
+
+    if (token && !userId) return; // wait for userId
+    if (!token) return;
 
     const load = async () => {
+      await new Promise((r) => setTimeout(r, 120)); // allow AuthProvider to stabilize
       await syncLocalCart();
 
       try {
         const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setItems(res.data.items || []);
       } catch (err) {
-        console.log(err);
         toast.error("Сагс ачаалахад алдаа гарлаа.");
       }
     };
@@ -66,7 +90,7 @@ export default function CartStep({}: {}) {
   const delivery = 100;
   const grandTotal = total + delivery;
 
-  // 🟡 2. Increase quantity (server)
+  // ⭐ Increase
   const increaseQuantity = async (index: number) => {
     const item = items[index];
 
@@ -79,12 +103,18 @@ export default function CartStep({}: {}) {
       const updated = [...items];
       updated[index].quantity++;
       setItems(updated);
-    } catch (err) {
+
+      // 🔥 notify header
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "cart-updated" })
+      );
+    } catch {
       toast.error("Тоо ширхэг нэмэхэд алдаа гарлаа.");
     }
   };
 
-  // 🟡 3. Decrease quantity (server)
+  // ⭐ Decrease
   const decreaseQuantity = async (index: number) => {
     const item = items[index];
     if (item.quantity <= 1) return;
@@ -98,12 +128,18 @@ export default function CartStep({}: {}) {
       const updated = [...items];
       updated[index].quantity--;
       setItems(updated);
-    } catch (err) {
+
+      // 🔥 notify
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "cart-updated" })
+      );
+    } catch {
       toast.error("Тоо ширхэг хасахад алдаа гарлаа.");
     }
   };
 
-  // 🟡 4. Remove single item
+  // ⭐ Remove item
   const removeItem = async (index: number) => {
     const item = items[index];
 
@@ -112,22 +148,34 @@ export default function CartStep({}: {}) {
         id: item.id,
       });
 
-      toast.success("Бараа устгагдлаа.");
       setItems(items.filter((_, i) => i !== index));
+      toast.success("Бараа устгагдлаа.");
+
+      // 🔥 notify
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "cart-updated" })
+      );
     } catch {
       toast.error("Устгахад алдаа гарлаа.");
     }
   };
 
-  // 🟡 5. Clear entire cart
+  // ⭐ Clear all
   const clearCart = async () => {
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/clear`, {
         userId,
       });
 
-      toast.success("Сагс хоослогдлоо.");
       setItems([]);
+      toast.success("Сагс хоослогдлоо.");
+
+      // 🔥 notify
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "cart-updated" })
+      );
     } catch {
       toast.error("Сагс хоослох үед алдаа гарлаа.");
     }

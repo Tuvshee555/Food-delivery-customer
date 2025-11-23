@@ -74,27 +74,44 @@ export const PayFood = () => {
   const syncLocalCart = useCallback(async () => {
     if (!userId || !token) return;
 
-    const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (!localCart.length) {
-      loadServerCart();
-      return;
-    }
+    const localCartRaw = localStorage.getItem("cart");
+    if (!localCartRaw) return;
+
+    const localCart = JSON.parse(localCartRaw);
+    if (!localCart.length) return;
+
+    // backup
+    localStorage.setItem("cart-backup", localCartRaw);
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId, items: localCart }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId, items: localCart }),
+        }
+      );
 
+      if (!res.ok) throw new Error("Sync failed");
+
+      // remove ONLY after success
       localStorage.removeItem("cart");
+      localStorage.removeItem("cart-backup");
       localStorage.setItem("cart-updated", Date.now().toString());
+
       loadServerCart();
-    } catch (error) {
-      console.error("Sync error:", error);
+    } catch (err) {
+      console.error("Sync error:", err);
+
+      // restore backup so cart is NOT lost
+      const backup = localStorage.getItem("cart-backup");
+      if (backup) localStorage.setItem("cart", backup);
+
+      toast.error("Сагс синк хийхэд алдаа гарлаа.");
     }
   }, [userId, token, loadServerCart]);
 
@@ -102,11 +119,22 @@ export const PayFood = () => {
   // 🔄 Load correct cart on mount
   // ------------------------------------------------------------------
   useEffect(() => {
-    if (!userId || !token) {
+    if (!token) {
       loadLocalCart();
-    } else {
-      syncLocalCart();
+      return;
     }
+
+    if (token && !userId) {
+      // Wait for AuthProvider to finish decoding
+      return;
+    }
+
+    const run = async () => {
+      await new Promise((r) => setTimeout(r, 120)); // stabilize
+      await syncLocalCart();
+    };
+
+    run();
   }, [userId, token, syncLocalCart]);
 
   // ------------------------------------------------------------------

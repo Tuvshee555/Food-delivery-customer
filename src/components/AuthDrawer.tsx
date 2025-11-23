@@ -19,9 +19,6 @@ export default function AuthDrawer({
   const [isCorrect, setIsCorrect] = useState<null | boolean>(null);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
-  // ----------------------------
-  // SEND OTP
-  // ----------------------------
   const sendOTP = async () => {
     const normalized = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(normalized)) {
@@ -38,7 +35,6 @@ export default function AuthDrawer({
         body: JSON.stringify({ email: normalized }),
       }
     );
-
     setLoading(false);
 
     if (!res.ok) return toast.error("Код илгээхэд алдаа гарлаа");
@@ -58,7 +54,6 @@ export default function AuthDrawer({
     }
   };
 
-  // ----------------------------
   const handleDigitChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return;
 
@@ -69,13 +64,9 @@ export default function AuthDrawer({
     if (val && i < 5) inputsRef.current[i + 1]?.focus();
 
     const full = next.join("");
-
     if (full.length === 6) autoVerify(full);
   };
 
-  // ----------------------------
-  // AUTO VERIFY
-  // ----------------------------
   const autoVerify = async (code: string) => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
@@ -103,9 +94,17 @@ export default function AuthDrawer({
 
     saveAuth(data);
 
+    // 🔥 IMPORTANT: Tell AuthProvider to update
+    window.dispatchEvent(new Event("auth-changed"));
+
     toast.success("Амжилттай нэвтэрлээ!");
 
-    setTimeout(() => window.location.reload(), 300);
+    const redirect =
+      new URLSearchParams(window.location.search).get("redirect") ||
+      "/home-page";
+
+    // 🔥 SAFE redirect (NO RELOAD)
+    window.location.href = redirect;
   };
 
   if (!open) return null;

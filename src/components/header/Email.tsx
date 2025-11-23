@@ -70,13 +70,18 @@ export const Email = () => {
 
   const handleLogout = () => {
     setAuthToken(null);
-    localStorage.clear();
+    // Only remove auth data — DO NOT clear cart!
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("guest");
+
     window.dispatchEvent(new Event("auth-changed"));
     setUserEmail(null);
 
     toast.success("Амжилттай истемээс гарлаа");
     router.push("/home-page");
-    window.location.reload();
+    // window.location.reload();
   };
 
   const firstLetter = userEmail ? userEmail.charAt(0).toUpperCase() : "?";
@@ -111,7 +116,8 @@ export const Email = () => {
 
       window.dispatchEvent(new Event("auth-changed"));
       saveAuth(data);
-      window.location.reload();
+      // window.location.reload();
+      router.refresh();
 
       toast.success("Google-р амжилттай нэвтэрлээ");
     } catch {

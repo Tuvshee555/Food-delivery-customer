@@ -27,20 +27,38 @@ function CheckoutInner() {
   const syncLocalCart = useCallback(async () => {
     if (!userId || !token) return;
 
-    const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const localCartRaw = localStorage.getItem("cart");
+    if (!localCartRaw) return;
+
+    const localCart = JSON.parse(localCartRaw);
     if (!localCart.length) return;
 
-    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ userId, items: localCart }),
-    });
+    // Create a backup in case sync fails
+    localStorage.setItem("cart-backup", localCartRaw);
 
-    localStorage.removeItem("cart");
-    localStorage.setItem("cart-updated", Date.now().toString());
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId, items: localCart }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Sync failed");
+
+      // Remove ONLY after success
+      localStorage.removeItem("cart");
+      localStorage.removeItem("cart-backup");
+      localStorage.setItem("cart-updated", Date.now().toString());
+    } catch (error) {
+      console.error("Cart sync failed:", error);
+      // keep local cart safe
+    }
   }, [userId, token]);
 
   const fetchCart = useCallback(async () => {
@@ -60,12 +78,18 @@ function CheckoutInner() {
   useEffect(() => {
     if (authLoading) return;
 
-    if (!userId || !token) {
+    // Prevent running too early
+    if (token && !userId) return;
+
+    if (!token) {
       router.push("/sign-in?redirect=/checkout");
       return;
     }
 
     const run = async () => {
+      // Wait 100ms for safe token/userId availability
+      await new Promise((r) => setTimeout(r, 120));
+
       await syncLocalCart();
       await fetchCart();
     };

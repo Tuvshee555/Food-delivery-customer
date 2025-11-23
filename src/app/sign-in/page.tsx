@@ -55,7 +55,7 @@ export default function SignInPage() {
       window.dispatchEvent(new Event("auth-changed"));
 
       toast.success("Google-р нэвтэрлээ!");
-      router.push(redirectUrl);
+      setTimeout(() => router.push(redirectUrl), 150);
     } catch {
       toast.error("Google login error");
     }
@@ -89,7 +89,7 @@ export default function SignInPage() {
             window.dispatchEvent(new Event("auth-changed"));
 
             toast.success("Facebook-р нэвтэрлээ!");
-            router.push(redirectUrl);
+            setTimeout(() => router.push(redirectUrl), 150);
           })
           .catch(() => toast.error("Facebook login failed"));
       },
@@ -99,18 +99,29 @@ export default function SignInPage() {
 
   /** GUEST LOGIN */
   const handleGuest = () => {
-    const guestId = "guest-" + crypto.randomUUID();
-    const guestToken = "guest-token-" + crypto.randomUUID();
+    let guestId = localStorage.getItem("userId");
+    if (!guestId || !guestId.startsWith("guest-")) {
+      guestId = "guest-" + crypto.randomUUID();
+      localStorage.setItem("userId", guestId);
+    }
 
-    localStorage.setItem("token", guestToken);
-    localStorage.setItem("userId", guestId);
+    let guestToken = localStorage.getItem("token");
+    if (!guestToken || !guestToken.startsWith("guest-token-")) {
+      guestToken = "guest-token-" + crypto.randomUUID();
+      localStorage.setItem("token", guestToken);
+    }
+
     localStorage.setItem("email", "Зочин хэрэглэгч");
     localStorage.setItem("guest", "true");
 
-    window.dispatchEvent(new Event("auth-changed")); // CRITICAL
+    // notify auth system (AuthProvider listens for this)
+    window.dispatchEvent(new Event("auth-changed"));
+
+    // also notify cart listeners (same-tab listeners)
+    window.dispatchEvent(new Event("cart-changed"));
 
     toast.success("Зочноор нэвтэрлээ!");
-    router.push(redirectUrl);
+    setTimeout(() => router.push(redirectUrl), 150);
   };
 
   return (

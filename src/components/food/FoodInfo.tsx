@@ -25,11 +25,7 @@ export const FoodInfo = ({
   const totalPrice = food.price * quantity;
 
   const resolveImageUrl = () =>
-    typeof food.image === "string"
-      ? food.image
-      : food.image
-      ? URL.createObjectURL(food.image as Blob)
-      : "";
+    typeof food.image === "string" ? food.image : "";
 
   const getFoodId = () => food.id || null;
 
@@ -47,7 +43,6 @@ export const FoodInfo = ({
 
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-    // check if item exists
     const exist = cart.find(
       (item: any) =>
         item.foodId === foodId && item.selectedSize === selectedSize
@@ -72,6 +67,8 @@ export const FoodInfo = ({
     localStorage.setItem("cart", JSON.stringify(cart));
     localStorage.setItem("cart-updated", Date.now().toString());
 
+    window.dispatchEvent(new StorageEvent("storage", { key: "cart-updated" }));
+
     toast.success("🛒 Амжилттай сагсанд нэмэгдлээ!");
     return true;
   };
@@ -79,20 +76,45 @@ export const FoodInfo = ({
   const syncLocalCartToServer = async () => {
     if (!userId || !token) return;
 
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const localCartRaw = localStorage.getItem("cart");
+    if (!localCartRaw) return;
+
+    const cart = JSON.parse(localCartRaw);
     if (!cart.length) return;
 
-    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ userId, items: cart }),
-    });
+    // Backup before syncing
+    localStorage.setItem("cart-backup", localCartRaw);
 
-    localStorage.removeItem("cart");
-    localStorage.setItem("cart-updated", Date.now().toString());
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId, items: cart }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Sync failed");
+
+      // Remove ONLY after confirmed success
+      localStorage.removeItem("cart");
+      localStorage.removeItem("cart-backup");
+      localStorage.setItem("cart-updated", Date.now().toString());
+
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "cart-updated" })
+      );
+    } catch (error) {
+      console.error("Cart sync failed:", error);
+
+      // Recover backup so cart is not lost
+      const backup = localStorage.getItem("cart-backup");
+      if (backup) localStorage.setItem("cart", backup);
+    }
   };
 
   const handleAddToCart = async () => {
@@ -110,7 +132,6 @@ export const FoodInfo = ({
 
     addToCartLocal();
 
-    // 🔥 Not logged in → use full-page login (NOT modal)
     if (!userId || !token) {
       router.push(`/sign-in?redirect=/checkout`);
       setIsProcessing(false);
@@ -118,7 +139,9 @@ export const FoodInfo = ({
     }
 
     await syncLocalCartToServer();
-    router.push("/checkout");
+
+    // Allow AuthProvider + storage events to complete
+    setTimeout(() => router.push("/checkout"), 120);
 
     setIsProcessing(false);
   };

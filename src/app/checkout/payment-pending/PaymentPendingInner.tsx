@@ -120,7 +120,7 @@ export default function PaymentPendingInner() {
     <main className="min-h-screen bg-[#0a0a0a] text-white pt-[130px] pb-24">
       <div className="max-w-6xl mx-auto px-6 flex flex-col lg:flex-row gap-10">
         {/* LEFT: QR SECTION */}
-        <div className="flex-1 bg-[#111]/90 border border-gray-800 rounded-3xl p-8 text-center">
+        <div className="flex-1 bg-white border border-gray-800 rounded-3xl p-8 text-center">
           <h2 className="text-2xl font-bold mb-2">
             {paid ? "Төлбөр амжилттай хийгдлээ 🎉" : "Төлбөр хүлээгдэж байна"}
           </h2>

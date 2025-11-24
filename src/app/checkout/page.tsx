@@ -58,7 +58,7 @@ function CheckoutInner() {
         }
       );
 
-      if (!res.ok) throw new Error("Sync failed");
+      // if (!res.ok) throw new Error("Sync failed");
 
       // Remove ONLY after success
       localStorage.removeItem("cart");

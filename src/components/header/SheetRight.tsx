@@ -175,7 +175,10 @@ export const SheetRight = () => {
         </motion.button>
       </SheetTrigger>
 
-      <SheetContent className="sm:max-w-[538px] p-[32px] bg-[#101010] border-l border-gray-800 text-white flex flex-col gap-6">
+      <SheetContent
+        key={cartCount}
+        className="sm:max-w-[538px] p-[32px] bg-[#101010] border-l border-gray-800 text-white flex flex-col gap-6"
+      >
         <SheetHeader>
           <div className="flex items-center gap-3">
             <SheetTitle className="flex items-center gap-2 text-[#facc15] text-lg">
@@ -209,7 +212,7 @@ export const SheetRight = () => {
         </div>
 
         <div className="mt-3 flex-1 overflow-y-auto custom-scrollbar">
-          {page === 1 && <PayFood />}
+          {page === 1 && <PayFood key={cartCount} />}
           {page === 2 && <OrderHistory />}
         </div>
       </SheetContent>

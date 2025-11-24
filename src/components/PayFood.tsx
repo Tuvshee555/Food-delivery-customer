@@ -10,79 +10,43 @@ import { AddLocation } from "./header/AddLocation";
 import { useCart } from "@/app/store/cartStore";
 
 type CartItem = {
-  id?: string; // server ID (optional when local)
+  id?: string;
   foodId: string;
   quantity: number;
   selectedSize: string | null;
-  food: {
-    id: string;
-    foodName: string;
-    price: number;
-    image: string;
-  };
+  food: { id: string; foodName: string; price: number; image: string };
 };
 
 export const PayFood = () => {
   const { userId, token } = useAuth();
-  const { items, updateQty, remove, clear, load } = useCart();
+  const { load } = useCart();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [tick, setTick] = useState(0);
 
-  useEffect(() => {
-    const handler = () => {
-      setTick((t) => t + 1); // force re-render
-      if (!userId || !token) {
-        loadLocalCart();
-      } else {
-        loadServerCart();
-      }
-    };
-    load();
-
-    window.addEventListener("cart-updated", handler);
-    return () => window.removeEventListener("cart-updated", handler);
-  }, []);
-  // ------------------------------------------------------------------
-  // 🟡 Load LOCAL cart (not logged in)
-  // ------------------------------------------------------------------
-  const loadLocalCart = () => {
+  const loadLocalCart = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(cart);
-
-    const total = cart.reduce(
-      (sum: number, item: CartItem) => sum + item.food.price * item.quantity,
-      0
+    setTotalPrice(
+      cart.reduce(
+        (sum: number, item: CartItem) => sum + item.food.price * item.quantity,
+        0
+      )
     );
-    setTotalPrice(total);
-  };
+  }, []);
 
-  const ensureGuest = async () => {
-    if (token?.startsWith("guest-token-") && userId?.startsWith("guest-")) {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guestId: userId }),
-      });
-    }
-  };
-
-  // ------------------------------------------------------------------
-  // 🟡 Load SERVER cart (logged in)
-  // ------------------------------------------------------------------
   const loadServerCart = useCallback(async () => {
     if (!userId || !token) return;
-
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-
       const data = await res.json();
       const items = data.items || [];
-
       setCartItems(items);
       setTotalPrice(
         items.reduce(
@@ -95,122 +59,38 @@ export const PayFood = () => {
     }
   }, [userId, token]);
 
+  // single effect: initial load + cart-updated listener
   useEffect(() => {
     const handler = () => {
-      if (!userId || !token) {
-        loadLocalCart();
-      } else {
-        loadServerCart();
-      }
+      setTick((t) => t + 1);
+      if (!userId || !token) loadLocalCart();
+      else loadServerCart();
     };
+
+    // initial load
+    if (!userId || !token) loadLocalCart();
+    else loadServerCart();
 
     window.addEventListener("cart-updated", handler);
     return () => window.removeEventListener("cart-updated", handler);
-  }, []); // ⬅ NO DEPENDENCIES
+  }, [userId, token, loadLocalCart, loadServerCart]);
 
-  // ------------------------------------------------------------------
-  // 🟡 Sync Local → Server when user logs in
-  // ------------------------------------------------------------------
-  const syncLocalCart = useCallback(async () => {
-    if (!userId || !token) return;
-
-    const localCartRaw = localStorage.getItem("cart");
-    if (!localCartRaw) return;
-
-    const localCart = JSON.parse(localCartRaw);
-    if (!localCart.length) return;
-
-    // backup
-    localStorage.setItem("cart-backup", localCartRaw);
-
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId, items: localCart }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Sync failed");
-
-      // remove ONLY after success
-      localStorage.removeItem("cart");
-      localStorage.removeItem("cart-backup");
-      localStorage.setItem("cart-updated", Date.now().toString());
-
-      loadServerCart();
-    } catch (err) {
-      console.error("Sync error:", err);
-
-      // restore backup so cart is NOT lost
-      const backup = localStorage.getItem("cart-backup");
-      if (backup) localStorage.setItem("cart", backup);
-
-      toast.error("Сагс синк хийхэд алдаа гарлаа.");
-    }
-  }, [userId, token, loadServerCart]);
-
-  // ------------------------------------------------------------------
-  // 🔄 Load correct cart on mount
-  // ------------------------------------------------------------------
-  useEffect(() => {
-    if (!token) {
-      loadLocalCart();
-      return;
-    }
-
-    if (!userId) return;
-
-    const run = async () => {
-      await ensureGuest();
-
-      // Only PayFood syncs cart IF backend cart is empty
-      const serverRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const data = await serverRes.json();
-
-      if (!data.items || data.items.length === 0) {
-        await syncLocalCart();
-      }
-
-      await loadServerCart();
-    };
-
-    run();
-  }, [userId, token, syncLocalCart, loadServerCart]);
-
-  // ------------------------------------------------------------------
-  // 🟡 Update quantity (local OR server)
-  // ------------------------------------------------------------------
   const updateQuantity = async (item: CartItem, change: number) => {
     const newQty = Math.max(1, item.quantity + change);
-
-    // NOT LOGGED IN → update LS
     if (!userId || !token) {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
       const target = cart.find(
         (i: any) =>
           i.foodId === item.foodId && i.selectedSize === item.selectedSize
       );
       if (!target) return;
-
       target.quantity = newQty;
-
       localStorage.setItem("cart", JSON.stringify(cart));
-      loadLocalCart();
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(new CustomEvent("cart-updated"));
       return;
     }
 
-    // LOGGED IN → update server
     try {
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/update`, {
         method: "POST",
@@ -218,40 +98,30 @@ export const PayFood = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          id: item.id,
-          quantity: newQty,
-        }),
+        body: JSON.stringify({ id: item.id, quantity: newQty }),
       });
-
-      loadServerCart();
+      window.dispatchEvent(new CustomEvent("cart-updated"));
     } catch {
       toast.error("Алдаа гарлаа.");
     }
   };
 
-  // ------------------------------------------------------------------
-  // 🟡 Remove item (local OR server)
-  // ------------------------------------------------------------------
   const removeItem = async (
     itemIdOrFoodId: string,
     selectedSize: string | null
   ) => {
-    // NOT LOGGED IN → local only
     if (!userId || !token) {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
       const filtered = cart.filter(
         (i: any) =>
           !(i.foodId === itemIdOrFoodId && i.selectedSize === selectedSize)
       );
-
       localStorage.setItem("cart", JSON.stringify(filtered));
-      loadLocalCart();
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(new CustomEvent("cart-updated"));
       return;
     }
 
-    // LOGGED IN → remove from server
     try {
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/remove`, {
         method: "POST",
@@ -261,20 +131,17 @@ export const PayFood = () => {
         },
         body: JSON.stringify({ id: itemIdOrFoodId }),
       });
-
-      loadServerCart();
+      window.dispatchEvent(new CustomEvent("cart-updated"));
     } catch {
       toast.error("Алдаа гарлаа.");
     }
   };
 
-  // ------------------------------------------------------------------
-  // 🟡 Clear cart (local OR server)
-  // ------------------------------------------------------------------
   const clearAll = async () => {
     if (!userId || !token) {
       localStorage.removeItem("cart");
-      loadLocalCart();
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(new CustomEvent("cart-updated"));
       return;
     }
 
@@ -287,16 +154,11 @@ export const PayFood = () => {
         },
         body: JSON.stringify({ userId }),
       });
-
-      loadServerCart();
+      window.dispatchEvent(new CustomEvent("cart-updated"));
     } catch {
       toast.error("Алдаа гарлаа.");
     }
   };
-
-  // ------------------------------------------------------------------
-  // UI
-  // ------------------------------------------------------------------
   return (
     <>
       <AddLocation

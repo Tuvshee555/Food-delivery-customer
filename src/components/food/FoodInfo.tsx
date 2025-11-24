@@ -1,3 +1,4 @@
+// src/components/food/FoodInfo.tsx
 "use client";
 
 import { useState } from "react";
@@ -25,20 +26,6 @@ export const FoodInfo = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const totalPrice = food.price * quantity;
-
-  const handleAdd = () => {
-    add({
-      foodId: food.id,
-      quantity,
-      selectedSize,
-      food: {
-        id: food.id,
-        foodName: food.foodName,
-        price: food.price,
-        image: resolveImageUrl(),
-      },
-    });
-  };
 
   const resolveImageUrl = () =>
     typeof food.image === "string" ? food.image : "";
@@ -82,19 +69,82 @@ export const FoodInfo = ({
 
     localStorage.setItem("cart", JSON.stringify(cart));
     localStorage.setItem("cart-updated", Date.now().toString());
-
     window.dispatchEvent(new CustomEvent("cart-updated"));
-
     toast.success("🛒 Амжилттай сагсанд нэмэгдлээ!");
     return true;
   };
 
+  const addToCartServer = async () => {
+    // calls backend /cart/add
+    const foodId = getFoodId();
+    if (!foodId) {
+      toast.error("❌ Хоолны ID олдсонгүй.");
+      return false;
+    }
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            foodId,
+            quantity,
+            selectedSize: selectedSize || null,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        console.error("Add cart error:", err);
+        toast.error("Сервер руу нэмэхэд алдаа гарлаа.");
+        return false;
+      }
+
+      // success -> notify UI
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      toast.success("🛒 Сагс руу нэмэгдлээ!");
+      return true;
+    } catch (error) {
+      console.error("Add to cart network error:", error);
+      toast.error("Сүлжээ алдаа. Дахин оролдоно уу.");
+      return false;
+    }
+  };
+
   const handleAddToCart = async () => {
     if (isProcessing) return;
-
     setIsProcessing(true);
 
-    addToCartLocal();
+    // if logged in -> server; else -> local
+    if (userId && token) {
+      const ok = await addToCartServer();
+      // keep Zustand in sync (optional) — call add if you use Zustand UI elsewhere
+      if (ok) {
+        try {
+          add({
+            foodId: food.id,
+            quantity,
+            selectedSize,
+            food: {
+              id: food.id,
+              foodName: food.foodName,
+              price: food.price,
+              image: resolveImageUrl(),
+            },
+          });
+        } catch {}
+      }
+    } else {
+      addToCartLocal();
+    }
 
     setIsProcessing(false);
   };
@@ -103,10 +153,19 @@ export const FoodInfo = ({
     if (isProcessing) return;
     setIsProcessing(true);
 
-    const ok = addToCartLocal();
-    if (!ok) {
-      setIsProcessing(false);
-      return;
+    // ensure insert happened
+    if (userId && token) {
+      const ok = await addToCartServer();
+      if (!ok) {
+        setIsProcessing(false);
+        return;
+      }
+    } else {
+      const ok = addToCartLocal();
+      if (!ok) {
+        setIsProcessing(false);
+        return;
+      }
     }
 
     if (!userId || !token) {

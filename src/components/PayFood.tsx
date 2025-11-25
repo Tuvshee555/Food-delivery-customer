@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -31,50 +33,50 @@ export const PayFood = () => {
     );
   }, []);
 
-  const addToCartServer = async (
-    foodId: string,
-    quantity: number,
-    selectedSize: string | null
-  ) => {
-    if (!foodId) {
-      toast.error("❌ Хоолны ID олдсонгүй.");
-      return false;
-    }
+  // const addToCartServer = async (
+  //   foodId: string,
+  //   quantity: number,
+  //   selectedSize: string | null
+  // ) => {
+  //   if (!foodId) {
+  //     toast.error("❌ Хоолны ID олдсонгүй.");
+  //     return false;
+  //   }
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/add`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId,
-            foodId,
-            quantity,
-            selectedSize: selectedSize || null,
-          }),
-        }
-      );
+  //   try {
+  //     const res = await fetch(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/add`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         body: JSON.stringify({
+  //           userId,
+  //           foodId,
+  //           quantity,
+  //           selectedSize: selectedSize || null,
+  //         }),
+  //       }
+  //     );
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        console.error("Add cart error:", err);
-        toast.error("Сервер руу нэмэхэд алдаа гарлаа.");
-        return false;
-      }
+  //     if (!res.ok) {
+  //       const err = await res.json().catch(() => null);
+  //       console.error("Add cart error:", err);
+  //       toast.error("Сервер руу нэмэхэд алдаа гарлаа.");
+  //       return false;
+  //     }
 
-      localStorage.setItem("cart-updated", Date.now().toString());
-      window.dispatchEvent(new CustomEvent("cart-updated"));
-      return true;
-    } catch (error) {
-      console.error("Add to cart network error:", error);
-      toast.error("Сүлжээ алдаа. Дахин оролдоно уу.");
-      return false;
-    }
-  };
+  //     localStorage.setItem("cart-updated", Date.now().toString());
+  //     window.dispatchEvent(new CustomEvent("cart-updated"));
+  //     return true;
+  //   } catch (error) {
+  //     console.error("Add to cart network error:", error);
+  //     toast.error("Сүлжээ алдаа. Дахин оролдоно уу.");
+  //     return false;
+  //   }
+  // };
 
   const loadServerCart = useCallback(async () => {
     if (!userId || !token) return;

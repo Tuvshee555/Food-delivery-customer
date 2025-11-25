@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Suspense } from "react";
@@ -37,27 +39,6 @@ function CheckoutInner() {
     localStorage.setItem("cart-backup", localCartRaw);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId,
-            items: localCart.map(
-              (i: { foodId: any; quantity: any; selectedSize: any }) => ({
-                foodId: i.foodId,
-                quantity: i.quantity,
-                selectedSize: i.selectedSize || null,
-              })
-            ),
-          }),
-        }
-      );
-
       localStorage.removeItem("cart");
       localStorage.removeItem("cart-backup");
       localStorage.setItem("cart-updated", Date.now().toString());

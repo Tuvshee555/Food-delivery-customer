@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -6,7 +7,6 @@ import { motion } from "framer-motion";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { toast } from "sonner";
 import { saveAuth } from "@/utils/auth";
-import { useAuth } from "../provider/AuthProvider";
 import AuthDrawer from "@/components/AuthDrawer";
 
 declare global {
@@ -22,7 +22,6 @@ export default function SignInPage() {
   const redirectUrl = params.get("redirect") || "/home-page";
 
   const [openEmail, setOpenEmail] = useState(false);
-  const { setAuthToken } = useAuth();
 
   /** GOOGLE LOGIN */
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {

@@ -11,7 +11,6 @@ import {
 } from "react";
 
 type FoodContextType = {
-  // category: Datas[]
   foodData: FoodType[];
   refreshFood: () => void;
 };

@@ -4,7 +4,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { AddLocation } from "./AddLocation";
 import { SheetRight } from "./SheetRight";
 import { Email } from "./Email";
 import { SearchDialog } from "./SearchDialog";
@@ -19,7 +18,6 @@ export const Header = ({ compact = false }: HeaderProps) => {
   const [scrolled, setScrolled] = useState(compact);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // ⭐ Ultra-responsive scroll behavior
   useEffect(() => {
     if (compact) return;
 
@@ -27,13 +25,10 @@ export const Header = ({ compact = false }: HeaderProps) => {
       const current = window.scrollY;
       const diff = current - lastScrollY;
 
-      // shrink effect
       setScrolled(current > 40);
 
-      // hide immediately when scrolling down
       if (diff > 5) setShowHeader(false);
 
-      // show immediately when scrolling up
       if (diff < -5) setShowHeader(true);
 
       setLastScrollY(current);
@@ -98,7 +93,7 @@ export const Header = ({ compact = false }: HeaderProps) => {
             </Link>
 
             <div className="flex items-center gap-3 sm:gap-[10px]">
-              <AddLocation open={open} onOpenChange={setOpen} />
+              {/* <AddLocation open={open} onOpenChange={setOpen} /> */}
               <SearchDialog />
               <SheetRight />
               <Email />

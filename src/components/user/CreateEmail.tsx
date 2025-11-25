@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable jsx-a11y/alt-text */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect } from "react";
@@ -10,13 +8,6 @@ import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
 import { UserType } from "@/type/type";
 import { motion } from "framer-motion";
-
-// declare global {
-//   interface Window {
-//     FB: fb.FacebookStatic;
-//     fbAsyncInit: () => void;
-//   }
-// }
 
 export const CreateEmail = ({ nextStep, user, setUser }: UserType) => {
   const router = useRouter();

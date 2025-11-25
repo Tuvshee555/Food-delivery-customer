@@ -19,26 +19,13 @@ import { useAuth } from "@/app/provider/AuthProvider";
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const { userId, token } = useAuth();
   const [quantity, setQuantity] = useState<number>(1);
-  const [address, setAddress] = useState<string | null>(null);
-
-  useEffect(() => {
-    setAddress(localStorage.getItem("address")); // delivery address saved by AddLocation modal
-  }, []);
 
   const handleIncrease = () => setQuantity((prev) => prev + 1);
   const handleDecrease = () => quantity > 1 && setQuantity((prev) => prev - 1);
 
-  // --------------------------------------------------------------------
-  // 🛒 Add to SERVER CART
-  // --------------------------------------------------------------------
   const createOrder = async () => {
     if (!userId) {
       toast.error("❌ Please login first.");
-      return;
-    }
-
-    if (!address || address.trim() === "") {
-      toast.error("❌ Please add a delivery address.");
       return;
     }
 

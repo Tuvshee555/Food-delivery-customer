@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Link from "next/link";
@@ -46,14 +47,12 @@ export const SimilarFoods = ({
 
   // Debug (remove if you don't want logs)
   if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
     console.debug(
       "[SimilarFoods] currentCategory:",
       currentCategory,
       "currentFoodId:",
       currentFoodId
     );
-    // eslint-disable-next-line no-console
     console.debug("[SimilarFoods] allFoods sample:", allFoods?.slice(0, 6));
   }
 
@@ -90,7 +89,6 @@ export const SimilarFoods = ({
         );
       });
       if (fallback.length > 0) {
-        // eslint-disable-next-line no-console
         console.debug(
           "[SimilarFoods] fallback by categoryName matched:",
           fallback.length

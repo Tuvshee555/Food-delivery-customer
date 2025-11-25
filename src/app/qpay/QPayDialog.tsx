@@ -63,6 +63,7 @@ export const QPayDialog = ({
       setQrText(data.qr_text);
       setInvoiceId(data.invoice_id);
       setStatus("⌛ Waiting for payment...");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setStatus(`❌ ${err.message}`);
     } finally {

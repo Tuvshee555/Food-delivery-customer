@@ -1,7 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { CategoryNameList } from "@/components/CategoryNameList";
 import { FoodCategoryList } from "@/components/FoodCategoryList";
 
 export default function Home() {
@@ -16,13 +15,4 @@ export default function Home() {
       </div>
     </>
   );
-}
-
-{
-  /* <div className="text-[20px] font-semibold text-[white]">
-  Categories
-</div> */
-}
-{
-  /* <div className="flex"><CategoryNameList /></div> */
 }

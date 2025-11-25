@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/provider/AuthProvider";
-import { AddLocation } from "./header/AddLocation";
-import { useCart } from "@/app/store/cartStore";
 
 type CartItem = {
   id?: string;
@@ -19,11 +17,8 @@ type CartItem = {
 
 export const PayFood = () => {
   const { userId, token } = useAuth();
-  const { load } = useCart();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-  const [tick, setTick] = useState(0);
 
   const loadLocalCart = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -35,6 +30,51 @@ export const PayFood = () => {
       )
     );
   }, []);
+
+  const addToCartServer = async (
+    foodId: string,
+    quantity: number,
+    selectedSize: string | null
+  ) => {
+    if (!foodId) {
+      toast.error("❌ Хоолны ID олдсонгүй.");
+      return false;
+    }
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            foodId,
+            quantity,
+            selectedSize: selectedSize || null,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        console.error("Add cart error:", err);
+        toast.error("Сервер руу нэмэхэд алдаа гарлаа.");
+        return false;
+      }
+
+      localStorage.setItem("cart-updated", Date.now().toString());
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+      return true;
+    } catch (error) {
+      console.error("Add to cart network error:", error);
+      toast.error("Сүлжээ алдаа. Дахин оролдоно уу.");
+      return false;
+    }
+  };
 
   const loadServerCart = useCallback(async () => {
     if (!userId || !token) return;
@@ -62,7 +102,6 @@ export const PayFood = () => {
   // single effect: initial load + cart-updated listener
   useEffect(() => {
     const handler = () => {
-      setTick((t) => t + 1);
       if (!userId || !token) loadLocalCart();
       else loadServerCart();
     };
@@ -77,6 +116,8 @@ export const PayFood = () => {
 
   const updateQuantity = async (item: CartItem, change: number) => {
     const newQty = Math.max(1, item.quantity + change);
+
+    // Local user
     if (!userId || !token) {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
       const target = cart.find(
@@ -84,6 +125,7 @@ export const PayFood = () => {
           i.foodId === item.foodId && i.selectedSize === item.selectedSize
       );
       if (!target) return;
+
       target.quantity = newQty;
       localStorage.setItem("cart", JSON.stringify(cart));
       localStorage.setItem("cart-updated", Date.now().toString());
@@ -91,18 +133,33 @@ export const PayFood = () => {
       return;
     }
 
+    // Logged-in -> server update
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: item.id, quantity: newQty }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/update`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            id: item.id,
+            quantity: newQty,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        toast.error("Сагс шинэчлэхэд алдаа гарлаа.");
+        return;
+      }
+
+      localStorage.setItem("cart-updated", Date.now().toString());
       window.dispatchEvent(new CustomEvent("cart-updated"));
-    } catch {
-      toast.error("Алдаа гарлаа.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Сүлжээ алдаа.");
     }
   };
 
@@ -110,6 +167,7 @@ export const PayFood = () => {
     itemIdOrFoodId: string,
     selectedSize: string | null
   ) => {
+    // Local
     if (!userId || !token) {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
       const filtered = cart.filter(
@@ -122,18 +180,29 @@ export const PayFood = () => {
       return;
     }
 
+    // Server
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/remove`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: itemIdOrFoodId }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/remove`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id: itemIdOrFoodId }),
+        }
+      );
+
+      if (!res.ok) {
+        toast.error("Алдаа гарлаа.");
+        return;
+      }
+
+      localStorage.setItem("cart-updated", Date.now().toString());
       window.dispatchEvent(new CustomEvent("cart-updated"));
     } catch {
-      toast.error("Алдаа гарлаа.");
+      toast.error("Сүлжээ алдаа.");
     }
   };
 
@@ -146,26 +215,32 @@ export const PayFood = () => {
     }
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/clear`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/clear`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      if (!res.ok) {
+        toast.error("Алдаа гарлаа.");
+        return;
+      }
+
+      localStorage.setItem("cart-updated", Date.now().toString());
       window.dispatchEvent(new CustomEvent("cart-updated"));
     } catch {
-      toast.error("Алдаа гарлаа.");
+      toast.error("Сүлжээ алдаа.");
     }
   };
+
   return (
     <>
-      <AddLocation
-        open={locationDialogOpen}
-        onOpenChange={setLocationDialogOpen}
-      />
-
       <div className="w-full bg-[#0e0e0e] text-white rounded-2xl border border-gray-800 p-5 flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-semibold">🛍 Таны сагс</h1>

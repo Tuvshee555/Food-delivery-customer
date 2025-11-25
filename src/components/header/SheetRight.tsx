@@ -13,19 +13,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { PayFood } from "../PayFood";
 import { OrderHistory } from "../OrderHistory";
 import { useAuth } from "@/app/provider/AuthProvider";
-import { useCart } from "@/app/store/cartStore";
 
 export const SheetRight = () => {
   const { userId, token } = useAuth();
-  const { items, load } = useCart();
   const [page, setPage] = useState<number>(1);
   const [cartCount, setCartCount] = useState<number>(0);
   const alreadySynced = useRef(false);
 
   const loadLocalCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const qty = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
-    setCartCount(qty);
+    setCartCount(cart.length);
   };
 
   const ensureGuestExists = async () => {
@@ -57,11 +54,7 @@ export const SheetRight = () => {
       const data = await res.json();
       const items = data.items || [];
 
-      const qty = items.reduce(
-        (sum: number, item: any) => sum + (item.quantity || 1),
-        0
-      );
-
+      const qty = items.length;
       setCartCount(qty);
     } catch (err) {
       console.error("Cart load error:", err);

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 export default function Footer() {
   return (
     <footer className="w-full bg-black text-white py-16 px-6">

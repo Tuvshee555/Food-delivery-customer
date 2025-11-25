@@ -58,15 +58,11 @@ function CheckoutInner() {
         }
       );
 
-      // if (!res.ok) throw new Error("Sync failed");
-
-      // Remove ONLY after success
       localStorage.removeItem("cart");
       localStorage.removeItem("cart-backup");
       localStorage.setItem("cart-updated", Date.now().toString());
     } catch (error) {
       console.error("Cart sync failed:", error);
-      // keep local cart safe
     }
   }, [userId, token]);
 
@@ -124,15 +120,3 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
-
-// const res = await fetch(
-//   `${process.env.NEXT_PUBLIC_BACKEND_URL}/cart/sync`,
-//   {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//     body: JSON.stringify({ userId, items: localCart }),
-//   }
-// );

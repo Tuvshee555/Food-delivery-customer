@@ -13,7 +13,6 @@ interface HeaderProps {
 }
 
 export const Header = ({ compact = false }: HeaderProps) => {
-  const [open, setOpen] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
   const [lastScrollY, setLastScrollY] = useState(0);

@@ -9,6 +9,9 @@ import { toast } from "sonner";
 import { saveAuth } from "@/utils/auth";
 import AuthDrawer from "@/components/AuthDrawer";
 
+/// FORCE DYNAMIC RENDERING
+export const dynamic = "force-dynamic";
+
 declare global {
   interface Window {
     FB: any;

@@ -91,3 +91,18 @@ export type UserType = {
   stepBack: () => void;
   user: User;
 };
+
+export type CartFood = {
+  id: string;
+  foodName: string;
+  price: number;
+  image: string;
+};
+
+export type CartItem = {
+  id?: string;
+  foodId: string;
+  quantity: number;
+  selectedSize: string | null;
+  food: CartFood;
+};

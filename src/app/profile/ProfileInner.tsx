@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, User, Package, Ticket, LayoutDashboard } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { OrdersList } from "@/components/profile/OrdersList";
-import { TicketsList } from "@/components/profile/TicketsList";
-import { ProfileInfo } from "@/components/profile/ProfileInfo";
+import { OrdersList } from "@/app/profile/profile/OrdersList";
+import { TicketsList } from "@/app/profile/profile/TicketsList";
+import { ProfileInfo } from "@/app/profile/profile/ProfileInfo";
 import { Header } from "@/components/header/Header";
 
 export default function ProfileInner() {

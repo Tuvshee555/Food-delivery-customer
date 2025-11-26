@@ -6,9 +6,9 @@ import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import InfoStep from "./components/InfoStep";
-import CartStep from "./components/CartStep";
 import { useAuth } from "@/app/provider/AuthProvider";
 import axios from "axios";
+import CartStep from "@/components/cartStep/CartStep";
 
 function CheckoutInner() {
   const router = useRouter();

@@ -4,9 +4,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { SheetRight } from "./SheetRight";
-import { Email } from "./Email";
 import { SearchDialog } from "./SearchDialog";
+import { SheetRight } from "./sheetRight/SheetRight";
+import { Email } from "./email/Email";
 
 interface HeaderProps {
   compact?: boolean;
@@ -92,7 +92,6 @@ export const Header = ({ compact = false }: HeaderProps) => {
             </Link>
 
             <div className="flex items-center gap-3 sm:gap-[10px]">
-              {/* <AddLocation open={open} onOpenChange={setOpen} /> */}
               <SearchDialog />
               <SheetRight />
               <Email />

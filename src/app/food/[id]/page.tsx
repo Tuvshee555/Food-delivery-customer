@@ -4,8 +4,8 @@ import { use, useEffect, useState } from "react";
 import { FoodType } from "@/type/type";
 import { notFound } from "next/navigation";
 import { FoodMedia } from "@/components/food/FoodMedia";
-import { FoodInfo } from "@/components/food/FoodInfo";
 import { SimilarFoods } from "@/components/food/SimilarFoods";
+import { FoodInfo } from "@/components/foodInfo/FoodInfo";
 
 async function getFood(id: string): Promise<FoodType | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food/${id}`, {

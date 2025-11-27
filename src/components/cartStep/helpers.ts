@@ -1,10 +1,21 @@
 import axios from "axios";
 import { toast } from "sonner";
-import { CartItem } from "./types";
+import { CartItem } from "@/type/type"; // ⬅ unified source
 
+// Notify sync across components
 export const notifyCartUpdated = () => {
   localStorage.setItem("cart-updated", Date.now().toString());
   window.dispatchEvent(new Event("cart-updated"));
+};
+
+/* LOAD LOCAL CART */
+export const loadLocalCartHelper = (): CartItem[] => {
+  try {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    return Array.isArray(cart) ? cart : [];
+  } catch {
+    return [];
+  }
 };
 
 /* SYNC LOCAL CART → BACKEND */
@@ -97,5 +108,66 @@ export const clearCartHelper = async (userId: string): Promise<boolean> => {
   } catch {
     toast.error("Сагс хоослох үед алдаа гарлаа.");
     return false;
+  }
+};
+/* UPDATE QUANTITY (LOCAL) */
+export const updateLocalQtyHelper = (item: CartItem, newQty: number): void => {
+  try {
+    const raw = localStorage.getItem("cart") || "[]";
+    const cart = Array.isArray(JSON.parse(raw))
+      ? (JSON.parse(raw) as CartItem[])
+      : [];
+
+    const matchIndex = cart.findIndex((i) =>
+      // prefer matching by server id when present, otherwise match by foodId + size
+      i.id && item.id
+        ? i.id === item.id
+        : i.foodId === item.foodId &&
+          (i.selectedSize ?? null) === (item.selectedSize ?? null)
+    );
+
+    if (matchIndex === -1) return;
+
+    cart[matchIndex].quantity = Math.max(1, newQty);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    notifyCartUpdated();
+  } catch (err) {
+    // fail silently (or optionally console.error)
+    console.error("updateLocalQtyHelper error", err);
+  }
+};
+
+/* REMOVE ITEM (LOCAL) */
+export const removeLocalHelper = (item: CartItem): void => {
+  try {
+    const raw = localStorage.getItem("cart") || "[]";
+    const cart = Array.isArray(JSON.parse(raw))
+      ? (JSON.parse(raw) as CartItem[])
+      : [];
+
+    const filtered = cart.filter((i) =>
+      // keep items that are NOT the one we want to remove
+      i.id && item.id
+        ? i.id !== item.id
+        : !(
+            i.foodId === item.foodId &&
+            (i.selectedSize ?? null) === (item.selectedSize ?? null)
+          )
+    );
+
+    localStorage.setItem("cart", JSON.stringify(filtered));
+    notifyCartUpdated();
+  } catch (err) {
+    console.error("removeLocalHelper error", err);
+  }
+};
+
+/* CLEAR LOCAL CART */
+export const clearLocalHelper = (): void => {
+  try {
+    localStorage.removeItem("cart");
+    notifyCartUpdated();
+  } catch (err) {
+    console.error("clearLocalHelper error", err);
   }
 };

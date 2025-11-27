@@ -8,13 +8,17 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useAuth } from "@/app/provider/AuthProvider";
-import { CartItem } from "./types";
+import { CartItem } from "@/type/type";
 import {
   syncLocalCartHelper,
   loadServerCartHelper,
   updateQtyHelper,
   removeItemHelper,
   clearCartHelper,
+  loadLocalCartHelper,
+  updateLocalQtyHelper,
+  removeLocalHelper,
+  clearLocalHelper,
 } from "./helpers";
 
 export default function CartStep() {
@@ -22,22 +26,29 @@ export default function CartStep() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
 
+  const loadLocalCart = useCallback(() => {
+    const local = loadLocalCartHelper();
+    setItems(local);
+  }, []);
+
+  const loadServerCart = useCallback(async () => {
+    if (!token || !userId) return;
+    const data = await loadServerCartHelper(token, userId);
+    setItems(data);
+  }, [token, userId]);
+
   const syncLocalCart = useCallback(async () => {
     if (token && userId) {
       await syncLocalCartHelper(token, userId);
     }
   }, [token, userId]);
 
-  const loadServerCart = useCallback(async () => {
-    if (token && userId) {
-      const data = await loadServerCartHelper(token, userId);
-      setItems(data);
-    }
-  }, [token, userId]);
-
   useEffect(() => {
     if (loading) return;
-    if (!token || !userId) return;
+    if (!token || !userId) {
+      loadLocalCart();
+      return;
+    }
 
     const run = async () => {
       await syncLocalCart();
@@ -45,7 +56,28 @@ export default function CartStep() {
     };
 
     run();
-  }, [loading, token, userId, syncLocalCart, loadServerCart]);
+  }, [loading, token, userId, syncLocalCart, loadServerCart, loadLocalCart]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (!token || !userId) loadLocalCart();
+      else loadServerCart();
+    };
+
+    window.addEventListener("cart-updated", handler);
+
+    const storageHandler = (e: StorageEvent) => {
+      if (e.key === "cart" || e.key === "cart-updated") {
+        handler();
+      }
+    };
+    window.addEventListener("storage", storageHandler);
+
+    return () => {
+      window.removeEventListener("cart-updated", handler);
+      window.removeEventListener("storage", storageHandler);
+    };
+  }, [token, userId, loadLocalCart, loadServerCart]);
 
   if (loading) {
     return <p className="text-white p-10">Түр хүлээнэ үү...</p>;
@@ -55,38 +87,96 @@ export default function CartStep() {
   const delivery = 100;
   const grandTotal = total + delivery;
 
+  const emitCartUpdated = () => {
+    try {
+      localStorage.setItem("cart-updated", Date.now().toString());
+    } catch {}
+    window.dispatchEvent(new Event("cart-updated"));
+  };
+
+  // NOTE: handle local vs server update correctly and guard missing id
   const updateQuantity = async (index: number, change: number) => {
     const target = items[index];
     const newQty = target.quantity + change;
-
     if (newQty < 1) return;
 
-    const ok = await updateQtyHelper(target.id, newQty);
-    if (!ok) return;
-
+    // optimistic update
     const updated = [...items];
-    updated[index].quantity = newQty;
+    updated[index] = { ...updated[index], quantity: newQty };
     setItems(updated);
+
+    if (!userId || !token) {
+      updateLocalQtyHelper(target, newQty);
+      emitCartUpdated();
+      return;
+    }
+
+    // server path — require id
+    if (!target.id) {
+      toast.error("Item id missing — could not update on server.");
+      // revert optimistic update by reloading server state
+      await loadServerCart();
+      return;
+    }
+
+    const ok = await updateQtyHelper(target.id, newQty);
+    if (!ok) {
+      // revert to server state if server call failed
+      await loadServerCart();
+      return;
+    }
+
+    emitCartUpdated();
   };
 
   const removeItem = async (index: number) => {
     const target = items[index];
 
-    const ok = await removeItemHelper(target.id);
-    if (!ok) return;
+    // optimistic UI
+    setItems((prev) => prev.filter((_, i) => i !== index));
 
-    setItems(items.filter((_, i) => i !== index));
+    if (!userId || !token) {
+      removeLocalHelper(target);
+      toast.success("Бараа устгагдлаа.");
+      emitCartUpdated();
+      return;
+    }
+
+    if (!target.id) {
+      toast.error("Item id missing — could not remove from server.");
+      await loadServerCart();
+      return;
+    }
+
+    const ok = await removeItemHelper(target.id);
+    if (!ok) {
+      await loadServerCart();
+      return;
+    }
+
     toast.success("Бараа устгагдлаа.");
+    emitCartUpdated();
   };
 
   const clearCart = async () => {
-    if (!userId) return;
+    // optimistic UI
+    setItems([]);
+
+    if (!userId || !token) {
+      clearLocalHelper();
+      toast.success("Сагс хоослогдлоо.");
+      emitCartUpdated();
+      return;
+    }
 
     const ok = await clearCartHelper(userId);
-    if (!ok) return;
+    if (!ok) {
+      await loadServerCart();
+      return;
+    }
 
-    setItems([]);
     toast.success("Сагс хоослогдлоо.");
+    emitCartUpdated();
   };
 
   return (
@@ -116,7 +206,9 @@ export default function CartStep() {
             <div className="space-y-6">
               {items.map((item, i) => (
                 <div
-                  key={item.id}
+                  key={
+                    item.id ?? `${item.foodId}-${item.selectedSize ?? "def"}`
+                  }
                   className="flex justify-between items-center border-b border-gray-800 pb-6"
                 >
                   <div className="flex items-center gap-5">

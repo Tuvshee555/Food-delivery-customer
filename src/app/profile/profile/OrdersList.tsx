@@ -1,21 +1,22 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
-import { toast } from "sonner";
-import { useAuth } from "@/app/provider/AuthProvider";
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/provider/AuthProvider";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { Clock, MapPin, Receipt } from "lucide-react";
 
-type OrderStatus = "PENDING" | "DELIVERED" | "CANCELLED";
+// Types
+export type OrderStatus = "PENDING" | "DELIVERED" | "CANCELLED";
 
-type OrderItem = {
+export type OrderItem = {
   id: string;
   quantity: number;
   food: { id: string; foodName: string };
 };
 
-type Order = {
+export type Order = {
   id: string;
   totalPrice: number;
   createdAt: string;
@@ -26,41 +27,48 @@ type Order = {
 
 export const OrdersList = () => {
   const { userId, token } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const router = useRouter();
 
-  const fetchOrders = useCallback(async () => {
-    if (!userId || !token) return;
+  const fetchOrders = async (): Promise<Order[]> => {
+    if (!userId || !token) return [];
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/user/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data.orders || res.data || [];
+  };
 
-    try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/user/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setOrders(res.data.orders || res.data || []);
-    } catch {
-      toast.error("Захиалгуудыг ачаалах үед алдаа гарлаа.");
-    } finally {
-      setLoading(false);
-    }
-  }, [token, userId]);
+  const {
+    data: orders = [],
+    isLoading,
+    isFetching,
+  } = useQuery({
+    queryKey: ["orders", userId],
+    queryFn: fetchOrders,
+    refetchInterval: 10000,
+    enabled: !!token,
+  });
 
-  useEffect(() => {
-    if (!token) return;
+  const statusStyle: Record<OrderStatus, string> = {
+    PENDING: "bg-yellow-500/20 text-yellow-400",
+    DELIVERED: "bg-green-500/20 text-green-400",
+    CANCELLED: "bg-red-500/20 text-red-400",
+  };
 
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 10000); // 🔁 realtime refresh
-
-    return () => clearInterval(interval);
-  }, [token, fetchOrders]);
-
-  if (loading)
+  if (isLoading)
     return (
-      <p className="text-gray-400 text-center mt-8 animate-pulse">
-        ⏳ Ачааллаж байна...
-      </p>
+      <div className="space-y-4 mt-6">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="bg-[#1a1a1a] p-6 rounded-2xl shadow-lg border border-gray-800 animate-pulse"
+          >
+            <div className="h-4 w-40 bg-gray-700 rounded mb-4"></div>
+            <div className="h-3 w-32 bg-gray-700 rounded mb-2"></div>
+            <div className="h-3 w-24 bg-gray-700 rounded"></div>
+          </div>
+        ))}
+      </div>
     );
 
   if (!orders.length)
@@ -71,65 +79,76 @@ export const OrdersList = () => {
     );
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Миний захиалгууд</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold mb-4 text-white">
+        <Receipt className="inline-block mr-2" /> Миний захиалгууд
+      </h1>
 
-      <div className="space-y-5">
-        {orders.map((order) => (
-          <motion.div
-            key={order.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="border border-gray-700 rounded-2xl p-6 bg-[#111] hover:border-[#facc15]/70 transition"
-          >
-            <div className="flex justify-between items-center mb-3">
-              <div>
-                <p className="text-gray-400 text-sm">
-                  Захиалгын ID:{" "}
-                  <span className="text-gray-300">{order.id}</span>
-                </p>
-                <p className="text-gray-400 text-sm mt-1">
-                  📅 {new Date(order.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-
-              {/* STATUS */}
-              <span
-                className={
-                  "px-3 py-1 rounded-full text-xs font-medium " +
-                  (order.status === "PENDING"
-                    ? "bg-yellow-700/30 text-yellow-400"
-                    : order.status === "DELIVERED"
-                    ? "bg-green-700/30 text-green-400"
-                    : "bg-red-700/30 text-red-400")
-                }
-              >
-                {order.status === "PENDING"
-                  ? "Хүлээгдэж байна ⏳"
-                  : order.status === "DELIVERED"
-                  ? "Хүргэгдсэн ✅"
-                  : "Цуцлагдсан ❌"}
-              </span>
+      {orders.map((order, i) => (
+        <motion.div
+          key={order.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: i * 0.05 }}
+          className="bg-[#1a1a1a] p-6 rounded-2xl shadow-lg border border-gray-800 hover:border-[#facc15]/60 transition-all duration-300"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <div className="space-y-1">
+              <p className="text-gray-400 text-xs">Захиалгын ID:</p>
+              <p className="text-gray-200 font-medium">{order.id}</p>
             </div>
 
-            <div className="mb-3">
-              <p className="text-[#facc15] font-semibold text-lg">
-                {order.totalPrice.toLocaleString()}₮
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                statusStyle[order.status]
+              }`}
+            >
+              {order.status === "PENDING" && "Хүлээгдэж байна"}
+              {order.status === "DELIVERED" && "Хүргэгдсэн"}
+              {order.status === "CANCELLED" && "Цуцлагдсан"}
+            </span>
+          </div>
+
+          <div className="text-sm text-gray-300 space-y-2 mb-4">
+            <p className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              {new Date(order.createdAt).toLocaleDateString()}
+            </p>
+            <p className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              {order.location}
+            </p>
+
+            {order.foodOrderItems?.length > 0 && (
+              <p className="text-gray-400 text-xs">
+                🥘{" "}
+                {order.foodOrderItems
+                  .map((item) => `${item.quantity}× ${item.food.foodName}`)
+                  .join(" · ")}
               </p>
-              <p className="text-gray-400 text-sm mt-1">📍 {order.location}</p>
-            </div>
+            )}
+          </div>
 
-            {/* More button */}
+          <div className="flex justify-between items-center">
+            <p className="text-[#facc15] text-lg font-semibold">
+              {order.totalPrice.toLocaleString()}₮
+            </p>
+
             <button
               onClick={() => router.push(`/profile/orders/${order.id}`)}
-              className="text-[#facc15] underline text-sm hover:text-yellow-400 transition"
+              className="text-[#facc15] underline text-sm hover:text-yellow-300 transition"
             >
-              ➜ Дэлгэрэнгүй харах
+              ➜ Дэлгэрэнгүй
             </button>
-          </motion.div>
-        ))}
-      </div>
+          </div>
+        </motion.div>
+      ))}
+
+      {isFetching && (
+        <p className="text-gray-500 text-xs text-center">
+          🔄 Шинэчлэж байна...
+        </p>
+      )}
     </div>
   );
 };

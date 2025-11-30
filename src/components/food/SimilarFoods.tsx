@@ -5,25 +5,15 @@ import Link from "next/link";
 import { FoodType } from "@/type/type";
 import { FoodCard } from "@/components/FoodCard";
 import React from "react";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
-/**
- * Normalize whatever id-like value you get into a comparable string.
- * Accepts string | number | { _id?: string } | { id?: string } | null | undefined
- */
+/** Normalize any id-like value */
 const normalizeId = (v: any): string | null => {
   if (v == null) return null;
   if (typeof v === "string" || typeof v === "number") return String(v);
-  // handle objects that contain id-like fields
   if (typeof v === "object") {
-    if ("_id" in v && v.id) return String(v.id);
-    if ("id" in v && v.id) return String(v.id);
-    if ("categoryId" in v && v.categoryId) return String(v.categoryId);
-    // fallback: try JSON
-    try {
-      return JSON.stringify(v);
-    } catch {
-      return null;
-    }
+    if ("id" in v) return String(v.id);
+    if ("categoryId" in v) return String(v.categoryId);
   }
   return null;
 };
@@ -35,135 +25,57 @@ export const SimilarFoods = ({
   food: FoodType;
   allFoods: FoodType[];
 }) => {
-  // normalize current food category id and own id
+  const { t, locale } = useI18n();
+
   const currentCategory = normalizeId(
-    (food as any).categoryId ??
-      (food as any).category ??
-      (food as any).category?.id
-  );
-  const currentFoodId = normalizeId(
-    (food as any).id ?? (food as any).id ?? food
+    (food as any).categoryId ?? (food as any).category?.id
   );
 
-  // Debug (remove if you don't want logs)
-  if (typeof window !== "undefined") {
-    console.debug(
-      "[SimilarFoods] currentCategory:",
-      currentCategory,
-      "currentFoodId:",
-      currentFoodId
-    );
-    console.debug("[SimilarFoods] allFoods sample:", allFoods?.slice(0, 6));
-  }
+  const currentFoodId = normalizeId((food as any).id);
 
   const similar = (allFoods || []).filter((item) => {
-    const itemId = normalizeId((item as any).id ?? (item as any).id ?? item);
+    const itemId = normalizeId((item as any).id);
     const itemCategory =
-      normalizeId(
-        (item as any).categoryId ??
-          (item as any).category ??
-          (item as any).category?.id
-      ) || normalizeId((item as any).category);
+      normalizeId((item as any).categoryId ?? (item as any).category?.id) ?? "";
 
-    // exclude same item
-    if (itemId && currentFoodId && itemId === currentFoodId) return false;
-
-    // match category (both normalized)
-    if (currentCategory && itemCategory && currentCategory === itemCategory)
-      return true;
-
-    return false;
-  });
-
-  // If nothing matched, try a looser match: compare category name if available
-  if (similar.length === 0) {
-    const catName = (food as any).categoryName || (food as any).category?.name;
-    if (catName) {
-      const fallback = (allFoods || []).filter((item) => {
-        const itemCatName =
-          (item as any).categoryName || (item as any).category?.name;
-        return (
-          itemCatName &&
-          itemCatName === catName &&
-          normalizeId((item as any).id) !== currentFoodId
-        );
-      });
-      if (fallback.length > 0) {
-        console.debug(
-          "[SimilarFoods] fallback by categoryName matched:",
-          fallback.length
-        );
-        return (
-          <section className="max-w-7xl mx-auto mt-20 px-6 md:px-10">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl md:text-2xl font-semibold text-white">
-                Төстэй бүтээгдэхүүн
-              </h2>
-              <Link
-                href={`/category/${
-                  food.categoryId ?? food.category ?? (food as any).id
-                }`}
-                className="flex items-center gap-1 text-gray-400 text-sm hover:text-[#facc15] transition"
-              >
-                Цааш үзэх →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-              {fallback.map((item) => (
-                <FoodCard
-                  key={
-                    normalizeId((item as any).id ?? (item as any).id) ||
-                    Math.random()
-                  }
-                  food={item}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      }
-    }
-  }
-
-  if (similar.length === 0) {
     return (
-      <section className="max-w-7xl mx-auto mt-20 px-6 md:px-10">
-        <h2 className="text-xl md:text-2xl font-semibold text-gray-400 text-center">
-          😅 Төстэй бүтээгдэхүүн олдсонгүй
-        </h2>
-      </section>
+      itemId !== currentFoodId &&
+      itemCategory !== "" &&
+      currentCategory === itemCategory
     );
-  }
+  });
 
   return (
     <section className="max-w-7xl mx-auto mt-20 px-6 md:px-10">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl md:text-2xl font-semibold text-white">
-          Төстэй бүтээгдэхүүн
+          {t("similar_products")}
         </h2>
 
-        <Link
-          href={`/category/${
-            (food as any).categoryId ??
-            (food as any).category ??
-            (food as any).id
-          }`}
-          className="flex items-center gap-1 text-gray-400 text-sm hover:text-[#facc15] transition"
-        >
-          Цааш үзэх →
-        </Link>
+        {currentCategory && (
+          <Link
+            href={`/${locale}/category-type/${currentCategory}`}
+            className="flex items-center gap-1 text-gray-400 text-sm hover:text-[#facc15] transition"
+          >
+            {t("view_more")} →
+          </Link>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-        {similar.map((item) => (
-          <FoodCard
-            key={
-              normalizeId((item as any).id ?? (item as any).id) || Math.random()
-            }
-            food={item}
-          />
-        ))}
-      </div>
+      {similar.length === 0 ? (
+        <h2 className="text-xl md:text-2xl font-semibold text-gray-400 text-center">
+          {t("no_similar_products")}
+        </h2>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+          {similar.map((item) => (
+            <FoodCard
+              key={normalizeId((item as any).id) || Math.random()}
+              food={item}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 };

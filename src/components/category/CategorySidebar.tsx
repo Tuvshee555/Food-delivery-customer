@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export const CategorySidebar = () => {
+  const { t, locale } = useI18n();
   const [categories, setCategories] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const pathname = usePathname();
@@ -33,72 +35,70 @@ export const CategorySidebar = () => {
   );
 
   return (
-    <aside className="bg-gradient-to-b from-[#111111]/95 to-[#0a0a0a]/95 border border-gray-800/60 rounded-2xl p-5 flex flex-col gap-7 shadow-[0_0_25px_rgba(250,204,21,0.03)] backdrop-blur-sm">
+    <aside className="bg-gradient-to-b from-[#111]/95 to-[#0a0a0a]/95 border border-gray-800/60 rounded-2xl p-5 flex flex-col gap-7 backdrop-blur-sm">
       {/* 🔍 Search */}
       <div className="relative group">
-        <Search className="absolute left-3 top-2.5 text-gray-500 w-4 h-4 transition group-focus-within:text-[#facc15]" />
+        <Search className="absolute left-3 top-2.5 text-gray-500 w-4 h-4" />
         <input
           type="text"
-          placeholder="Нэрээр хайх..."
+          placeholder={t("search_by_name")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#facc15] focus:ring-1 focus:ring-[#facc15]/50 outline-none transition-all"
+          className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white"
         />
       </div>
 
       {/* 📂 Category List */}
       <div>
         <h3 className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-3 border-b border-gray-800/80 pb-2">
-          АНГИЛАЛ
+          {t("categories")}
         </h3>
+
         <ul className="flex flex-col gap-1">
           {filtered.length === 0 && (
-            <li className="text-gray-500 text-xs italic">Хоосон байна</li>
+            <li className="text-gray-500 text-xs italic">{t("empty")}</li>
           )}
+
           {filtered.map((cat) => {
-            const isActive = pathname.includes(cat.id || cat.id);
+            const catId = cat.id;
+            const isActive = pathname.includes(`/${locale}/category/${catId}`);
+
             return (
               <Link
-                key={cat.id || cat.id}
-                href={`/category/${cat.id || cat.id}`}
-                className={`relative px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                key={catId}
+                href={`/${locale}/category/${catId}`}
+                className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                   isActive
-                    ? "text-[#facc15] bg-[#1f1f1f] shadow-[0_0_8px_rgba(250,204,21,0.15)]"
-                    : "text-gray-300 hover:text-[#facc15] hover:bg-[#1a1a1a]"
+                    ? "text-[#facc15] bg-[#1f1f1f]"
+                    : "text-gray-300 hover:text-[#facc15]"
                 }`}
               >
                 {cat.categoryName || cat.name}
-                {isActive && (
-                  <span className="absolute left-0 top-0 h-full w-[3px] bg-[#facc15] rounded-r-sm"></span>
-                )}
               </Link>
             );
           })}
         </ul>
       </div>
 
-      {/* ⚙️ Other Filters */}
+      {/* ⚙️ Filters */}
       <div>
         <h3 className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-3 border-b border-gray-800/80 pb-2">
-          БУСАД
+          {t("filters")}
         </h3>
+
         <ul className="flex flex-col gap-3 text-sm text-gray-300">
-          {[
-            { label: "Хямдралтай", id: "discount" },
-            { label: "Онцлох", id: "featured" },
-            { label: "Бестселлер", id: "bestseller" },
-          ].map((opt) => (
-            <label
-              key={opt.id}
-              className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition"
-            >
-              <input
-                type="checkbox"
-                className="appearance-none w-4 h-4 border border-gray-600 rounded-sm bg-[#1a1a1a] checked:bg-[#facc15] checked:border-[#facc15] transition-all duration-150 cursor-pointer"
-              />
-              {opt.label}
-            </label>
-          ))}
+          <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
+            <input type="checkbox" className="w-4 h-4" />
+            {t("discount")}
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
+            <input type="checkbox" className="w-4 h-4" />
+            {t("featured")}
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
+            <input type="checkbox" className="w-4 h-4" />
+            {t("bestseller")}
+          </label>
         </ul>
       </div>
     </aside>

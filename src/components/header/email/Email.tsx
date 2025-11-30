@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { useAuth } from "@/app/provider/AuthProvider";
 
 import { useFacebookSDK } from "./hooks/useFacebookSDK";
 import { useEmailSync } from "./hooks/useEmailSync";
 
 import { EmailLoggedOut } from "./EmailLoggedOut";
 import { EmailLoggedIn } from "./EmailLoggedIn";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 export const Email = () => {
   useFacebookSDK();

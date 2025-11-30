@@ -1,21 +1,18 @@
-/* eslint-disable react/no-unescaped-entities */
+"use client";
+
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
+
 export default function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer className="w-full bg-black text-white py-16 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-        {/* LEFT SIDE - Logo + Description + Facebook widget */}
+        {/* Column 1 */}
         <div>
-          {/* <img src="/logo.png" alt="MongolZ" className="w-12 h-12 mb-4" /> */}
-          <p className="text-sm leading-relaxed mb-4">
-            The MongolZ Esports Organization's Official Merchant Store for Horde
-            in Mongolia. We have something big coming up soon. So, please stay
-            tuned, all Horde!
-          </p>
+          <p className="text-sm leading-relaxed mb-4">{t("footer_org_desc")}</p>
 
-          {/* Facebook page plugin box */}
-          <div className="w-full bg-[#111] p-3 rounded">
-            {/* <img src="/fb-box.png" alt="Facebook Widget" className="w-full" /> */}
-          </div>
+          <div className="w-full bg-[#111] p-3 rounded" />
 
           {/* Social Icons */}
           <div className="flex gap-4 mt-5">
@@ -25,33 +22,33 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* COLUMN 2 – Туслах цэс */}
+        {/* Column 2 */}
         <div>
-          <h3 className="font-semibold mb-4">Туслах цэс</h3>
+          <h3 className="font-semibold mb-4">{t("footer_menu_help")}</h3>
           <ul className="space-y-2 text-sm">
-            <li>Бидний тухай</li>
-            <li>Холбоо барих</li>
-            <li>Түгээмэл асуулт</li>
-            <li>Нийтлүүлуд</li>
-            <li>Ажлын байр</li>
-            <li>Салбарууд</li>
+            <li>{t("footer_about_us")}</li>
+            <li>{t("footer_contact")}</li>
+            <li>{t("footer_faq")}</li>
+            <li>{t("footer_posts")}</li>
+            <li>{t("footer_jobs")}</li>
+            <li>{t("footer_branches")}</li>
           </ul>
         </div>
 
-        {/* COLUMN 3 – Бүтээгдэхүүн */}
+        {/* Column 3 */}
         <div>
-          <h3 className="font-semibold mb-4">Бүтээгдэхүүн</h3>
+          <h3 className="font-semibold mb-4">{t("footer_products")}</h3>
           <ul className="space-y-2 text-sm">
-            <li>Бүх бүтээгдэхүүн</li>
-            <li>Онцлох бүтээгдэхүүн</li>
-            <li>Бестселлер</li>
-            <li>Хямдарсан бүтээгдэхүүн</li>
+            <li>{t("footer_all_products")}</li>
+            <li>{t("footer_featured")}</li>
+            <li>{t("footer_bestseller")}</li>
+            <li>{t("footer_discounted")}</li>
           </ul>
         </div>
 
-        {/* COLUMN 4 – Contact */}
+        {/* Column 4 */}
         <div>
-          <h3 className="font-semibold mb-4">Холбоо барих</h3>
+          <h3 className="font-semibold mb-4">{t("footer_contact")}</h3>
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2">
               <i className="fa-solid fa-phone"></i> 2990
@@ -63,11 +60,11 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom copyright */}
+      {/* Bottom */}
       <div className="border-t border-gray-800 mt-12 pt-6 text-center text-sm text-gray-400">
-        ©2025 Онлайн худалдааг хөнгөвчлөгч
+        ©2025 {t("footer_powered_by")}
         <span className="text-pink-500 font-bold px-2">ZOCHIL</span>
-        платформ.
+        {t("footer_platform")}
       </div>
     </footer>
   );

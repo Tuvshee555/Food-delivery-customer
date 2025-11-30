@@ -3,10 +3,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { FoodCardPropsType } from "@/type/type";
 import { motion, AnimatePresence } from "framer-motion";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   const [hoverIndex, setHoverIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+
+  const { locale, t } = useI18n();
 
   const getMediaUrl = (media?: string | File): string => {
     if (!media) return "/placeholder.png";
@@ -19,7 +22,6 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
       ? food.extraImages.map((img: string | File) => getMediaUrl(img))
       : []),
   ];
-
   const displayImages = images.slice(0, 3);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -27,13 +29,14 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const zoneWidth = rect.width / displayImages.length;
-    const index = Math.min(displayImages.length - 1, Math.floor(x / zoneWidth));
-    setHoverIndex(index);
+    setHoverIndex(
+      Math.min(displayImages.length - 1, Math.floor(x / zoneWidth))
+    );
   };
 
   return (
     <Link
-      href={`/food/${food.id || food.id}`}
+      href={`/${locale}/food/${food.id}`}
       className="block w-full max-w-[280px]"
     >
       <div
@@ -45,7 +48,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
         }}
         onMouseMove={handleMouseMove}
       >
-        {/* 🖼 Product image with smooth transition */}
+        {/* Product Image */}
         <div className="relative w-full h-[240px] overflow-hidden select-none rounded-[10px]">
           <AnimatePresence mode="wait">
             <motion.img
@@ -56,12 +59,12 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: "easeInOut" }}
+              transition={{ duration: 0.15 }}
               draggable={false}
             />
           </AnimatePresence>
 
-          {/* ⚪ Bottom image indicators — only visible on hover */}
+          {/* Hover indicator bars */}
           {displayImages.length > 1 && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -72,7 +75,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
               {displayImages.map((_, i) => (
                 <div
                   key={i}
-                  className={`h-[3px] flex-1 transition-all duration-200 ${
+                  className={`h-[3px] flex-1 transition ${
                     i === hoverIndex ? "bg-white" : "bg-white/30"
                   }`}
                 />
@@ -81,7 +84,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
           )}
         </div>
 
-        {/* 🧾 Info text (left aligned, tight spacing) */}
+        {/* Product Info */}
         <div className="pt-2 flex flex-col items-start text-left">
           <h3 className="text-white font-medium text-[15px] leading-tight line-clamp-2">
             {food.foodName}
@@ -91,10 +94,10 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
           </p>
         </div>
 
-        {/* SOLD OUT overlay */}
+        {/* Sold Out Badge (i18n) */}
         {food.stock === 0 && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold text-lg rounded-[10px]">
-            Дууссан
+            {t("sold_out")}
           </div>
         )}
       </div>

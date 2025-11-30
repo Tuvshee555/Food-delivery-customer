@@ -3,6 +3,7 @@
 import { LogOut, User, Package, Ticket } from "lucide-react";
 import { handleLogout } from "./handlers/handleLogout";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export const EmailLoggedIn = ({
   email,
@@ -14,6 +15,7 @@ export const EmailLoggedIn = ({
   clearToken: () => void;
 }) => {
   const router = useRouter();
+  const { locale, t } = useI18n();
 
   return (
     <>
@@ -26,45 +28,45 @@ export const EmailLoggedIn = ({
 
       <div className="flex flex-col px-6 py-5 gap-4">
         <button
-          onClick={() => router.push("/profile?tab=profile")}
+          onClick={() => router.push(`/${locale}/profile?tab=profile`)}
           className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/90 border border-gray-800 hover:border-[#facc15]"
         >
           <User className="w-5 h-5 text-[#facc15]" />
           <div>
-            <p className="font-semibold">Профайл</p>
-            <p className="text-gray-400 text-sm">Таны мэдээлэл</p>
+            <p className="font-semibold">{t("profile")}</p>
+            <p className="text-gray-400 text-sm">{t("yourInfo")}</p>
           </div>
         </button>
 
         <button
-          onClick={() => router.push("/profile?tab=orders")}
+          onClick={() => router.push(`/${locale}/profile?tab=orders`)}
           className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/90 border border-gray-800 hover:border-[#facc15]"
         >
           <Package className="w-5 h-5 text-[#facc15]" />
           <div>
-            <p className="font-semibold">Захиалгууд</p>
-            <p className="text-gray-400 text-sm">Таны захиалга</p>
+            <p className="font-semibold">{t("orders")}</p>
+            <p className="text-gray-400 text-sm">{t("yourOrders")}</p>
           </div>
         </button>
 
         <button
-          onClick={() => router.push("/profile?tab=tickets")}
+          onClick={() => router.push(`/${locale}/profile?tab=tickets`)}
           className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/90 border border-gray-800 hover:border-[#facc15]"
         >
           <Ticket className="w-5 h-5 text-[#facc15]" />
           <div>
-            <p className="font-semibold">Миний тасалбар</p>
-            <p className="text-gray-400 text-sm">Тасалбарууд</p>
+            <p className="font-semibold">{t("tickets")}</p>
+            <p className="text-gray-400 text-sm">{t("yourTickets")}</p>
           </div>
         </button>
       </div>
 
       <div className="border-t border-gray-800 p-5 bg-[#111]/80">
         <button
-          onClick={() => handleLogout(router, clearToken)}
+          onClick={() => handleLogout(router, clearToken, locale)}
           className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
         >
-          <LogOut className="w-4 h-4" /> Системээс гарах
+          <LogOut className="w-4 h-4" /> {t("logout")}
         </button>
       </div>
     </>

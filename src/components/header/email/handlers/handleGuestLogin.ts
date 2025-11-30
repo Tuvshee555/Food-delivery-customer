@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { toast } from "sonner";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const handleGuestLogin = async (redirect: string, router: any) => {
+export const handleGuestLogin = async (
+  redirect: string,
+  router: any,
+  locale: string
+) => {
   let guestId = localStorage.getItem("userId");
 
   if (!guestId || !guestId.startsWith("guest-")) {
@@ -13,7 +17,7 @@ export const handleGuestLogin = async (redirect: string, router: any) => {
 
   const guestToken = "guest-token-" + crypto.randomUUID();
   localStorage.setItem("token", guestToken);
-  localStorage.setItem("email", "Зочин хэрэглэгч");
+  localStorage.setItem("email", "Guest User");
   localStorage.setItem("guest", "true");
 
   try {
@@ -23,12 +27,12 @@ export const handleGuestLogin = async (redirect: string, router: any) => {
       body: JSON.stringify({ guestId }),
     });
   } catch {
-    toast.error("Guest үүсгэхэд алдаа гарлаа");
+    toast.error("Failed to create guest account");
     return;
   }
 
   window.dispatchEvent(new Event("auth-changed"));
-  toast.success("Зочноор нэвтэрлээ!");
+  toast.success("Logged in as guest!");
 
-  router.push(redirect);
+  router.push(`/${locale}${redirect}`);
 };

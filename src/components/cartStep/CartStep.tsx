@@ -6,7 +6,6 @@ import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { useAuth } from "@/app/provider/AuthProvider";
 import { CartItem } from "@/type/type";
 import {
   syncLocalCartHelper,
@@ -23,10 +22,13 @@ import {
 import { classes } from "./styles";
 import { CartList } from "./CartList";
 import { CartSummary } from "./CartSummary";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export default function CartStep() {
   const { userId, token, loading } = useAuth();
   const router = useRouter();
+  const { locale, t } = useI18n();
   const [items, setItems] = useState<CartItem[]>([]);
 
   const loadLocalCart = useCallback(() => {
@@ -79,7 +81,7 @@ export default function CartStep() {
     };
   }, [token, userId, loadLocalCart, loadServerCart]);
 
-  if (loading) return <p className="text-white p-10">Түр хүлээнэ үү...</p>;
+  if (loading) return <p className="text-white p-10">{t("loading")}</p>;
 
   const total = items.reduce((sum, i) => sum + i.food.price * i.quantity, 0);
 
@@ -98,7 +100,7 @@ export default function CartStep() {
     }
 
     if (!target.id) {
-      toast.error("Item id missing — could not update on server.");
+      toast.error(t("cart.itemIdError"));
       await loadServerCart();
       return;
     }
@@ -113,32 +115,32 @@ export default function CartStep() {
 
     if (!userId || !token) {
       removeLocalHelper(target);
-      toast.success("Бараа устгагдлаа.");
+      toast.success(t("cart.itemRemoved"));
       return;
     }
 
     if (!target.id) {
-      toast.error("Item id missing — could not remove from server.");
+      toast.error(t("cart.itemIdError"));
       await loadServerCart();
       return;
     }
 
     const ok = await removeItemHelper(target.id);
     if (!ok) await loadServerCart();
-    else toast.success("Бараа устгагдлаа.");
+    else toast.success(t("cart.itemRemoved"));
   };
 
   const clearCart = async () => {
     setItems([]);
     if (!userId || !token) {
       clearLocalHelper();
-      toast.success("Сагс хоослогдлоо.");
+      toast.success(t("cart.cleared"));
       return;
     }
 
     const ok = await clearCartHelper(userId);
     if (!ok) await loadServerCart();
-    else toast.success("Сагс хоослогдлоо.");
+    else toast.success(t("cart.cleared"));
   };
 
   return (
@@ -150,7 +152,7 @@ export default function CartStep() {
           className={classes.leftCard}
         >
           <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-            <h1 className="text-3xl font-bold">🛒 Таны сагс</h1>
+            <h1 className="text-3xl font-bold">{t("cart.yourCart")}</h1>
 
             {items.length > 0 && (
               <button
@@ -158,7 +160,7 @@ export default function CartStep() {
                 className="flex items-center gap-2 text-gray-400 hover:text-red-500"
               >
                 <Trash2 className="w-4 h-4" />
-                Хоослох
+                {t("cart.clear")}
               </button>
             )}
           </div>
@@ -178,7 +180,7 @@ export default function CartStep() {
           <CartSummary
             total={total}
             delivery={100}
-            onCheckout={() => router.push("/checkout?step=info")}
+            onCheckout={() => router.push(`/${locale}/checkout?step=info`)}
             onClear={items.length > 0 ? clearCart : undefined}
           />
         </motion.section>

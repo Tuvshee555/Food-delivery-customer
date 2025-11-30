@@ -1,117 +1,20 @@
-/* ==== REMOVE UGLY GOOGLE BANNER ==== */
 .goog-te-banner-frame,
 .goog-te-banner-frame.skiptranslate,
-.goog-te-gadget-icon,
-.goog-te-spinner-pos {
+.goog-te-banner,
+.skiptranslate {
   display: none !important;
+  height: 0 !important;
 }
+body { top: 0 !important; }
 
-body {
-  top: 0 !important;
-}
-
-/* ==== Popup Styling (Dark Mode) ==== */
-.goog-te-menu-frame {
-  box-shadow: 0 0 30px rgba(0,0,0,0.45) !important;
-  border-radius: 12px !important;
-  border: none !important;
-}
-
-.goog-te-menu2 {
-  background: #111 !important;
-  color: #fff !important;
-  border-radius: 12px !important;
-  padding: 10px !important;
-}
-
-.goog-te-menu2 * {
-  color: #fff !important;
-  font-size: 14px !important;
-  line-height: 1.2rem !important;
-}
-
-/* remove the top-left Google branding */
 img.goog-te-gadget-icon {
   display: none !important;
 }
 
-/* ==== Popup Animation ==== */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.animate-slideUp {
-  animation: slideUp 0.25s ease-out;
-}
-
-/* Prevent blue highlight bar on top page */
-iframe.goog-te-menu-frame {
-  transform: translateY(0px) !important;
-}
-
-/* Remove gray separator bars in popup */
-.goog-te-menu2-item div,
-.goog-te-menu2-item:link,
-.goog-te-menu2-item:visited {
-  border: none !important;
-}
-
-.goog-te-banner-frame,
-.goog-te-banner-frame.skiptranslate {
-  display: none !important;
-}
-.goog-te-banner {
-  display: none !important;
-}
-
-/* Prevent body shifting down */
-body {
-  top: 0px !important;
-}
-
-/* Kill the injected parent div Google wraps around everything */
-body > .skiptranslate {
-  display: none !important;
-}
-
-/* Completely remove banner's invisible wrapper */
-html body .skiptranslate ~ * {
-  display: block !important;
-  /* Fix pushed content */
-  top: 0 !important;
-}
-
-
-/* 🔥 FINAL HARD BLOCK FOR GOOGLE AUTO BANNER 🔥 */
-
-/* Remove any iframe with the translate banner height */
-iframe[style*="visibility: visible"][style*="position: absolute"],
-iframe[style*="top: 0px"][style*="height: 39px"],
-iframe.goog-te-banner-frame {
-  display: none !important;
+/* you can keep .goog-te-combo hidden if you want */
+.goog-te-combo {
   opacity: 0 !important;
+  visibility: hidden !important;
   pointer-events: none !important;
-  height: 0 !important;
-}
-
-/* Remove wrapper that tries to push page down */
-.goog-te-banner,
-.skiptranslate,
-.goog-te-banner-frame {
-  display: none !important;
-  height: 0 !important;
-}
-
-/* Force layout reset */
-html, body {
-  top: 0 !important;
-  margin-top: 0 !important;
+  position: absolute;
 }

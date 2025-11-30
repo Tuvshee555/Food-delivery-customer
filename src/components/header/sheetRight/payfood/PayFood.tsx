@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { SheetFooter } from "@/components/ui/sheet";
-import { useAuth } from "@/app/provider/AuthProvider";
 import { CartItem } from "@/type/type";
 import { CartItemRow } from "./CartItemRow";
 import { CartSummary } from "./CartSummary";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 import {
   calculateTotal,
@@ -21,6 +22,8 @@ import {
 
 export const PayFood = () => {
   const { userId, token } = useAuth();
+  const { t } = useI18n();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
@@ -47,8 +50,7 @@ export const PayFood = () => {
       else loadServerCart();
     };
 
-    if (!userId || !token) loadLocalCart();
-    else loadServerCart();
+    handler();
 
     window.addEventListener("cart-updated", handler);
     return () => window.removeEventListener("cart-updated", handler);
@@ -87,14 +89,14 @@ export const PayFood = () => {
     <>
       <div className="w-full bg-[#0e0e0e] text-white rounded-2xl border border-gray-800 p-5 flex flex-col gap-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-semibold">🛍 Таны сагс</h1>
+          <h1 className="text-xl font-semibold">{t("your_cart")}</h1>
 
           {cartItems.length > 0 && (
             <button
               onClick={clearAll}
               className="text-gray-400 hover:text-red-500"
             >
-              🗑 Хоослох
+              {t("clear_cart")}
             </button>
           )}
         </div>
@@ -110,9 +112,7 @@ export const PayFood = () => {
               />
             ))
           ) : (
-            <p className="text-gray-500 text-center py-10">
-              Сагс хоосон байна.
-            </p>
+            <p className="text-gray-500 text-center py-10">{t("cart_empty")}</p>
           )}
         </div>
 

@@ -8,12 +8,14 @@ import { SearchDialog } from "./SearchDialog";
 import { SheetRight } from "./sheetRight/SheetRight";
 import { Email } from "./email/Email";
 import TopBar from "./translate/TopBar";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 interface HeaderProps {
   compact?: boolean;
 }
 
 export const Header = ({ compact = false }: HeaderProps) => {
+  const { locale, t } = useI18n();
   const [showHeader, setShowHeader] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -28,7 +30,6 @@ export const Header = ({ compact = false }: HeaderProps) => {
       setScrolled(current > 40);
 
       if (diff > 5) setShowHeader(false);
-
       if (diff < -5) setShowHeader(true);
 
       setLastScrollY(current);
@@ -40,13 +41,13 @@ export const Header = ({ compact = false }: HeaderProps) => {
 
   return (
     <>
-      {/* 🔥 This stays always visible */}
+      {/* TopBar stays always visible */}
       <div className="fixed top-0 left-0 w-full z-[60]">
         <TopBar />
       </div>
 
-      {/* Add height spacing so main header is not covering TopBar */}
-      <div className="h-[32px] md:h-[36px]"></div>
+      {/* Spacer */}
+      <div className="h-[32px] md:h-[36px]" />
 
       <AnimatePresence>
         {showHeader && (
@@ -68,9 +69,9 @@ export const Header = ({ compact = false }: HeaderProps) => {
                   : "py-3 md:py-4 px-6 md:px-16"
               }`}
             >
-              {/* Logo */}
+              {/* Logo → Route with locale */}
               <Link
-                href="/home-page"
+                href={`/${locale}/home-page`}
                 className="flex items-center gap-2 hover:opacity-90 transition"
               >
                 <img
@@ -95,7 +96,7 @@ export const Header = ({ compact = false }: HeaderProps) => {
                       scrolled || compact ? "text-[10px]" : "text-[12px]"
                     } text-[#71717a]`}
                   >
-                    Swift delivery
+                    {t("tagline")}
                   </span>
                 </div>
               </Link>

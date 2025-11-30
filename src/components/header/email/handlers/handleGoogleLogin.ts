@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { toast } from "sonner";
@@ -7,8 +8,8 @@ import { saveAuth } from "@/utils/auth";
 export const handleGoogleLogin = async (
   payload: GooglePayload,
   redirect: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router: any
+  router: any,
+  locale: string
 ) => {
   const credential = payload.credential;
   if (!credential) return toast.error("Google credential missing");
@@ -33,8 +34,8 @@ export const handleGoogleLogin = async (
     saveAuth(data);
     window.dispatchEvent(new Event("auth-changed"));
 
-    toast.success("Google-р нэвтэрлээ!");
-    router.push(redirect);
+    toast.success("Google logged in!");
+    router.push(`/${locale}${redirect}`);
   } catch {
     toast.error("Google login error");
   }

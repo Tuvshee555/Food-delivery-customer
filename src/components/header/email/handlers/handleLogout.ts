@@ -3,7 +3,11 @@
 
 import { toast } from "sonner";
 
-export const handleLogout = (router: any, clearToken: () => void) => {
+export const handleLogout = (
+  router: any,
+  clearToken: () => void,
+  locale: string
+) => {
   clearToken();
 
   localStorage.removeItem("token");
@@ -14,5 +18,5 @@ export const handleLogout = (router: any, clearToken: () => void) => {
   window.dispatchEvent(new Event("auth-changed"));
   toast.success("Амжилттай гарлаа");
 
-  router.push("/home-page");
+  router.push(`/${locale}/home-page`);
 };

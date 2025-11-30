@@ -4,8 +4,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useAuth } from "@/app/provider/AuthProvider";
-import { useCart } from "@/app/store/cartStore";
 
 import { FoodTitle } from "./FoodTitle";
 import { FoodSizes } from "./FoodSizes";
@@ -17,6 +15,10 @@ import { addToCartLocal } from "./utils/addToCartLocal";
 import { addToCartServer } from "./utils/addToCartServer";
 import { resolveImageUrl } from "./utils/resolveImageUrl";
 
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
+import { useCart } from "@/app/[locale]/store/cartStore";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
+
 export const FoodInfo = ({
   food,
   address,
@@ -25,6 +27,7 @@ export const FoodInfo = ({
   address: string | null;
 }) => {
   const router = useRouter();
+  const { locale, t } = useI18n();
   const { userId, token } = useAuth();
   const { add } = useCart();
 
@@ -71,34 +74,32 @@ export const FoodInfo = ({
     if (isProcessing) return;
     setIsProcessing(true);
 
+    let ok = true;
+
     if (userId && token) {
-      const ok = await addToCartServer({
+      ok = await addToCartServer({
         foodId: food.id,
         userId,
         token,
         quantity,
         selectedSize,
       });
-
-      if (!ok) {
-        setIsProcessing(false);
-        return;
-      }
     } else {
-      const ok = addToCartLocal({ food, quantity, selectedSize });
-      if (!ok) {
-        setIsProcessing(false);
-        return;
-      }
+      ok = addToCartLocal({ food, quantity, selectedSize });
     }
 
-    if (!userId || !token) {
-      router.push(`/sign-in?redirect=/checkout`);
+    if (!ok) {
       setIsProcessing(false);
       return;
     }
 
-    router.push("/checkout");
+    if (!userId || !token) {
+      router.push(`/${locale}/sign-in?redirect=/${locale}/checkout`);
+      setIsProcessing(false);
+      return;
+    }
+
+    router.push(`/${locale}/checkout`);
     setIsProcessing(false);
   };
 
@@ -107,14 +108,16 @@ export const FoodInfo = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 flex flex-col gap-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-[0_0_40px_-10px_rgba(250,204,21,0.1)]"
+      className="flex-1 flex flex-col gap-8 bg-gradient-to-b from-[#111] to-[#0a0a0a]
+      border border-gray-800 rounded-3xl p-8 md:p-10
+      shadow-[0_0_40px_-10px_rgba(250,204,21,0.1)]"
     >
       <FoodTitle name={food.foodName} totalPrice={totalPrice} />
 
       {food.ingredients && (
         <div>
           <h3 className="text-gray-400 mb-2 text-sm uppercase tracking-wide">
-            Орц:
+            {t("ingredients")}
           </h3>
           <p className="text-gray-300 text-sm md:text-base leading-relaxed">
             {food.ingredients}
@@ -134,6 +137,8 @@ export const FoodInfo = ({
         onAddToCart={handleAddToCart}
         onOrderNow={handleOrderNow}
         isProcessing={isProcessing}
+        addText={t("add_to_cart")}
+        orderText={t("order_now")}
       />
 
       <FoodAddress foodName={food.foodName} address={address} />

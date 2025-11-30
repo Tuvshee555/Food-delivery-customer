@@ -66,3 +66,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+.label {
+  @apply text-sm text-gray-400;
+}
+
+.input {
+  @apply bg-[#1a1a1a] border border-gray-700 text-white mt-1;
+}
+
+.textarea {
+  @apply bg-[#1a1a1a] border border-gray-700 text-white mt-1 h-[120px];
+}
+
+.primary-btn {
+  @apply px-8 py-3 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24]
+         text-black font-semibold shadow-[0_0_20px_rgba(250,204,21,0.2)]
+         hover:brightness-110 transition-all;
+}
+

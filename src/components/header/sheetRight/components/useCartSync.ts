@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useAuth } from "@/app/provider/AuthProvider";
 
 type CartItem = {
   // allow flexible shape, but quantity can be number or string from some sources

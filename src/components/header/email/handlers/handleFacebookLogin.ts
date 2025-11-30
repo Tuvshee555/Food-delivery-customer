@@ -4,7 +4,11 @@
 import { toast } from "sonner";
 import { FacebookAuthResponse } from "../types";
 
-export const handleFacebookLogin = (redirect: string, router: any) => {
+export const handleFacebookLogin = (
+  redirect: string,
+  router: any,
+  locale: string
+) => {
   if (!window.FB) return toast.error("Facebook SDK not loaded");
 
   window.FB.login(
@@ -33,8 +37,8 @@ export const handleFacebookLogin = (redirect: string, router: any) => {
 
         window.dispatchEvent(new Event("auth-changed"));
 
-        toast.success("Facebook-р нэвтэрлээ!");
-        router.push(redirect);
+        toast.success("Facebook logged in!");
+        router.push(`/${locale}${redirect}`);
       } catch {
         toast.error("Facebook login error");
       }

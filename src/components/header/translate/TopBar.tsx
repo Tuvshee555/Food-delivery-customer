@@ -1,24 +1,39 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
-import TranslateButton from "../translate/TranslateButton";
 import { Facebook, Instagram, Youtube } from "lucide-react";
+import TranslateButton from "./TranslateButton";
+import {
+  useLocale,
+  useTranslations,
+} from "@/components/i18n/ClientI18nProvider";
 
 export default function TopBar() {
+  const t = useTranslations();
+  const locale = useLocale();
+
   return (
     <div className="w-full bg-[#0c0c0c] border-b border-gray-800 text-white text-[13px] select-none z-[99999]">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-1.5">
-        {/* Left links */}
+        {/* Left side */}
         <div className="flex items-center gap-4">
-          <Link href="/contact" className="hover:text-amber-400 transition">
-            Холбоо барих
+          <Link
+            className="hover:text-amber-400 transition"
+            href={`/${locale}/contact`}
+          >
+            {t("contact")}
           </Link>
-          <Link href="/branches" className="hover:text-amber-400 transition">
-            Салбарууд
+          <Link
+            className="hover:text-amber-400 transition"
+            href={`/${locale}/branches`}
+          >
+            {t("branches")}
           </Link>
-          <Link href="/jobs" className="hover:text-amber-400 transition">
-            Ажлын байр
+          <Link
+            className="hover:text-amber-400 transition"
+            href={`/${locale}/jobs`}
+          >
+            {t("jobs")}
           </Link>
         </div>
 
@@ -30,6 +45,7 @@ export default function TopBar() {
             <a
               href="https://facebook.com"
               target="_blank"
+              rel="noreferrer"
               className="hover:text-amber-400 transition"
             >
               <Facebook size={16} />
@@ -37,6 +53,7 @@ export default function TopBar() {
             <a
               href="https://instagram.com"
               target="_blank"
+              rel="noreferrer"
               className="hover:text-amber-400 transition"
             >
               <Instagram size={16} />
@@ -44,6 +61,7 @@ export default function TopBar() {
             <a
               href="https://youtube.com"
               target="_blank"
+              rel="noreferrer"
               className="hover:text-amber-400 transition"
             >
               <Youtube size={18} />
@@ -51,10 +69,10 @@ export default function TopBar() {
           </div>
 
           <Link
-            href="/auth"
+            href={`/${locale}/auth`}
             className="hover:text-amber-400 transition hidden sm:block"
           >
-            Нэвтрэх
+            {t("login")}
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 type Props = {
   total: number;
@@ -16,28 +17,29 @@ export const CartSummary: React.FC<Props> = ({
   onCheckout,
   onClear,
 }) => {
+  const { t } = useI18n();
   const grandTotal = total + delivery;
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-4">
-        Төлбөрийн мэдээлэл
+        {t("payment_info")}
       </h2>
 
       <div className="flex justify-between text-gray-300 mb-3">
-        <span>Бүтээгдэхүүн</span>
+        <span>{t("product_total")}</span>
         <span>{total.toLocaleString()}₮</span>
       </div>
 
       <div className="flex justify-between text-gray-300 mb-3">
-        <span>Хүргэлт</span>
+        <span>{t("delivery_fee")}</span>
         <span>{delivery.toLocaleString()}₮</span>
       </div>
 
       <div className="border-t border-gray-700 my-4" />
 
       <div className="flex justify-between items-center text-xl font-semibold">
-        <span>Нийт дүн</span>
+        <span>{t("grand_total")}</span>
         <span className="text-[#facc15] text-3xl">
           {grandTotal.toLocaleString()}₮
         </span>
@@ -47,7 +49,7 @@ export const CartSummary: React.FC<Props> = ({
         onClick={onCheckout}
         className="w-full mt-8 py-4 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-lg"
       >
-        Үргэлжлүүлэх
+        {t("continue")}
       </button>
 
       {onClear && (
@@ -55,7 +57,7 @@ export const CartSummary: React.FC<Props> = ({
           onClick={onClear}
           className="w-full mt-3 text-sm text-gray-400 hover:text-red-500"
         >
-          🗑 Сагс хоослох
+          🗑 {t("clear_cart")}
         </button>
       )}
     </div>

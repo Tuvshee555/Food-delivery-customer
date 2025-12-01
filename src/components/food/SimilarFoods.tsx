@@ -54,7 +54,7 @@ export const SimilarFoods = ({
 
         {currentCategory && (
           <Link
-            href={`/${locale}/category-type/${currentCategory}`}
+            href={`/${locale}/category/${currentCategory}`} // 🔥 FIXED
             className="flex items-center gap-1 text-gray-400 text-sm hover:text-[#facc15] transition"
           >
             {t("view_more")} →

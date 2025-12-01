@@ -145,7 +145,11 @@
   "my_tickets": "My Tickets",
   "no_tickets_text": "🎫 Purchased tickets will appear here.",
   "tickets_coming_soon": "No tickets available yet.",
-  "sold_out": "Sold Out"
+  "sold_out": "Sold Out",
+  "size": "Size",
+"delete": "Remove"
+
+
 
 
 }

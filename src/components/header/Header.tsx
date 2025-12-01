@@ -9,6 +9,7 @@ import { SheetRight } from "./sheetRight/SheetRight";
 import { Email } from "./email/Email";
 import TopBar from "./translate/TopBar";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
 
 interface HeaderProps {
   compact?: boolean;
@@ -16,6 +17,7 @@ interface HeaderProps {
 
 export const Header = ({ compact = false }: HeaderProps) => {
   const { locale, t } = useI18n();
+  const { category } = useCategory();
   const [showHeader, setShowHeader] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -63,13 +65,13 @@ export const Header = ({ compact = false }: HeaderProps) => {
             }`}
           >
             <div
-              className={`w-full max-w-7xl mx-auto flex justify-between items-center transition-all duration-200 ${
+              className={`w-full max-w-7xl mx-auto flex items-center justify-between transition-all duration-200 ${
                 scrolled || compact
                   ? "py-2 px-5 md:px-10"
                   : "py-3 md:py-4 px-6 md:px-16"
               }`}
             >
-              {/* Logo → Route with locale */}
+              {/* Logo */}
               <Link
                 href={`/${locale}/home-page`}
                 className="flex items-center gap-2 hover:opacity-90 transition"
@@ -83,25 +85,29 @@ export const Header = ({ compact = false }: HeaderProps) => {
                       : "w-[38px] h-[38px]"
                   }`}
                 />
-                <div className="flex flex-col leading-tight">
-                  <span
-                    className={`${
-                      scrolled || compact ? "text-[15px]" : "text-[18px]"
-                    } font-semibold text-white`}
-                  >
-                    NomNom
-                  </span>
-                  <span
-                    className={`${
-                      scrolled || compact ? "text-[10px]" : "text-[12px]"
-                    } text-[#71717a]`}
-                  >
-                    {t("tagline")}
-                  </span>
-                </div>
+                <span
+                  className={`text-white font-semibold ${
+                    scrolled || compact ? "text-[15px]" : "text-[18px]"
+                  }`}
+                >
+                  NomNom
+                </span>
               </Link>
 
-              {/* Actions */}
+              {/* 🔥 CATEGORY NAVIGATION CENTER */}
+              <nav className="hidden md:flex items-center gap-8">
+                {category.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/${locale}/category/${cat.id}`}
+                    className="text-gray-300 hover:text-yellow-400 transition font-medium text-sm"
+                  >
+                    {cat.categoryName || t("unknown_category")}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Right Side Buttons */}
               <div className="flex items-center gap-3 sm:gap-[10px]">
                 <SearchDialog />
                 <SheetRight />

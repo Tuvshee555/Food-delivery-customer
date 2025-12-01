@@ -23,12 +23,8 @@ export default function FoodDetailPage({
   const { id } = use(params);
   const [food, setFood] = useState<FoodType | null>(null);
   const [allFoods, setAllFoods] = useState<FoodType[]>([]);
-  const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedAddress = localStorage.getItem("address");
-    if (savedAddress) setAddress(savedAddress);
-
     (async () => {
       const data = await getFood(id);
       if (!data) notFound();
@@ -47,7 +43,7 @@ export default function FoodDetailPage({
       <main className="min-h-screen w-full bg-[#0a0a0a] text-white relative pt-[90px] pb-20">
         <section className="flex flex-col lg:flex-row items-start justify-center gap-10 p-6 md:p-10 max-w-7xl mx-auto">
           <FoodMedia food={food} />
-          <FoodInfo food={food} address={address} />
+          <FoodInfo food={food} />
         </section>
 
         <SimilarFoods food={food} allFoods={allFoods} />

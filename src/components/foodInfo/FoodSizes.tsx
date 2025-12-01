@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export const FoodSizes = ({
   sizes,
@@ -12,11 +13,13 @@ export const FoodSizes = ({
   selectedSize: string | null;
   setSelectedSize: (s: string | null) => void;
 }) => {
+  const { t } = useI18n();
+
   if (!sizes || sizes.length === 0) return null;
 
   return (
     <div>
-      <h3 className="text-gray-400 mb-3 text-sm uppercase">Хэмжээ:</h3>
+      <h3 className="text-gray-400 mb-3 text-sm uppercase">{t("size")}:</h3>
 
       <div className="flex flex-wrap gap-3">
         {sizes.map((s, i) => {

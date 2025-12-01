@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
-// components/cartStep/CartItemRow.tsx
 "use client";
 
 import { Minus, Plus } from "lucide-react";
 import React from "react";
 import { CartItem } from "@/type/type";
 import { classes } from "./styles";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 type Props = {
   item: CartItem;
@@ -18,6 +18,8 @@ export const CartItemRow: React.FC<Props> = ({
   onUpdateQty,
   onRemove,
 }) => {
+  const { t } = useI18n();
+
   return (
     <div className={classes.itemRow}>
       <div className="flex items-center gap-5">
@@ -28,9 +30,10 @@ export const CartItemRow: React.FC<Props> = ({
         />
         <div>
           <p className="font-semibold text-lg">{item.food.foodName}</p>
+
           {item.selectedSize && (
             <p className="text-gray-400 text-sm mt-1">
-              Хэмжээ: {item.selectedSize}
+              {t("size")}: {item.selectedSize}
             </p>
           )}
         </div>
@@ -63,7 +66,7 @@ export const CartItemRow: React.FC<Props> = ({
           onClick={onRemove}
           className="text-red-400 text-xs hover:underline"
         >
-          Устгах
+          {t("delete")}
         </button>
       </div>
     </div>

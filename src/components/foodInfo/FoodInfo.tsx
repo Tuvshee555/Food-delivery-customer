@@ -19,13 +19,7 @@ import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 import { useCart } from "@/app/[locale]/store/cartStore";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
-export const FoodInfo = ({
-  food,
-  address,
-}: {
-  food: any;
-  address: string | null;
-}) => {
+export const FoodInfo = ({ food }: { food: any }) => {
   const router = useRouter();
   const { locale, t } = useI18n();
   const { userId, token } = useAuth();
@@ -141,7 +135,7 @@ export const FoodInfo = ({
         orderText={t("order_now")}
       />
 
-      <FoodAddress foodName={food.foodName} address={address} />
+      <FoodAddress foodName={food.foodName} />
     </motion.div>
   );
 };

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState, useMemo, use } from "react";
@@ -27,7 +28,12 @@ export default function CategoryPage({
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`);
         const data = await res.json();
 
-        if (Array.isArray(data)) {
+        if (!Array.isArray(data)) return;
+
+        if (id === "all") {
+          setFoods(data);
+          setCategoryName(t("all_products"));
+        } else {
           const filtered = data.filter(
             (f) =>
               f.category === id || f.categoryId === id || f.category?.id === id
@@ -46,7 +52,7 @@ export default function CategoryPage({
     };
 
     fetchData();
-  }, [id]);
+  }, [id]); // 👈 ONLY "id" here
 
   const sortedFoods = useMemo(() => {
     const arr = [...foods];
@@ -102,29 +108,33 @@ export default function CategoryPage({
               disabled={page === 1}
               className="px-2 py-1 hover:text-[#facc15] disabled:opacity-30"
             >
-              ⏮
+              {t("first")}
             </button>
+
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               className="px-2 py-1 hover:text-[#facc15] disabled:opacity-30"
             >
-              ◀
+              {t("prev")}
             </button>
+
             <span className="font-medium text-[#facc15]">{page}</span>
+
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-2 py-1 hover:text-[#facc15] disabled:opacity-30"
             >
-              ▶
+              {t("next")}
             </button>
+
             <button
               onClick={() => setPage(totalPages)}
               disabled={page === totalPages}
               className="px-2 py-1 hover:text-[#facc15] disabled:opacity-30"
             >
-              ⏭
+              {t("last")}
             </button>
           </div>
         )}

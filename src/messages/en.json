@@ -147,8 +147,15 @@
   "tickets_coming_soon": "No tickets available yet.",
   "sold_out": "Sold Out",
   "size": "Size",
-"delete": "Remove"
-
+"delete": "Remove",
+"share": "Share",
+"copied_link": "Link copied!",
+"all_items": "All items",
+"all_products": "All Products",
+"first": "First",
+"prev": "Previous",
+"next": "Next",
+"last": "Last"
 
 
 

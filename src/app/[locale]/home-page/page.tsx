@@ -1,5 +1,6 @@
+import { AutoScrollProducts } from "@/components/homePage/AutoScrollProducts";
+import { FoodCategoryList } from "@/components/homePage/FoodCategoryList";
 import Image from "next/image";
-import { FoodCategoryList } from "@/components/FoodCategoryList";
 
 export default function Home() {
   return (
@@ -12,6 +13,9 @@ export default function Home() {
           className="object-cover"
           priority
         />
+      </div>
+      <div className="bg-[#404040] rounded-[8px] p-[24px]">
+        <AutoScrollProducts />
       </div>
 
       <div className="bg-[#404040] rounded-[8px] p-[24px]">

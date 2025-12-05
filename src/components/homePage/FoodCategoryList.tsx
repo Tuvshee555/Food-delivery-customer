@@ -1,12 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { FoodCard } from "./FoodCard";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
 import { useFood } from "@/app/[locale]/provider/FoodDataProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { FoodCard } from "../FoodCard";
 
 export const FoodCategoryList = () => {
   const { category } = useCategory();

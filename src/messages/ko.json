@@ -148,7 +148,17 @@
   "tickets_coming_soon": "아직 티켓이 없습니다.",
   "sold_out": "품절",
   "size": "사이즈",
-"delete": "삭제"
+"delete": "삭제",
+"share": "공유하기",
+"copied_link": "링크가 복사되었습니다!",
+"all_items": "전체 상품",
+"all_products": "전체 상품",
+"first": "처음",
+"prev": "이전",
+"next": "다음",
+"last": "끝"
+
+
 
 
 }

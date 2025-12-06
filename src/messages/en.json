@@ -155,7 +155,12 @@
 "first": "First",
 "prev": "Previous",
 "next": "Next",
-"last": "Last"
+"last": "Last",
+"new": "New",
+"no_products": "No products available",
+"promo_discount": "Promo"
+
+
 
 
 

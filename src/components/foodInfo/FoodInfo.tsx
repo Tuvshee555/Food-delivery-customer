@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -106,7 +107,11 @@ export const FoodInfo = ({ food }: { food: any }) => {
       border border-gray-800 rounded-3xl p-8 md:p-10
       shadow-[0_0_40px_-10px_rgba(250,204,21,0.1)]"
     >
-      <FoodTitle name={food.foodName} totalPrice={totalPrice} />
+      <FoodTitle
+        name={food.foodName}
+        price={food.price}
+        oldPrice={food.oldPrice}
+      />
 
       {food.ingredients && (
         <div>

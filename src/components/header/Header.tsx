@@ -18,9 +18,11 @@ interface HeaderProps {
 export const Header = ({ compact = false }: HeaderProps) => {
   const { locale, t } = useI18n();
   const { category } = useCategory();
+
   const [showHeader, setShowHeader] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [megaVisible, setMegaVisible] = useState(false);
 
   useEffect(() => {
     if (compact) return;
@@ -30,7 +32,6 @@ export const Header = ({ compact = false }: HeaderProps) => {
       const diff = current - lastScrollY;
 
       setScrolled(current > 40);
-
       if (diff > 5) setShowHeader(false);
       if (diff < -5) setShowHeader(true);
 
@@ -43,12 +44,11 @@ export const Header = ({ compact = false }: HeaderProps) => {
 
   return (
     <>
-      {/* TopBar stays always visible */}
+      {/* TopBar */}
       <div className="fixed top-0 left-0 w-full z-[60]">
         <TopBar />
       </div>
 
-      {/* Spacer */}
       <div className="h-[32px] md:h-[36px]" />
 
       <AnimatePresence>
@@ -58,56 +58,57 @@ export const Header = ({ compact = false }: HeaderProps) => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className={`fixed left-0 w-full z-[59] transition-all duration-200 ${
+            className={`fixed left-0 w-full z-[59] ${
               scrolled
-                ? "top-[32px] md:top-[36px] bg-[#0a0a0a]/80 backdrop-blur-md border-b border-gray-800 shadow-[0_0_15px_rgba(250,204,21,0.05)]"
-                : "top-[32px] md:top-[36px] bg-[#0a0a0a]/95 backdrop-blur-lg border-b border-gray-800"
+                ? "top-[32px] md:top-[36px] bg-[#0a0a0a]/80 backdrop-blur-md border-b border-gray-800"
+                : "top-[32px] md:top-[36px] bg-[#0a0a0a]/95 border-b border-gray-800"
             }`}
           >
-            <div
-              className={`w-full max-w-7xl mx-auto flex items-center justify-between transition-all duration-200 ${
-                scrolled || compact
-                  ? "py-2 px-5 md:px-10"
-                  : "py-3 md:py-4 px-6 md:px-16"
-              }`}
-            >
+            <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-6 md:px-16 py-3">
               {/* Logo */}
               <Link
                 href={`/${locale}/home-page`}
-                className="flex items-center gap-2 hover:opacity-90 transition"
+                className="flex items-center gap-2"
               >
                 <img
                   src="/order.png"
                   alt="logo"
-                  className={`${
-                    scrolled || compact
-                      ? "w-[30px] h-[30px]"
-                      : "w-[38px] h-[38px]"
-                  }`}
+                  className="w-[34px] h-[34px]"
                 />
-                <span
-                  className={`text-white font-semibold ${
-                    scrolled || compact ? "text-[15px]" : "text-[18px]"
-                  }`}
-                >
+                <span className="text-white font-semibold text-[18px]">
                   NomNom
                 </span>
               </Link>
 
-              {/* 🔥 CATEGORY NAVIGATION CENTER */}
-              <nav className="hidden md:flex items-center gap-8">
+              {/* NAVIGATION */}
+              <nav className="hidden md:flex items-center gap-8 relative">
+                {/* ⭐ All Products → Mega Menu ONLY */}
+                <div
+                  onMouseEnter={() => setMegaVisible(true)}
+                  onMouseLeave={() => setMegaVisible(false)}
+                  className="relative"
+                >
+                  <Link
+                    href={`/${locale}/category/all`}
+                    className="text-gray-300 hover:text-yellow-400 transition font-medium text-sm"
+                  >
+                    {t("all_products")}
+                  </Link>
+                </div>
+
+                {/* OTHER CATEGORIES — normal */}
                 {category.map((cat) => (
                   <Link
                     key={cat.id}
                     href={`/${locale}/category/${cat.id}`}
                     className="text-gray-300 hover:text-yellow-400 transition font-medium text-sm"
                   >
-                    {cat.categoryName || t("unknown_category")}
+                    {cat.categoryName}
                   </Link>
                 ))}
               </nav>
 
-              {/* Right Side Buttons */}
+              {/* RIGHT SIDE */}
               <div className="flex items-center gap-3 sm:gap-[10px]">
                 <SearchDialog />
                 <SheetRight />
@@ -115,6 +116,46 @@ export const Header = ({ compact = false }: HeaderProps) => {
               </div>
             </div>
           </motion.header>
+        )}
+      </AnimatePresence>
+
+      {/* ⭐ MEGA MENU DROPDOWN ONLY for ALL PRODUCTS */}
+      <AnimatePresence>
+        {megaVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            onMouseEnter={() => setMegaVisible(true)}
+            onMouseLeave={() => setMegaVisible(false)}
+            className="fixed left-0 
+              top-[calc(32px+60px)] md:top-[calc(36px+60px)]
+              w-full z-[50]
+              bg-white
+              border-b border-gray-200
+              shadow-xl
+              py-10
+              px-14
+              grid grid-cols-4 gap-10"
+          >
+            {category.map((cat) => (
+              <div key={cat.id}>
+                <Link
+                  href={`/${locale}/category/${cat.id}`}
+                  className="text-black font-semibold text-[15px] hover:text-yellow-600"
+                >
+                  {cat.categoryName}
+                </Link>
+
+                <ul className="mt-3 space-y-2 text-gray-600 text-sm">
+                  <li className="hover:text-yellow-600 cursor-pointer">Item</li>
+                  <li className="hover:text-yellow-600 cursor-pointer">Item</li>
+                  <li className="hover:text-yellow-600 cursor-pointer">Item</li>
+                </ul>
+              </div>
+            ))}
+          </motion.div>
         )}
       </AnimatePresence>
     </>

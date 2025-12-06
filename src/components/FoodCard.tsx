@@ -88,13 +88,13 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
           <div className="absolute top-3 left-3 z-30 flex flex-col gap-2">
             {isFeatured && (
               <div className="inline-flex items-center text-xs font-semibold px-2 py-1 bg-red-600 text-white rounded-sm -rotate-6 shadow">
-                Онцлох
+                {t("featured")}
               </div>
             )}
 
             {!isFeatured && salesCount >= BESTSELLER_THRESHOLD && (
               <div className="inline-flex items-center text-xs font-semibold px-2 py-1 bg-black text-white rounded-sm -rotate-6 shadow">
-                Бестселлер
+                {t("bestseller")}
               </div>
             )}
 
@@ -106,11 +106,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
                       ? "bg-yellow-400 text-black"
                       : "bg-yellow-500 text-black"
                   }`}
-                title={
-                  isDiscountFake
-                    ? "Marked as promotional / not guaranteed"
-                    : "Discount"
-                }
+                title={isDiscountFake ? t("promo_discount") : t("discount")}
               >
                 -{discount}%{isDiscountFake ? " (promo)" : ""}
               </div>
@@ -172,7 +168,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
 
               {savings !== undefined && savings > 0 && (
                 <p className="text-green-300 text-sm font-medium text-[12px]">
-                  Save {fmt(savings)}₮
+                  {t("save")} {fmt(savings)}₮
                 </p>
               )}
             </div>

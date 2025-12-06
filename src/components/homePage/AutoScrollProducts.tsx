@@ -15,9 +15,9 @@ export const AutoScrollProducts = () => {
   const { locale, t } = useI18n();
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: "featured", label: "Онцлох" },
-    { key: "new", label: "Шинэ" },
-    { key: "bestseller", label: "Бестселлер" },
+    { key: "featured", label: t("featured") },
+    { key: "new", label: t("new") },
+    { key: "bestseller", label: t("bestseller") },
   ];
 
   const [activeTab, setActiveTab] = useState<TabKey>("featured");
@@ -232,10 +232,10 @@ export const AutoScrollProducts = () => {
             />
             <h2 className="text-lg md:text-xl font-semibold text-white">
               {activeTab === "featured"
-                ? "Онцлох"
+                ? t("featured")
                 : activeTab === "new"
-                ? "Шинэ"
-                : "Бестселлер"}
+                ? t("new")
+                : t("bestseller")}
             </h2>
           </div>
 

@@ -1,4 +1,5 @@
 export type FoodType = {
+  salesCount: number;
   createdAt: number;
   available: boolean;
   stock: number;

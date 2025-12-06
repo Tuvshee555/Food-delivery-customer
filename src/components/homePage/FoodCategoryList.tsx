@@ -34,7 +34,6 @@ export const FoodCategoryList = () => {
 
         return (
           <section key={catId} className="w-full">
-            {/* Category Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <img
@@ -56,11 +55,14 @@ export const FoodCategoryList = () => {
               </Link>
             </div>
 
-            {/* Foods */}
+            {/* Grid: 5 columns on large screens */}
             {filteredFood.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {filteredFood.map((dish) => (
-                  <FoodCard key={dish.id} food={dish} />
+                  // wrap so we can control width/height consistently
+                  <div key={dish.id} className="w-full">
+                    <FoodCard food={dish} />
+                  </div>
                 ))}
               </div>
             ) : (

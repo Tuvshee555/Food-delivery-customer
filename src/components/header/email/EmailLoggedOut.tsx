@@ -1,17 +1,19 @@
 "use client";
 
 import { GoogleLogin } from "@react-oauth/google";
-import { handleGoogleLogin } from "./handlers/handleGoogleLogin";
 import { handleFacebookLogin } from "./handlers/handleFacebookLogin";
 import { handleGuestLogin } from "./handlers/handleGuestLogin";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import AuthDrawer from "@/components/AuthDrawer";
+import { handleGoogleLogin } from "./handlers/handleGoogleLogin";
+import { useLocale } from "@/components/i18n/ClientI18nProvider";
 
 export const EmailLoggedOut = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const locale = useLocale(); // <-- Add this
 
   const redirect = "/home-page";
 
@@ -34,20 +36,22 @@ export const EmailLoggedOut = () => {
 
       <div className="flex justify-center">
         <GoogleLogin
-          onSuccess={(cred) => handleGoogleLogin(cred, redirect, router)}
+          onSuccess={
+            (cred) => handleGoogleLogin(cred, redirect, router, locale) // <-- Add locale
+          }
           onError={() => toast.error("Google login error")}
         />
       </div>
 
       <button
-        onClick={() => handleFacebookLogin(redirect, router)}
+        onClick={() => handleFacebookLogin(redirect, router, locale)}
         className="w-full bg-[#1877F2] text-white py-3 rounded-xl font-semibold hover:bg-[#145dbf]"
       >
         Facebook-р нэвтрэх
       </button>
 
       <button
-        onClick={() => handleGuestLogin(redirect, router)}
+        onClick={() => handleGuestLogin(redirect, router, locale)}
         className="w-full border border-gray-700 py-3 rounded-xl font-semibold"
       >
         Зочноор нэвтрэх

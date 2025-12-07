@@ -14,7 +14,7 @@ import { Plus, Minus } from "lucide-react";
 import { AddFoodOrderProps } from "@/type/type";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useAuth } from "@/app/provider/AuthProvider";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
   const { userId, token } = useAuth();

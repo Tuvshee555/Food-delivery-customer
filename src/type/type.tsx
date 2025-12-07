@@ -58,6 +58,8 @@ export type InputEventType = {
 
 // ✅ Category data type (from backend)
 export type Datas = {
+  imageUrl: string;
+  parentId: null;
   id: string;
   _id?: string;
   categoryName: string;

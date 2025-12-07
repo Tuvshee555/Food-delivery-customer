@@ -2,13 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/app/provider/AuthProvider";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { OrderDetails } from "./types";
 import { ItemsList } from "./ItemsList";
 import { Summary } from "./Summary";
 import { Timeline } from "./Timeline";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 export default function OrderDetailPage() {
   const { userId, token } = useAuth();

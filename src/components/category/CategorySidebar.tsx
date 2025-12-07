@@ -1,67 +1,110 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, ChevronDown, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
-/**
- * CategorySidebar — preserves previous categories during loads to avoid flicker.
- * Uses sessionStorage to show cached list instantly, then updates from network.
- */
+type Category = {
+  id: string;
+  categoryName: string;
+  parentId: string | null;
+};
+
+type CategoryNode = Category & {
+  children: CategoryNode[];
+};
+
+function buildTree(flat: Category[] = []) {
+  const map = new Map<string, CategoryNode>();
+  for (const c of flat) map.set(c.id, { ...c, children: [] });
+
+  const roots: CategoryNode[] = [];
+  for (const c of flat) {
+    const node = map.get(c.id);
+    if (!node) continue;
+    if (c.parentId === null) {
+      roots.push(node);
+    } else {
+      const parent = map.get(c.parentId);
+      if (parent) parent.children.push(node);
+      else roots.push(node);
+    }
+  }
+
+  // keep stable order: optional - you can sort here if desired
+  return { roots, map };
+}
+
+const CAT_CACHE_KEY = "categoriesCacheV1";
+const ALL_COUNT_KEY = "allCountCacheV1";
+
 export const CategorySidebar = () => {
   const { t, locale } = useI18n();
-  const [categories, setCategories] = useState<any[]>(() => {
+  const pathname = usePathname();
+
+  const [rawCategories, setRawCategories] = useState<Category[]>(() => {
     try {
       if (typeof window === "undefined") return [];
-      const raw = sessionStorage.getItem("categoriesCache");
-      return raw ? JSON.parse(raw) : [];
+      const raw = sessionStorage.getItem(CAT_CACHE_KEY);
+      return raw ? (JSON.parse(raw) as Category[]) : [];
     } catch {
       return [];
     }
   });
 
-  const [search, setSearch] = useState("");
   const [allCount, setAllCount] = useState<number | null>(() => {
     try {
       if (typeof window === "undefined") return null;
-      const raw = sessionStorage.getItem("allCountCache");
+      const raw = sessionStorage.getItem(ALL_COUNT_KEY);
       return raw ? Number(raw) : null;
     } catch {
       return null;
     }
   });
 
-  const pathname = usePathname();
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [filters, setFilters] = useState({
+    discount: false,
+    featured: false,
+    bestseller: false,
+  });
 
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
 
-    const fetchCats = async () => {
+    async function fetchCategories() {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/category`,
           { signal }
         );
         if (!res.ok) return;
-        const data = await res.json();
+        const data = (await res.json()) as unknown;
         if (!Array.isArray(data)) return;
+        const cats = data.map((c: any) => ({
+          id: String(c.id),
+          categoryName: String(c.categoryName ?? c.name ?? ""),
+          parentId: c.parentId === null ? null : String(c.parentId),
+        })) as Category[];
 
-        // update only when we have valid data
-        setCategories(data);
+        setRawCategories(cats);
         try {
-          sessionStorage.setItem("categoriesCache", JSON.stringify(data));
+          sessionStorage.setItem(CAT_CACHE_KEY, JSON.stringify(cats));
         } catch {}
       } catch (err) {
-        if ((err as any).name === "AbortError") return;
+        if ((err as Error).name === "AbortError") return;
         console.error("Failed to fetch categories:", err);
       }
-    };
+    }
 
-    const fetchAllCount = async () => {
+    async function fetchAllCount() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`, {
           signal,
@@ -71,35 +114,149 @@ export const CategorySidebar = () => {
         if (!Array.isArray(data)) return;
         setAllCount(data.length);
         try {
-          sessionStorage.setItem("allCountCache", String(data.length));
+          sessionStorage.setItem(ALL_COUNT_KEY, String(data.length));
         } catch {}
       } catch (err) {
-        if ((err as any).name === "AbortError") return;
-        console.error("Failed to fetch food count:", err);
+        if ((err as Error).name === "AbortError") return;
+        console.error("Failed to fetch all count:", err);
       }
-    };
+    }
 
-    // run both in background; they won't clear prior state
-    fetchCats();
+    fetchCategories();
     fetchAllCount();
 
     return () => controller.abort();
   }, []);
 
-  const filtered = categories.filter((cat) =>
-    (cat.categoryName || cat.name || "")
-      .toLowerCase()
-      .includes(search.toLowerCase())
+  const { roots, map } = useMemo(
+    () => buildTree(rawCategories),
+    [rawCategories]
   );
+
+  const filteredFlat = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rawCategories;
+    return rawCategories.filter((c) =>
+      c.categoryName.toLowerCase().includes(q)
+    );
+  }, [rawCategories, search]);
+
+  // If search is active we want to show matching flat results (not tree)
+  const showFlatList = search.trim().length > 0;
+
+  const extractIdFromPath = useCallback(() => {
+    if (!pathname) return null;
+    const parts = pathname.split("/");
+    const idx = parts.findIndex((p) => p === "category");
+    if (idx === -1) return null;
+    return parts[idx + 1] ?? null;
+  }, [pathname]);
+
+  // Auto-expand ancestors of currently active category
+  useEffect(() => {
+    const activeId = extractIdFromPath();
+    if (!activeId) return;
+    // build parent map quickly
+    const parentMap = new Map<string, string | null>();
+    for (const c of rawCategories) parentMap.set(c.id, c.parentId ?? null);
+
+    const toOpen: Record<string, boolean> = {};
+    let cur: string | null | undefined = activeId;
+    // walk up ancestors
+    while (cur) {
+      const parent = parentMap.get(cur);
+      if (parent) toOpen[parent] = true;
+      cur = parent ?? null;
+    }
+    // also open direct parent of active to reveal active
+    // merge with existing expanded state
+    setExpanded((prev) => ({ ...prev, ...toOpen }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, rawCategories.length]);
 
   const isAllActive =
     pathname?.includes(`/${locale}/category/all`) ||
     pathname?.includes(`/${locale}/all-products`);
 
+  const toggle = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
+
+  const onFilterToggle = (key: keyof typeof filters) =>
+    setFilters((f) => ({ ...f, [key]: !f[key] }));
+
+  const renderNode = (node: CategoryNode, depth = 0) => {
+    const isOpen = !!expanded[node.id];
+    const activeId = extractIdFromPath();
+    const isActive = activeId === node.id;
+    return (
+      <li key={node.id} className="mt-2">
+        <div
+          className={`flex items-center justify-between gap-2 py-1 ${
+            depth > 0 ? "pl-3" : ""
+          }`}
+        >
+          <div
+            role="button"
+            onClick={() => node.children.length > 0 && toggle(node.id)}
+            className={`flex-1 cursor-pointer text-sm select-none ${
+              isActive
+                ? "text-[#facc15] font-medium"
+                : "text-gray-100 hover:text-yellow-400"
+            }`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                node.children.length > 0 && toggle(node.id);
+              }
+            }}
+          >
+            {node.categoryName}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/${locale}/category/${node.id}`}
+              className={`text-xs whitespace-nowrap ${
+                isActive
+                  ? "text-[#facc15]"
+                  : "text-gray-400 hover:text-yellow-400"
+              }`}
+            >
+              {t("all") ?? "All"}
+            </Link>
+
+            {node.children.length > 0 && (
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(node.id);
+                }}
+                className="p-1 hover:text-yellow-400"
+              >
+                {isOpen ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isOpen && node.children.length > 0 && (
+          <ul className="mt-1 pl-4 border-l border-gray-800">
+            {node.children.map((child) => renderNode(child, depth + 1))}
+          </ul>
+        )}
+      </li>
+    );
+  };
+
   return (
-    <aside className="bg-gradient-to-b from-[#111]/95 to-[#0a0a0a]/95 border border-gray-800/60 rounded-2xl p-5 flex flex-col gap-7 backdrop-blur-sm">
-      {/* search */}
-      <div className="relative group">
+    <aside className="bg-gradient-to-b from-[#111]/95 to-[#0a0a0a]/95 border border-gray-800/60 rounded-2xl p-5 flex flex-col gap-6 backdrop-blur-sm">
+      <div className="relative">
         <Search className="absolute left-3 top-2.5 text-gray-500 w-4 h-4" />
         <input
           type="text"
@@ -110,7 +267,6 @@ export const CategorySidebar = () => {
         />
       </div>
 
-      {/* "All products" link */}
       <div>
         <h3 className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-3 border-b border-gray-800/80 pb-2">
           {t("categories")}
@@ -125,36 +281,46 @@ export const CategorySidebar = () => {
                 : "text-gray-300 hover:text-[#facc15]"
             }`}
           >
-            <span>{t("all_products") || "All products"}</span>
+            <span>{t("all_products")}</span>
             <span className="text-gray-400 text-xs">{allCount ?? "-"}</span>
           </Link>
 
-          {filtered.length === 0 && (
-            <li className="text-gray-500 text-xs italic mt-2">{t("empty")}</li>
+          {showFlatList ? (
+            filteredFlat.length === 0 ? (
+              <li className="text-gray-500 text-xs italic mt-2">
+                {t("empty")}
+              </li>
+            ) : (
+              filteredFlat.map((cat) => {
+                const catId = cat.id;
+                const isActive = pathname?.includes(
+                  `/${locale}/category/${catId}`
+                );
+                return (
+                  <Link
+                    key={catId}
+                    href={`/${locale}/category/${catId}`}
+                    className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                      isActive
+                        ? "text-[#facc15] bg-[#1f1f1f]"
+                        : "text-gray-300 hover:text-[#facc15]"
+                    }`}
+                  >
+                    {cat.categoryName}
+                  </Link>
+                );
+              })
+            )
+          ) : roots.length === 0 ? (
+            <li className="text-gray-400 text-xs py-2">
+              {t("no_categories") ?? "No categories"}
+            </li>
+          ) : (
+            roots.map((root) => renderNode(root, 0))
           )}
-
-          {filtered.map((cat) => {
-            const catId = cat.id;
-            const isActive = pathname?.includes(`/${locale}/category/${catId}`);
-
-            return (
-              <Link
-                key={catId}
-                href={`/${locale}/category/${catId}`}
-                className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                  isActive
-                    ? "text-[#facc15] bg-[#1f1f1f]"
-                    : "text-gray-300 hover:text-[#facc15]"
-                }`}
-              >
-                {cat.categoryName || cat.name}
-              </Link>
-            );
-          })}
         </ul>
       </div>
 
-      {/* filters */}
       <div>
         <h3 className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-3 border-b border-gray-800/80 pb-2">
           {t("filters")}
@@ -162,15 +328,30 @@ export const CategorySidebar = () => {
 
         <ul className="flex flex-col gap-3 text-sm text-gray-300">
           <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
-            <input type="checkbox" className="w-4 h-4" />
+            <input
+              type="checkbox"
+              checked={filters.discount}
+              onChange={() => onFilterToggle("discount")}
+              className="w-4 h-4"
+            />
             {t("discount")}
           </label>
           <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
-            <input type="checkbox" className="w-4 h-4" />
+            <input
+              type="checkbox"
+              checked={filters.featured}
+              onChange={() => onFilterToggle("featured")}
+              className="w-4 h-4"
+            />
             {t("featured")}
           </label>
           <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
-            <input type="checkbox" className="w-4 h-4" />
+            <input
+              type="checkbox"
+              checked={filters.bestseller}
+              onChange={() => onFilterToggle("bestseller")}
+              className="w-4 h-4"
+            />
             {t("bestseller")}
           </label>
         </ul>

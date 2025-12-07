@@ -14,95 +14,122 @@ export default function CategoryPage({
   params: Promise<{ id: string }>;
 }) {
   const { t } = useI18n();
-  const { id } = use(params); // ✅ unwrap params properly
+  const { id } = use(params); // unwrap route params (app router async)
 
   const [foods, setFoods] = useState<FoodType[]>([]);
   const [categoryName, setCategoryName] = useState<string>(t("category"));
   const [page, setPage] = useState(1);
-  const [sortType, setSortType] = useState("newest");
+  const [sortType, setSortType] = useState<
+    "newest" | "oldest" | "low" | "high"
+  >("newest");
   const perPage = 8;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`);
-        const data = await res.json();
-
-        if (!Array.isArray(data)) return;
-
+        // ALL products
         if (id === "all") {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/food`
+          );
+          const data = await res.json();
+          if (!Array.isArray(data)) return;
+
           setFoods(data);
           setCategoryName(t("all_products"));
+          return;
+        }
+
+        // Category + its children foods from backend
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/category/${id}/foods-tree`
+        );
+        const json = await res.json();
+
+        if (!json?.success) {
+          console.error("Category foods-tree error:", json);
+          setFoods([]);
+          setCategoryName(t("category"));
+          return;
+        }
+
+        const { category, foods: categoryFoods } = json;
+        setFoods(Array.isArray(categoryFoods) ? categoryFoods : []);
+        if (category?.categoryName) {
+          setCategoryName(category.categoryName);
         } else {
-          const filtered = data.filter(
-            (f) =>
-              f.category === id || f.categoryId === id || f.category?.id === id
-          );
-
-          setFoods(filtered);
-
-          if (filtered.length > 0) {
-            const cat = filtered[0].categoryName || filtered[0].category?.name;
-            if (cat) setCategoryName(cat);
-          }
+          setCategoryName(t("category"));
         }
       } catch (err) {
         console.error("Failed to load category:", err);
+        setFoods([]);
+        setCategoryName(t("category"));
       }
     };
 
     fetchData();
-  }, [id]); // 👈 ONLY "id" here
+  }, [id]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [id, sortType]);
 
   const sortedFoods = useMemo(() => {
     const arr = [...foods];
-    switch (sortType) {
-      case "newest":
-        return arr.sort(
-          (a, b) =>
-            new Date(b.createdAt || 0).getTime() -
-            new Date(a.createdAt || 0).getTime()
-        );
-      case "oldest":
-        return arr.sort(
-          (a, b) =>
-            new Date(a.createdAt || 0).getTime() -
-            new Date(b.createdAt || 0).getTime()
-        );
-      case "low":
-        return arr.sort((a, b) => a.price - b.price);
-      case "high":
-        return arr.sort((a, b) => b.price - a.price);
-      default:
-        return arr;
-    }
+
+    return arr.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+
+      switch (sortType) {
+        case "newest":
+          return dateB - dateA;
+        case "oldest":
+          return dateA - dateB;
+        case "low":
+          return a.price - b.price;
+        case "high":
+          return b.price - a.price;
+        default:
+          return 0;
+      }
+    });
   }, [foods, sortType]);
 
-  const totalPages = Math.ceil(sortedFoods.length / perPage);
+  const totalPages = Math.ceil(sortedFoods.length / perPage) || 1;
   const pagedFoods = sortedFoods.slice((page - 1) * perPage, page * perPage);
 
   return (
     <main className="min-h-screen w-full bg-[#0a0a0a] text-white pt-[90px] px-6 md:px-12 flex flex-col md:flex-row gap-8">
+      {/* Left: Sidebar */}
       <div className="md:w-[250px] w-full">
         <CategorySidebar />
       </div>
 
+      {/* Right: Products */}
       <div className="flex-1">
         <CategoryHeader
           title={categoryName}
           count={foods.length}
-          onSortChange={setSortType}
+          onSortChange={(val) =>
+            setSortType(val as "newest" | "oldest" | "low" | "high")
+          }
         />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 mt-6">
-          {pagedFoods.map((item) => (
-            <FoodCard key={item.id} food={item} />
-          ))}
+          {pagedFoods.length > 0 ? (
+            pagedFoods.map((item) => <FoodCard key={item.id} food={item} />)
+          ) : (
+            <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
+              <span className="text-5xl mb-4">📦</span>
+              <p className="text-sm md:text-base">{t("empty")}</p>
+            </div>
+          )}
         </div>
 
-        {totalPages > 1 && (
+        {/* Pagination */}
+        {sortedFoods.length > perPage && (
           <div className="flex justify-center items-center mt-10 gap-4 text-gray-400">
-            {/* Pagination Buttons */}
             <button
               onClick={() => setPage(1)}
               disabled={page === 1}
@@ -119,7 +146,9 @@ export default function CategoryPage({
               {t("prev")}
             </button>
 
-            <span className="font-medium text-[#facc15]">{page}</span>
+            <span className="font-medium text-[#facc15]">
+              {page} / {totalPages}
+            </span>
 
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

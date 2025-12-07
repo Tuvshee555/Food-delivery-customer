@@ -10,10 +10,18 @@ import { Email } from "./email/Email";
 import TopBar from "./translate/TopBar";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
+import { useRef } from "react";
 
 interface HeaderProps {
   compact?: boolean;
 }
+
+type CategoryNode = {
+  id: string;
+  categoryName: string;
+  parentId: string | null;
+  children?: CategoryNode[];
+};
 
 export const Header = ({ compact = false }: HeaderProps) => {
   const { locale, t } = useI18n();
@@ -21,95 +29,111 @@ export const Header = ({ compact = false }: HeaderProps) => {
 
   const [showHeader, setShowHeader] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [megaVisible, setMegaVisible] = useState(false);
+
+  const [tree, setTree] = useState<CategoryNode[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/category/tree`)
+      .then((res) => res.json())
+      .then((data) => Array.isArray(data) && setTree(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     if (compact) return;
 
-    const handleScroll = () => {
-      const current = window.scrollY;
-      const diff = current - lastScrollY;
+    const handler = () => {
+      const y = window.scrollY;
+      setScrolled(y > 40);
 
-      setScrolled(current > 40);
-      if (diff > 5) setShowHeader(false);
-      if (diff < -5) setShowHeader(true);
+      setShowHeader(y < 200 || y < lastScrollYRef.current);
 
-      setLastScrollY(current);
+      lastScrollYRef.current = y;
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY, compact]);
+    window.addEventListener("scroll", handler);
+    return () => window.removeEventListener("scroll", handler);
+  }, [compact]);
+
+  const navClass =
+    "relative text-gray-300 hover:text-yellow-300 font-medium text-sm transition group";
+
+  const underline =
+    "block w-0 h-[2px] bg-yellow-400 group-hover:w-full transition-all duration-300 mx-auto";
 
   return (
     <>
-      {/* TopBar */}
+      {/* TOPBAR */}
       <div className="fixed top-0 left-0 w-full z-[60]">
         <TopBar />
       </div>
 
       <div className="h-[32px] md:h-[36px]" />
 
+      {/* HEADER */}
       <AnimatePresence>
         {showHeader && (
           <motion.header
-            initial={{ y: -60, opacity: 0 }}
+            initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -60, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className={`fixed left-0 w-full z-[59] ${
+            exit={{ opacity: 0 }}
+            className={`fixed left-0 w-full z-[59] transition-all duration-300 border-b ${
               scrolled
-                ? "top-[32px] md:top-[36px] bg-[#0a0a0a]/80 backdrop-blur-md border-b border-gray-800"
-                : "top-[32px] md:top-[36px] bg-[#0a0a0a]/95 border-b border-gray-800"
+                ? "top-[32px] md:top-[36px] bg-black/30 backdrop-blur-xl border-gray-800 shadow-lg"
+                : "top-[32px] md:top-[36px] bg-black/65 border-gray-700"
             }`}
           >
-            <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-6 md:px-16 py-3">
-              {/* Logo */}
+            <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-16 py-3">
+              {/* LOGO */}
               <Link
                 href={`/${locale}/home-page`}
-                className="flex items-center gap-2"
+                className="flex items-center gap-3"
               >
                 <img
                   src="/order.png"
                   alt="logo"
-                  className="w-[34px] h-[34px]"
+                  className="w-[36px] h-[36px]"
                 />
-                <span className="text-white font-semibold text-[18px]">
-                  NomNom
-                </span>
+                <span className="text-white font-bold text-xl">NomNom</span>
               </Link>
 
-              {/* NAVIGATION */}
-              <nav className="hidden md:flex items-center gap-8 relative">
-                {/* ⭐ All Products → Mega Menu ONLY */}
+              {/* NAV */}
+              <nav className="hidden md:flex items-center gap-8">
+                {/* ALL PRODUCTS (MEGA TRIGGER) */}
                 <div
+                  className="group"
                   onMouseEnter={() => setMegaVisible(true)}
                   onMouseLeave={() => setMegaVisible(false)}
-                  className="relative"
                 >
-                  <Link
-                    href={`/${locale}/category/all`}
-                    className="text-gray-300 hover:text-yellow-400 transition font-medium text-sm"
-                  >
+                  <Link href={`/${locale}/category/all`} className={navClass}>
                     {t("all_products")}
+                    <span className={underline}></span>
                   </Link>
                 </div>
 
-                {/* OTHER CATEGORIES — normal */}
-                {category.map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={`/${locale}/category/${cat.id}`}
-                    className="text-gray-300 hover:text-yellow-400 transition font-medium text-sm"
-                  >
-                    {cat.categoryName}
-                  </Link>
-                ))}
+                {/* ROOT CATS */}
+                {category
+                  .filter((c) => c.parentId === null)
+                  .map((c) => (
+                    <div key={c.id} className="group">
+                      <Link
+                        href={`/${locale}/category/${c.id}`}
+                        className={navClass}
+                      >
+                        {c.categoryName}
+                        <span className={underline}></span>
+                      </Link>
+                    </div>
+                  ))}
               </nav>
 
-              {/* RIGHT SIDE */}
-              <div className="flex items-center gap-3 sm:gap-[10px]">
+              {/* ACTIONS */}
+              <div className="flex items-center gap-4">
                 <SearchDialog />
                 <SheetRight />
                 <Email />
@@ -119,42 +143,49 @@ export const Header = ({ compact = false }: HeaderProps) => {
         )}
       </AnimatePresence>
 
-      {/* ⭐ MEGA MENU DROPDOWN ONLY for ALL PRODUCTS */}
+      {/* MEGA MENU */}
       <AnimatePresence>
         {megaVisible && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0 }}
             onMouseEnter={() => setMegaVisible(true)}
             onMouseLeave={() => setMegaVisible(false)}
-            className="fixed left-0 
-              top-[calc(32px+60px)] md:top-[calc(36px+60px)]
-              w-full z-[50]
-              bg-white
-              border-b border-gray-200
-              shadow-xl
-              py-10
-              px-14
-              grid grid-cols-4 gap-10"
+            className="fixed w-full left-0 bg-white/95 backdrop-blur-xl 
+            rounded-b-3xl shadow-2xl border-b border-gray-300
+            top-[calc(32px+65px)] md:top-[calc(36px+65px)]
+            py-10 px-16 grid grid-cols-2 md:grid-cols-4 gap-10 z-[55]"
           >
-            {category.map((cat) => (
-              <div key={cat.id}>
-                <Link
-                  href={`/${locale}/category/${cat.id}`}
-                  className="text-black font-semibold text-[15px] hover:text-yellow-600"
-                >
-                  {cat.categoryName}
-                </Link>
+            {loading ? (
+              <p className="text-gray-500">Loading…</p>
+            ) : (
+              tree.map((root) => (
+                <div key={root.id}>
+                  <Link
+                    href={`/${locale}/category/${root.id}`}
+                    className="text-[15px] font-semibold text-gray-900 hover:text-yellow-600 transition"
+                  >
+                    {root.categoryName}
+                  </Link>
 
-                <ul className="mt-3 space-y-2 text-gray-600 text-sm">
-                  <li className="hover:text-yellow-600 cursor-pointer">Item</li>
-                  <li className="hover:text-yellow-600 cursor-pointer">Item</li>
-                  <li className="hover:text-yellow-600 cursor-pointer">Item</li>
-                </ul>
-              </div>
-            ))}
+                  {root.children && (
+                    <ul className="mt-3 space-y-2">
+                      {root.children.map((child) => (
+                        <li key={child.id}>
+                          <Link
+                            href={`/${locale}/category/${child.id}`}
+                            className="text-gray-600 text-sm hover:text-yellow-600 transition"
+                          >
+                            {child.categoryName}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))
+            )}
           </motion.div>
         )}
       </AnimatePresence>

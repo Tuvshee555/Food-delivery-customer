@@ -6,7 +6,7 @@ const PUBLIC_PATHS = ["/_next/", "/favicon", "/images", "/api", "/public"];
 const LOCALES = ["mn", "en", "ko"];
 const DEFAULT_LOCALE = "mn";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip static/public files

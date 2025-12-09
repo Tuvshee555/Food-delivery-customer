@@ -8,10 +8,14 @@ export default function PaymentSummary({
   cart,
   router,
   onSubmit,
+  paymentMethod,
+  setPaymentMethod,
 }: {
   cart: any[];
   router: any;
   onSubmit: () => void;
+  paymentMethod: "qpay" | "card" | "cod" | null;
+  setPaymentMethod: (p: "qpay" | "card" | "cod" | null) => void;
 }) {
   const { locale, t } = useI18n();
 
@@ -44,6 +48,44 @@ export default function PaymentSummary({
         <span className="text-[#facc15] text-2xl">
           {grandTotal.toLocaleString()}₮
         </span>
+      </div>
+
+      {/* Payment method selection */}
+      <div className="mt-6 space-y-2">
+        <div className="text-sm text-gray-300 mb-2">{t("choose_payment")}</div>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="radio"
+            name="payment"
+            value="qpay"
+            checked={paymentMethod === "qpay"}
+            onChange={() => setPaymentMethod("qpay")}
+          />
+          <span className="ml-2">QPay</span>
+        </label>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="radio"
+            name="payment"
+            value="card"
+            checked={paymentMethod === "card"}
+            onChange={() => setPaymentMethod("card")}
+          />
+          <span className="ml-2">Card (Visa / Mastercard)</span>
+        </label>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="radio"
+            name="payment"
+            value="cod"
+            checked={paymentMethod === "cod"}
+            onChange={() => setPaymentMethod("cod")}
+          />
+          <span className="ml-2">{t("cash_on_delivery")}</span>
+        </label>
       </div>
 
       <div className="flex mt-6 gap-2">

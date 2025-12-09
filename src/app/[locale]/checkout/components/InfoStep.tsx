@@ -13,6 +13,8 @@ import { useAuth } from "../../provider/AuthProvider";
 import { QPayDialog } from "../../qpay/QPayDialog";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
+type PaymentMethod = "qpay" | "card" | "cod" | null;
+
 export default function InfoStep({
   router,
   cart,
@@ -32,7 +34,9 @@ export default function InfoStep({
   const [openQPay, setOpenQPay] = useState(false);
   const [newOrderId, setNewOrderId] = useState<string | null>(null);
 
-  // 🧠 Load user info
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qpay");
+
+  // Load user info
   useEffect(() => {
     if (!userId || !token) return;
 
@@ -57,11 +61,16 @@ export default function InfoStep({
     fetchUser();
   }, [userId, token]);
 
-  // ✏ Validate form
+  // Validate form and open terms
   const handleSubmit = (newErrors: Record<string, boolean>) => {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error(t("err_fill_required"));
+      return;
+    }
+
+    if (!paymentMethod) {
+      toast.error(t("choose_payment_method"));
       return;
     }
 
@@ -74,13 +83,18 @@ export default function InfoStep({
     setOpenTerms(true);
   };
 
-  // 💳 Create order + redirect to payment
+  // Create order + start selected payment flow
   const handlePaymentStart = async () => {
     try {
       setOpenTerms(false);
 
       if (!cart.length) {
         toast.error(t("cart_empty"));
+        return;
+      }
+
+      if (!paymentMethod) {
+        toast.error(t("choose_payment_method"));
         return;
       }
 
@@ -103,6 +117,7 @@ export default function InfoStep({
         return;
       }
 
+      // 1) Create order in your backend (existing route)
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
         {
@@ -112,6 +127,7 @@ export default function InfoStep({
           productTotal: total,
           location: form.address,
           phone: form.phonenumber,
+          paymentMethod, // save chosen method
           items: mappedItems,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -124,13 +140,40 @@ export default function InfoStep({
       }
 
       localStorage.setItem("lastOrderId", createdOrder.id);
-
       await refreshCart();
-
       setNewOrderId(createdOrder.id);
-      router.push(
-        `/${locale}/checkout/payment-pending?orderId=${createdOrder.id}`
-      );
+
+      // 2) Route per payment method
+      if (paymentMethod === "card") {
+        // Call your backend Stripe route to create a Checkout Session
+        const stripeRes = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/stripe/create-session`,
+          {
+            orderId: createdOrder.id,
+            totalPrice,
+          }
+        );
+
+        if (stripeRes.data?.url) {
+          // redirect user to Stripe Checkout
+          window.location.href = stripeRes.data.url;
+          return;
+        } else {
+          toast.error(t("err_create_order"));
+          return;
+        }
+      } else if (paymentMethod === "qpay") {
+        // Keep your existing QPay pending flow
+        router.push(
+          `/${locale}/checkout/payment-pending?orderId=${createdOrder.id}`
+        );
+        return;
+      } else if (paymentMethod === "cod") {
+        // COD: order created and will be handled later
+        toast.success(t("order_success"));
+        router.push(`/${locale}/orders/${createdOrder.id}`);
+        return;
+      }
     } catch (err: any) {
       console.error("Order error:", err.response?.data || err.message);
       toast.error(t("err_create_order"));
@@ -162,6 +205,8 @@ export default function InfoStep({
 
                 handleSubmit(newErrors);
               }}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
             />
           </motion.section>
 

@@ -18,3 +18,23 @@ img.goog-te-gadget-icon {
   pointer-events: none !important;
   position: absolute;
 }
+/* FORCE ALL RADIX SHEETS / DIALOGS ABOVE HEADER */
+
+[data-radix-portal] {
+  z-index: 9998 !important;
+}
+
+[data-radix-overlay],
+[data-radix-dialog-overlay],
+[data-radix-sheet-overlay] {
+  z-index: 9998 !important;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+[data-radix-content],
+[data-radix-dialog-content],
+[data-radix-sheet-content] {
+  z-index: 9999 !important;
+}
+
+

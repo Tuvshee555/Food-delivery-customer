@@ -11,7 +11,6 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 import { useFacebookSDK } from "./hooks/useFacebookSDK";
 import { useEmailSync } from "./hooks/useEmailSync";
-
 import { EmailLoggedOut } from "./EmailLoggedOut";
 import { EmailLoggedIn } from "./EmailLoggedIn";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
@@ -38,7 +37,9 @@ export const Email = () => {
 
       <SheetContent
         side="right"
-        className="w-full sm:max-w-[420px] bg-[#0a0a0a] text-white border-l border-gray-800 p-0"
+        className="fixed inset-y-0 right-0 w-full sm:max-w-[420px]
+          bg-[#0a0a0a] text-white border-l border-gray-800 p-0
+          z-[9999]"
       >
         <VisuallyHidden>
           <SheetTitle>User Menu</SheetTitle>

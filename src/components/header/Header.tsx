@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchDialog } from "./SearchDialog";
@@ -10,7 +10,6 @@ import { Email } from "./email/Email";
 import TopBar from "./translate/TopBar";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
-import { useRef } from "react";
 
 interface HeaderProps {
   compact?: boolean;
@@ -34,6 +33,8 @@ export const Header = ({ compact = false }: HeaderProps) => {
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const lastScrollYRef = useRef(0);
+
   useEffect(() => {
     setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/category/tree`)
@@ -42,17 +43,13 @@ export const Header = ({ compact = false }: HeaderProps) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const lastScrollYRef = useRef(0);
-
   useEffect(() => {
     if (compact) return;
 
     const handler = () => {
       const y = window.scrollY;
       setScrolled(y > 40);
-
       setShowHeader(y < 200 || y < lastScrollYRef.current);
-
       lastScrollYRef.current = y;
     };
 
@@ -62,13 +59,12 @@ export const Header = ({ compact = false }: HeaderProps) => {
 
   const navClass =
     "relative text-gray-300 hover:text-yellow-300 font-medium text-sm transition group";
-
   const underline =
     "block w-0 h-[2px] bg-yellow-400 group-hover:w-full transition-all duration-300 mx-auto";
 
   return (
     <>
-      {/* TOPBAR */}
+      {/* TOP BAR */}
       <div className="fixed top-0 left-0 w-full z-[60]">
         <TopBar />
       </div>
@@ -82,29 +78,22 @@ export const Header = ({ compact = false }: HeaderProps) => {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`fixed left-0 w-full z-[59] transition-all duration-300 border-b ${
+            className={`fixed left-0 w-full z-[59] border-b transition-all ${
               scrolled
-                ? "top-[32px] md:top-[36px] bg-black/30 backdrop-blur-xl border-gray-800 shadow-lg"
+                ? "top-[32px] md:top-[36px] bg-black/30 backdrop-blur-xl border-gray-800"
                 : "top-[32px] md:top-[36px] bg-black/65 border-gray-700"
             }`}
           >
             <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-16 py-3">
-              {/* LOGO */}
               <Link
                 href={`/${locale}/home-page`}
                 className="flex items-center gap-3"
               >
-                <img
-                  src="/order.png"
-                  alt="logo"
-                  className="w-[36px] h-[36px]"
-                />
+                <img src="/order.png" alt="logo" className="w-9 h-9" />
                 <span className="text-white font-bold text-xl">NomNom</span>
               </Link>
 
-              {/* NAV */}
               <nav className="hidden md:flex items-center gap-8">
-                {/* ALL PRODUCTS (MEGA TRIGGER) */}
                 <div
                   className="group"
                   onMouseEnter={() => setMegaVisible(true)}
@@ -112,11 +101,10 @@ export const Header = ({ compact = false }: HeaderProps) => {
                 >
                   <Link href={`/${locale}/category/all`} className={navClass}>
                     {t("all_products")}
-                    <span className={underline}></span>
+                    <span className={underline} />
                   </Link>
                 </div>
 
-                {/* ROOT CATS */}
                 {category
                   .filter((c) => c.parentId === null)
                   .map((c) => (
@@ -126,13 +114,12 @@ export const Header = ({ compact = false }: HeaderProps) => {
                         className={navClass}
                       >
                         {c.categoryName}
-                        <span className={underline}></span>
+                        <span className={underline} />
                       </Link>
                     </div>
                   ))}
               </nav>
 
-              {/* ACTIONS */}
               <div className="flex items-center gap-4">
                 <SearchDialog />
                 <SheetRight />
@@ -152,10 +139,9 @@ export const Header = ({ compact = false }: HeaderProps) => {
             exit={{ opacity: 0 }}
             onMouseEnter={() => setMegaVisible(true)}
             onMouseLeave={() => setMegaVisible(false)}
-            className="fixed w-full left-0 bg-white/95 backdrop-blur-xl 
-            rounded-b-3xl shadow-2xl border-b border-gray-300
-            top-[calc(32px+65px)] md:top-[calc(36px+65px)]
-            py-10 px-16 grid grid-cols-2 md:grid-cols-4 gap-10 z-[55]"
+            className="fixed left-0 w-full z-[55] bg-white/95 backdrop-blur-xl border-b border-gray-300 rounded-b-3xl shadow-2xl
+              top-[calc(32px+65px)] md:top-[calc(36px+65px)]
+              py-10 px-16 grid grid-cols-2 md:grid-cols-4 gap-10"
           >
             {loading ? (
               <p className="text-gray-500">Loading…</p>
@@ -164,7 +150,7 @@ export const Header = ({ compact = false }: HeaderProps) => {
                 <div key={root.id}>
                   <Link
                     href={`/${locale}/category/${root.id}`}
-                    className="text-[15px] font-semibold text-gray-900 hover:text-yellow-600 transition"
+                    className="font-semibold text-gray-900 hover:text-yellow-600"
                   >
                     {root.categoryName}
                   </Link>
@@ -175,7 +161,7 @@ export const Header = ({ compact = false }: HeaderProps) => {
                         <li key={child.id}>
                           <Link
                             href={`/${locale}/category/${child.id}`}
-                            className="text-gray-600 text-sm hover:text-yellow-600 transition"
+                            className="text-sm text-gray-600 hover:text-yellow-600"
                           >
                             {child.categoryName}
                           </Link>

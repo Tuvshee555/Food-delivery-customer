@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Facebook, Instagram, Youtube } from "lucide-react";
-import TranslateButton from "../translate/TranslateButton"; // adjust path if needed
+import TranslateButton from "../translate/TranslateButton";
 import {
   useLocale,
   useTranslations,
@@ -14,7 +14,7 @@ export default function TopBar() {
 
   return (
     <div className="w-full bg-white border-b border-black/10 text-[12px] text-neutral-600">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-8">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-8 md:h-9">
         <span className="font-medium tracking-wide">Тавтай морил</span>
 
         <div className="flex items-center gap-4">
@@ -45,7 +45,10 @@ function Divider() {
 
 function NavLink({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="hover:text-black transition whitespace-nowrap">
+    <Link
+      href={href}
+      className="hover:text-black transition whitespace-nowrap px-2 py-1"
+    >
       {label}
     </Link>
   );

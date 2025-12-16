@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import ClientI18nProvider from "@/components/i18n/ClientI18nProvider";
 
+import ClientI18nProvider from "@/components/i18n/ClientI18nProvider";
 import QueryProvider from "./QueryProvider";
 import { AuthProvider } from "./provider/AuthProvider";
 import { FoodDataProvider } from "./provider/FoodDataProvider";
 import { CategoryProvider } from "./provider/CategoryProvider";
-import { Header } from "@/components/header/Header";
+
+import HeaderClient from "@/components/header/HeaderClient";
 import Footer from "@/components/footer/Footer";
 
 type Props = {
@@ -37,7 +38,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <AuthProvider>
           <FoodDataProvider>
             <CategoryProvider>
-              <Header />
+              <HeaderClient />
               {children}
               <Footer />
             </CategoryProvider>

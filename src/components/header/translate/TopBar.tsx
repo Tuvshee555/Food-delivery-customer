@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Facebook, Instagram, Youtube } from "lucide-react";
-import TranslateButton from "./TranslateButton";
+import TranslateButton from "../translate/TranslateButton"; // adjust path if needed
 import {
   useLocale,
   useTranslations,
@@ -13,69 +13,40 @@ export default function TopBar() {
   const locale = useLocale();
 
   return (
-    <div className="w-full bg-[#0c0c0c] border-b border-gray-800 text-white text-[13px] select-none z-[99999]">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-1.5">
-        {/* Left side */}
-        <div className="flex items-center gap-4">
-          <Link
-            className="hover:text-amber-400 transition"
-            href={`/${locale}/contact`}
-          >
-            {t("contact")}
-          </Link>
-          <Link
-            className="hover:text-amber-400 transition"
-            href={`/${locale}/branches`}
-          >
-            {t("branches")}
-          </Link>
-          <Link
-            className="hover:text-amber-400 transition"
-            href={`/${locale}/jobs`}
-          >
-            {t("jobs")}
-          </Link>
-        </div>
+    <div className="w-full bg-white border-b border-black/10 text-[12px] text-neutral-600">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-8">
+        <span className="font-medium tracking-wide">Тавтай морил</span>
 
-        {/* Right side */}
         <div className="flex items-center gap-4">
-          <TranslateButton />
+          <NavLink href={`/${locale}/contact`} label={t("contact")} />
+          <Divider />
+          <NavLink href={`/${locale}/branches`} label={t("branches")} />
+          <Divider />
+          <NavLink href={`/${locale}/jobs`} label={t("jobs")} />
+          <Divider />
 
-          <div className="hidden sm:flex items-center gap-3">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-amber-400 transition"
-            >
-              <Facebook size={16} />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-amber-400 transition"
-            >
-              <Instagram size={16} />
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-amber-400 transition"
-            >
-              <Youtube size={18} />
-            </a>
+          <div className="flex items-center gap-3 text-neutral-500">
+            <Facebook className="hover:text-black transition" size={14} />
+            <Instagram className="hover:text-black transition" size={14} />
+            <Youtube className="hover:text-black transition" size={14} />
           </div>
 
-          <Link
-            href={`/${locale}/auth`}
-            className="hover:text-amber-400 transition hidden sm:block"
-          >
-            {t("login")}
-          </Link>
+          <Divider />
+          <TranslateButton />
         </div>
       </div>
     </div>
+  );
+}
+
+function Divider() {
+  return <span className="h-3 w-px bg-black/20" />;
+}
+
+function NavLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="hover:text-black transition whitespace-nowrap">
+      {label}
+    </Link>
   );
 }

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
@@ -26,7 +26,10 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
   const [showTopBar, setShowTopBar] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
   const [megaVisible, setMegaVisible] = useState(false);
+
   const hideTimeoutRef = useRef<number | null>(null);
+  const allProductsRef = useRef<HTMLButtonElement | null>(null);
+  const [caretLeft, setCaretLeft] = useState<number>(0);
 
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +57,11 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
   function openMega() {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     setMegaVisible(true);
+
+    if (allProductsRef.current) {
+      const rect = allProductsRef.current.getBoundingClientRect();
+      setCaretLeft(rect.left + rect.width / 2);
+    }
   }
 
   function closeMegaWithDelay() {
@@ -72,9 +80,7 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
       )}
 
       {/* HEADER */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      <header
         className={`fixed left-0 w-full z-[59] transition-all duration-300
           ${showTopBar ? "top-8 md:top-9" : "top-0"}
           ${
@@ -96,8 +102,8 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
 
             {/* NAV */}
             <div className="flex items-center gap-8">
-              {/* ALL PRODUCTS */}
               <button
+                ref={allProductsRef}
                 onMouseEnter={openMega}
                 onMouseLeave={closeMegaWithDelay}
                 className="group relative h-[64px] text-white font-medium"
@@ -128,65 +134,74 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* FULL WIDTH MEGA MENU */}
-      {megaVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          onMouseEnter={openMega}
-          onMouseLeave={closeMegaWithDelay}
-          className={`fixed left-0 w-full z-[70]
-            ${
-              showTopBar
-                ? "top-[calc(32px+64px)] md:top-[calc(36px+64px)]"
-                : "top-[64px]"
-            }`}
-        >
-          <div className="w-full bg-white shadow-2xl border-t border-black/5">
-            {/* caret */}
-            {/* <div className="relative max-w-7xl mx-auto">
-              <div className="absolute left-[220px] -top-2 w-4 h-4 bg-white rotate-45 border-l border-t border-black/10" />
-            </div> */}
+      {/* MEGA MENU */}
+      <AnimatePresence>
+        {megaVisible && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            onMouseEnter={openMega}
+            onMouseLeave={closeMegaWithDelay}
+            className={`fixed left-0 w-full z-[70] overflow-hidden
+              ${
+                showTopBar
+                  ? "top-[calc(32px+64px)] md:top-[calc(36px+64px)]"
+                  : "top-[64px]"
+              }`}
+          >
+            <div className="w-full bg-white border-t border-black/10 shadow-2xl relative">
+              {/* CARET */}
+              <div
+                className="absolute -top-2 w-4 h-4 bg-white rotate-45 border-l border-t border-black/10"
+                style={{ left: caretLeft }}
+              />
 
-            <div className="max-w-7xl mx-auto px-10 py-8">
-              {loading ? (
-                <p>Loading…</p>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-                  {tree.map((root) => (
-                    <div key={root.id}>
-                      <Link
-                        href={`/${locale}/category/${root.id}`}
-                        className="font-semibold text-gray-900"
+              <div className="max-w-7xl mx-auto px-10 py-8">
+                {loading ? (
+                  <p>Loading…</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4">
+                    {tree.map((root, i) => (
+                      <div
+                        key={root.id}
+                        className={`px-6 ${
+                          i !== 0 ? "md:border-l border-black/10" : ""
+                        }`}
                       >
-                        {root.categoryName}
-                      </Link>
+                        <Link
+                          href={`/${locale}/category/${root.id}`}
+                          className="font-semibold text-gray-900"
+                        >
+                          {root.categoryName}
+                        </Link>
 
-                      {root.children && (
-                        <ul className="mt-4 space-y-2 text-sm text-gray-600">
-                          {root.children.map((child) => (
-                            <li key={child.id}>
-                              <Link
-                                href={`/${locale}/category/${child.id}`}
-                                className="hover:text-black"
-                              >
-                                {child.categoryName}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                        {root.children && (
+                          <ul className="mt-4 space-y-2 text-sm text-gray-600">
+                            {root.children.map((child) => (
+                              <li key={child.id}>
+                                <Link
+                                  href={`/${locale}/category/${child.id}`}
+                                  className="hover:text-black"
+                                >
+                                  {child.categoryName}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -39,7 +39,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <FoodDataProvider>
             <CategoryProvider>
               <HeaderClient />
-              {children}
+              <main className="min-h-screen pt-24 pb-24">{children}</main>
               <Footer />
             </CategoryProvider>
           </FoodDataProvider>

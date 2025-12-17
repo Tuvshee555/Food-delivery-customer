@@ -158,7 +158,90 @@
 "last": "Last",
 "new": "New",
 "no_products": "No products available",
-"promo_discount": "Promo"
+"promo_discount": "Promo",
+"about_title": "About Misheel Home",
+
+  "about_p1": "Our store has proudly been serving customers for more than five years.",
+
+  "about_p2_strong_prefix": "Our mission is to provide",
+  "about_p2_strong": "100% pure, chemical-free cotton products",
+  "about_p2_suffix": "at prices that are accessible to everyone.",
+
+  "about_p3": "High-quality cotton bedding and pillow products play a vital role in achieving deep, comfortable sleep.",
+
+  "about_unique": "✨ Many of the designs we offer are exclusive styles that are not available elsewhere in Mongolia.",
+
+  "about_thanks": "We sincerely thank everyone who supports and trusts our brand",
+    "branches_title": "Our Locations",
+
+  "branches_main_title": "Main Location",
+  "branches_main_address": "Ulaanbaatar city, Altai residential area (warehouse & delivery center)",
+
+  "branches_online_title": "Online Store",
+  "branches_online_desc": "Our brand operates primarily online, offering nationwide delivery across Mongolia.",
+
+  "branches_delivery_title": "Delivery Service",
+  "branches_delivery_desc": "We provide fast and reliable delivery services within Ulaanbaatar and to all provinces.",
+  "contact_title": "Contact Us",
+  "contact_subtitle": "If you have any questions or feedback, feel free to contact us.",
+
+  "contact_phone_title": "Phone",
+  "contact_email_title": "Email",
+  "contact_address_title": "Address",
+  "contact_address": "Ulaanbaatar city, Altai residential area (warehouse & delivery center)",
+
+  "contact_form_title": "Send us a message",
+  "contact_form_name": "Your name",
+  "contact_form_email": "Your email",
+  "contact_form_message": "Write your message",
+  "contact_form_send": "Send message",
+  "faq_title": "Frequently Asked Questions",
+  "faq_subtitle": "Common questions from our customers",
+
+  "faq_q1": "How long does delivery take?",
+  "faq_a1": "Delivery within Ulaanbaatar takes 1–2 business days, and 2–5 business days for provinces.",
+
+  "faq_q2": "How much is the delivery fee?",
+  "faq_a2": "Delivery fees depend on location and will be confirmed after your order is placed.",
+
+  "faq_q3": "Can I return a product?",
+  "faq_a3": "Unused products in original packaging can be returned within 24 hours.",
+
+  "faq_q4": "What payment methods are accepted?",
+  "faq_a4": "We accept cash, bank transfers, and various online payment methods.",
+
+  "faq_q5": "How can I track my order?",
+  "faq_a5": "Once your order is confirmed, delivery details will be sent to you.",
+  "careers_title": "Careers",
+  "careers_subtitle": "Do you want to grow with us and deliver value to customers through quality products?",
+
+  "careers_value_1_title": "Friendly Team",
+  "careers_value_1_desc": "We are a small but strong team built on trust, respect, and collaboration.",
+
+  "careers_value_2_title": "Long-term Growth",
+  "careers_value_2_desc": "We focus on sustainable growth and support the personal development of our team members.",
+
+  "careers_value_3_title": "Open Communication",
+  "careers_value_3_desc": "We encourage open ideas, honest feedback, and continuous improvement.",
+
+  "careers_open_title": "Open Positions",
+  "careers_open_desc": "There are currently no open positions. However, if you believe you would be a great fit, feel free to reach out.",
+
+  "careers_contact_text": "Please send your CV and a short introduction to the email below.",
+  "blog_title": "Blog",
+  "blog_subtitle": "Tips and insights for a more comfortable home",
+
+  "blog_post_1_title": "How Bedding Affects Your Sleep Quality",
+  "blog_post_1_excerpt": "The material and quality of your bedding have a direct impact on how well you sleep.",
+
+  "blog_post_2_title": "Why Choosing Pure Cotton Matters",
+  "blog_post_2_excerpt": "100% cotton fabrics are gentler on your skin and healthier for everyday use.",
+
+  "blog_post_3_title": "How to Properly Care for Your Bedding",
+  "blog_post_3_excerpt": "Simple tips to maintain hygiene and extend the life of your bedding.",
+
+  "blog_read_more": "Read more"
+
 
 
 

@@ -9,10 +9,14 @@ import { FoodType } from "@/type/type";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 /**
- * CategoryPage (client)
- * - Next 16 passes params as a Promise for dynamic routes -> unwrap with React.use()
- * - Handles "all", "featured", "discounted", "bestseller" as special ids
- * - Filters are controlled here and passed down to the sidebar
+ * CategoryPage — updated to pre-check filters based on route:
+ *  - /category/all         => no filters
+ *  - /category/featured    => featured checked
+ *  - /category/discounted  => discount checked
+ *  - /category/bestseller  => bestseller checked
+ *
+ * Footer routes (which already use these paths) will now automatically
+ * cause the sidebar checkboxes to be checked.
  */
 export default function CategoryPage({
   params,
@@ -21,7 +25,7 @@ export default function CategoryPage({
 }) {
   const { t } = useI18n();
 
-  // unwrap params (NEXT 16/Turbopack)
+  // unwrap params (Next 16)
   const { id } = use(params);
 
   const [foods, setFoods] = useState<FoodType[]>([]);
@@ -38,14 +42,13 @@ export default function CategoryPage({
     bestseller: boolean;
   };
 
-  // filters controlled at page level
+  // filters controlled at page level (passed to sidebar)
   const [filters, setFilters] = useState<Filters>({
     discount: false,
     featured: false,
     bestseller: false,
   });
 
-  // helper for toggling filters (type-safe)
   const handleFilterToggle = (k: keyof Filters) =>
     setFilters((prev) => ({ ...prev, [k]: !prev[k] }));
 
@@ -85,38 +88,47 @@ export default function CategoryPage({
 
     const run = async () => {
       try {
-        // special-case: all products
+        // reset filters defaults based on route (so checkboxes follow route)
         if (id === "all") {
+          setFilters({ discount: false, featured: false, bestseller: false });
           const data = await fetchAllProducts();
           setFoods(data);
           setCategoryName(t("all_products"));
           return;
         }
 
-        // special-case pseudo-categories that are filters, not real category IDs
-        if (["featured", "discounted", "bestseller"].includes(id)) {
-          const data: any[] = await fetchAllProducts();
-
-          // set foods to all products (page-level filters will apply)
+        if (id === "featured") {
+          setFilters({ discount: false, featured: true, bestseller: false });
+          const data = await fetchAllProducts();
           setFoods(data);
-
-          // set friendly title
-          const titleMap: Record<string, string> = {
-            featured: t("footer_featured") ?? "Featured",
-            discounted: t("footer_discounted") ?? "Discounted",
-            bestseller: t("footer_bestseller") ?? "Bestseller",
-          };
-          setCategoryName(titleMap[id] ?? t("category"));
+          setCategoryName(t("footer_featured") ?? "Featured");
           return;
         }
 
-        // normal category -> ask backend for foods-tree
+        if (id === "discounted") {
+          setFilters({ discount: true, featured: false, bestseller: false });
+          const data = await fetchAllProducts();
+          setFoods(data);
+          setCategoryName(t("footer_discounted") ?? "Discounted");
+          return;
+        }
+
+        if (id === "bestseller") {
+          setFilters({ discount: false, featured: false, bestseller: true });
+          const data = await fetchAllProducts();
+          setFoods(data);
+          setCategoryName(t("footer_bestseller") ?? "Bestseller");
+          return;
+        }
+
+        // normal category id -> ask backend
         const json = await fetchCategoryTreeFoods(id);
 
         if (!json?.success) {
           console.error("Category foods-tree error:", json);
           setFoods([]);
           setCategoryName(t("category"));
+          // leave filters as-is (usually none)
           return;
         }
 
@@ -136,12 +148,9 @@ export default function CategoryPage({
     return () => controller.abort();
   }, [id, t]);
 
-  // reset page on changes
-  useEffect(() => {
-    setPage(1);
-  }, [id, sortType, filters]);
+  // when route / filters / sort changes, reset page
+  useEffect(() => setPage(1), [id, sortType, filters]);
 
-  // apply page-level filters (client-side)
   const filteredFoods = useMemo(() => {
     let arr = [...foods];
 
@@ -168,12 +177,13 @@ export default function CategoryPage({
     return arr;
   }, [foods, filters]);
 
-  // sorting
   const sortedFoods = useMemo(() => {
     const arr = [...filteredFoods];
+
     return arr.sort((a: any, b: any) => {
       const dateA = new Date(a.createdAt || 0).getTime();
       const dateB = new Date(b.createdAt || 0).getTime();
+
       switch (sortType) {
         case "newest":
           return dateB - dateA;

@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
+// src/components/category/CategorySidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -27,23 +28,26 @@ function buildTree(flat: Category[] = []) {
   for (const c of flat) {
     const node = map.get(c.id);
     if (!node) continue;
-    if (c.parentId === null) {
-      roots.push(node);
-    } else {
+    if (c.parentId === null) roots.push(node);
+    else {
       const parent = map.get(c.parentId);
       if (parent) parent.children.push(node);
       else roots.push(node);
     }
   }
-
-  // keep stable order: optional - you can sort here if desired
   return { roots, map };
 }
 
 const CAT_CACHE_KEY = "categoriesCacheV1";
 const ALL_COUNT_KEY = "allCountCacheV1";
 
-export const CategorySidebar = () => {
+export const CategorySidebar = ({
+  filters,
+  onFilterToggle,
+}: {
+  filters: { discount: boolean; featured: boolean; bestseller: boolean };
+  onFilterToggle: (key: keyof typeof filters) => void;
+}) => {
   const { t, locale } = useI18n();
   const pathname = usePathname();
 
@@ -69,11 +73,6 @@ export const CategorySidebar = () => {
 
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [filters, setFilters] = useState({
-    discount: false,
-    featured: false,
-    bestseller: false,
-  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -128,10 +127,7 @@ export const CategorySidebar = () => {
     return () => controller.abort();
   }, []);
 
-  const { roots, map } = useMemo(
-    () => buildTree(rawCategories),
-    [rawCategories]
-  );
+  const { roots } = useMemo(() => buildTree(rawCategories), [rawCategories]);
 
   const filteredFlat = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -141,7 +137,6 @@ export const CategorySidebar = () => {
     );
   }, [rawCategories, search]);
 
-  // If search is active we want to show matching flat results (not tree)
   const showFlatList = search.trim().length > 0;
 
   const extractIdFromPath = useCallback(() => {
@@ -152,26 +147,20 @@ export const CategorySidebar = () => {
     return parts[idx + 1] ?? null;
   }, [pathname]);
 
-  // Auto-expand ancestors of currently active category
   useEffect(() => {
     const activeId = extractIdFromPath();
     if (!activeId) return;
-    // build parent map quickly
     const parentMap = new Map<string, string | null>();
     for (const c of rawCategories) parentMap.set(c.id, c.parentId ?? null);
 
     const toOpen: Record<string, boolean> = {};
     let cur: string | null | undefined = activeId;
-    // walk up ancestors
     while (cur) {
       const parent = parentMap.get(cur);
       if (parent) toOpen[parent] = true;
       cur = parent ?? null;
     }
-    // also open direct parent of active to reveal active
-    // merge with existing expanded state
     setExpanded((prev) => ({ ...prev, ...toOpen }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, rawCategories.length]);
 
   const isAllActive =
@@ -179,9 +168,6 @@ export const CategorySidebar = () => {
     pathname?.includes(`/${locale}/all-products`);
 
   const toggle = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
-
-  const onFilterToggle = (key: keyof typeof filters) =>
-    setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const renderNode = (node: CategoryNode, depth = 0) => {
     const isOpen = !!expanded[node.id];

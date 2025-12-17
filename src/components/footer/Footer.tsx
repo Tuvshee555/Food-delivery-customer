@@ -1,3 +1,4 @@
+// src/components/Footer.tsx
 "use client";
 
 import Image from "next/image";
@@ -105,8 +106,9 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold mb-4">{t("footer_products")}</h3>
           <ul className="space-y-2 text-sm">
+            {/* IMPORTANT: goes to /category/all which CategoryPage expects */}
             <li
-              onClick={() => go("/category")}
+              onClick={() => go("/category/all")}
               className="cursor-pointer hover:underline"
             >
               {t("footer_all_products")}

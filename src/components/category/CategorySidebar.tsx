@@ -73,6 +73,11 @@ export const CategorySidebar = ({
 
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -268,7 +273,9 @@ export const CategorySidebar = ({
             }`}
           >
             <span>{t("all_products")}</span>
-            <span className="text-gray-400 text-xs">{allCount ?? "-"}</span>
+            <span className="text-gray-400 text-xs">
+              {mounted ? allCount ?? "-" : "-"}
+            </span>
           </Link>
 
           {showFlatList ? (

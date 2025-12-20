@@ -11,6 +11,7 @@ import { CategoryProvider } from "./provider/CategoryProvider";
 import HeaderClient from "@/components/header/HeaderClient";
 import Footer from "@/components/footer/Footer";
 import Providers from "@/components/Providers"; // client wrapper for next-themes
+import MobileBottomNav from "@/components/navigation/MobileBottomNav";
 
 type Props = {
   children: ReactNode;
@@ -39,11 +40,13 @@ export default async function LocaleLayout({ children, params }: Props) {
         <AuthProvider>
           <FoodDataProvider>
             <CategoryProvider>
-              {/* Theme provider must be a client component, so we wrap header, main and footer inside it */}
               <Providers>
                 <HeaderClient />
-                <main className="min-h-screen pt-24 pb-24">{children}</main>
+                {/* increased bottom padding so mobile fixed nav doesn't cover content */}
+                <main className="min-h-screen pt-24 pb-28">{children}</main>
                 <Footer />
+                {/* mobile-only bottom nav (fixed) */}
+                <MobileBottomNav />
               </Providers>
             </CategoryProvider>
           </FoodDataProvider>

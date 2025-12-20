@@ -50,17 +50,16 @@ export default function CartStep() {
 
   useEffect(() => {
     if (loading) return;
+
     if (!token || !userId) {
       loadLocalCart();
       return;
     }
 
-    const run = async () => {
+    (async () => {
       await syncLocalCart();
       await loadServerCart();
-    };
-
-    run();
+    })();
   }, [loading, token, userId, syncLocalCart, loadServerCart, loadLocalCart]);
 
   useEffect(() => {
@@ -70,18 +69,17 @@ export default function CartStep() {
     };
 
     window.addEventListener("cart-updated", handler);
-    const storageHandler = (e: StorageEvent) => {
-      if (e.key === "cart" || e.key === "cart-updated") handler();
-    };
-    window.addEventListener("storage", storageHandler);
+    window.addEventListener("storage", handler);
 
     return () => {
       window.removeEventListener("cart-updated", handler);
-      window.removeEventListener("storage", storageHandler);
+      window.removeEventListener("storage", handler);
     };
   }, [token, userId, loadLocalCart, loadServerCart]);
 
-  if (loading) return <p className="text-white p-10">{t("loading")}</p>;
+  if (loading) {
+    return <p className="p-10 text-muted-foreground">{t("loading")}</p>;
+  }
 
   const total = items.reduce((sum, i) => sum + i.food.price * i.quantity, 0);
 
@@ -91,7 +89,7 @@ export default function CartStep() {
     if (newQty < 1) return;
 
     const updated = [...items];
-    updated[index] = { ...updated[index], quantity: newQty };
+    updated[index] = { ...target, quantity: newQty };
     setItems(updated);
 
     if (!userId || !token) {
@@ -132,6 +130,7 @@ export default function CartStep() {
 
   const clearCart = async () => {
     setItems([]);
+
     if (!userId || !token) {
       clearLocalHelper();
       toast.success(t("cart.cleared"));
@@ -146,18 +145,22 @@ export default function CartStep() {
   return (
     <main className={classes.page}>
       <div className={classes.wrapper}>
+        {/* LEFT – CART ITEMS */}
         <motion.section
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           className={classes.leftCard}
         >
-          <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-            <h1 className="text-3xl font-bold">{t("cart.yourCart")}</h1>
+          {/* HEADER */}
+          <div className="flex justify-between items-center mb-6 border-b border-border pb-3">
+            <h1 className="text-xl sm:text-2xl font-semibold">
+              {t("cart.yourCart")}
+            </h1>
 
             {items.length > 0 && (
               <button
                 onClick={clearCart}
-                className="flex items-center gap-2 text-gray-400 hover:text-red-500"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition"
               >
                 <Trash2 className="w-4 h-4" />
                 {t("cart.clear")}
@@ -172,8 +175,9 @@ export default function CartStep() {
           />
         </motion.section>
 
+        {/* RIGHT – SUMMARY */}
         <motion.section
-          initial={{ opacity: 0, x: 20 }}
+          initial={{ opacity: 0, x: 12 }}
           animate={{ opacity: 1, x: 0 }}
           className={classes.rightCard}
         >

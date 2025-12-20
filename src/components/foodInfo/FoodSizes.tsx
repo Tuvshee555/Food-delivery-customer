@@ -18,10 +18,12 @@ export const FoodSizes = ({
   if (!sizes || sizes.length === 0) return null;
 
   return (
-    <div>
-      <h3 className="text-gray-400 mb-3 text-sm uppercase">{t("size")}:</h3>
+    <div className="space-y-3">
+      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {t("size")}
+      </h3>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-2">
         {sizes.map((s, i) => {
           const label =
             typeof s === "string"
@@ -34,15 +36,25 @@ export const FoodSizes = ({
 
           return (
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               key={i}
+              type="button"
+              whileTap={{ scale: 0.96 }}
               onClick={() => setSelectedSize(label)}
-              className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
-                active
-                  ? "bg-[#facc15] text-black shadow-[0_0_15px_rgba(250,204,21,0.3)]"
-                  : "bg-[#1a1a1a] text-gray-300 border border-gray-700 hover:border-[#facc15]"
-              }`}
+              className={`
+                h-[36px]
+                px-4
+                rounded-md
+                text-sm
+                font-medium
+                transition-colors
+                border
+                ${
+                  active
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                }
+              `}
+              aria-pressed={active}
             >
               {label}
             </motion.button>

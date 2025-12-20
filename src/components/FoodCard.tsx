@@ -1,81 +1,75 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { FoodCardPropsType } from "@/type/type";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import type { FoodCardPropsType } from "@/type/type";
 
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
+  const { locale, t } = useI18n();
   const [hoverIndex, setHoverIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const { locale, t } = useI18n();
 
-  // thresholds / config
   const BESTSELLER_THRESHOLD = 20;
 
-  // data parsing (robust to string or undefined)
   const price = Number((food as any)?.price ?? NaN);
-  const oldPriceRaw = (food as any)?.oldPrice;
-  const oldPrice =
-    typeof oldPriceRaw !== "undefined" && oldPriceRaw !== null
-      ? Number(oldPriceRaw)
-      : undefined;
-  const discountRaw = (food as any)?.discount;
-  const discount =
-    typeof discountRaw !== "undefined" && discountRaw !== null
-      ? Number(discountRaw)
-      : undefined;
+  const oldPrice = Number((food as any)?.oldPrice ?? NaN);
+  const discount = Number((food as any)?.discount ?? NaN);
   const isFeatured = Boolean((food as any)?.isFeatured);
   const salesCount = Number((food as any)?.salesCount ?? 0);
-  const isDiscountFake = Boolean((food as any)?.isDiscountFake); // optional field (if you add it in backend later)
+  const isDiscountFake = Boolean((food as any)?.isDiscountFake);
 
-  // computed values
-  const hasDiscount =
-    !Number.isNaN(discount) && typeof discount === "number" && discount > 0;
-  const showOldPrice =
-    typeof oldPrice === "number" &&
-    !Number.isNaN(oldPrice) &&
-    oldPrice > 0 &&
-    oldPrice > price;
+  const hasDiscount = !Number.isNaN(discount) && discount > 0;
+  const showOldPrice = !Number.isNaN(oldPrice) && oldPrice > price;
   const savings =
     showOldPrice && !Number.isNaN(price)
-      ? Number((oldPrice! - price).toFixed(2))
+      ? Number((oldPrice - price).toFixed(2))
       : undefined;
 
-  const getMediaUrl = (media?: string | File): string => {
-    if (!media) return "/placeholder.png";
-    return typeof media === "string" ? media : URL.createObjectURL(media);
-  };
+  const displayImages = useMemo(() => {
+    const imgs: string[] = [];
+    const push = (m?: string | File) => {
+      if (!m) return;
+      imgs.push(typeof m === "string" ? m : URL.createObjectURL(m));
+    };
+    push(food.image);
+    if (Array.isArray((food as any)?.extraImages)) {
+      (food as any).extraImages.forEach((i: any) => push(i));
+    }
+    return imgs.slice(0, 3);
+  }, [food.image, JSON.stringify((food as any)?.extraImages ?? [])]);
 
-  const images: string[] = [
-    getMediaUrl(food.image),
-    ...(Array.isArray(food.extraImages)
-      ? food.extraImages.map((img: string | File) => getMediaUrl(img))
-      : []),
-  ];
-  const displayImages = images.slice(0, 3);
+  useEffect(() => {
+    return () => {
+      displayImages.forEach((u) => {
+        if (u.startsWith("blob:")) URL.revokeObjectURL(u);
+      });
+    };
+  }, [displayImages]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (displayImages.length <= 1) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const zoneWidth = rect.width / displayImages.length;
-    setHoverIndex(
-      Math.min(displayImages.length - 1, Math.floor(x / zoneWidth))
+    const r = e.currentTarget.getBoundingClientRect();
+    const i = Math.floor(
+      ((e.clientX - r.left) / r.width) * displayImages.length
     );
+    setHoverIndex(Math.min(displayImages.length - 1, Math.max(0, i)));
   };
 
-  // formatting helpers
-  const fmt = (v: number) =>
-    Number.isNaN(v)
-      ? "-"
-      : v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const fmt = (v: number) => (Number.isNaN(v) ? "-" : v.toLocaleString());
+
+  const mainImage = displayImages[hoverIndex] ?? "/placeholder.png";
 
   return (
-    <Link href={`/${locale}/food/${food.id}`} className="block w-full">
+    <Link
+      href={`/${locale}/food/${food.id}`}
+      className="block w-full focus:outline-none"
+    >
       <div
-        className="overflow-hidden relative bg-transparent cursor-pointer w-full"
+        className="relative w-full cursor-pointer transition-transform duration-200 rounded-[10px]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
@@ -83,101 +77,98 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
         }}
         onMouseMove={handleMouseMove}
       >
-        <div className="relative w-full aspect-[4/3] overflow-hidden select-none rounded-[10px]">
-          {/* Badges stack */}
-          <div className="absolute top-3 left-3 z-30 flex flex-col gap-2">
+        {/* IMAGE */}
+        <div className="relative w-full aspect-[4/3] rounded-[10px] overflow-hidden bg-muted">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={mainImage}
+              src={mainImage}
+              alt={food.foodName || ""}
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0.6 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              draggable={false}
+            />
+          </AnimatePresence>
+
+          {/* BADGES */}
+          <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+            {/* 🔴 FEATURED — ALWAYS RED */}
             {isFeatured && (
-              <div className="inline-flex items-center text-xs font-semibold px-2 py-1 bg-red-600 text-white rounded-sm -rotate-6 shadow">
+              <span className="inline-flex text-xs font-semibold px-2 py-1 bg-red-600 text-white rounded-sm -rotate-6 shadow">
                 {t("featured")}
-              </div>
+              </span>
             )}
 
             {!isFeatured && salesCount >= BESTSELLER_THRESHOLD && (
-              <div className="inline-flex items-center text-xs font-semibold px-2 py-1 bg-black text-white rounded-sm -rotate-6 shadow">
+              <span className="inline-flex text-xs font-semibold px-2 py-1 bg-muted text-foreground rounded-sm -rotate-6 shadow">
                 {t("bestseller")}
-              </div>
+              </span>
             )}
 
             {hasDiscount && (
-              <div
-                className={`inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm -rotate-6 shadow
+              <span
+                className={`inline-flex text-xs font-semibold px-2 py-1 rounded-sm -rotate-6 shadow
                   ${
                     isDiscountFake
                       ? "bg-yellow-400 text-black"
                       : "bg-yellow-500 text-black"
                   }`}
-                title={isDiscountFake ? t("promo_discount") : t("discount")}
               >
-                -{discount}%{isDiscountFake ? " (promo)" : ""}
-              </div>
+                -{discount}%
+              </span>
             )}
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={hoverIndex}
-              src={displayImages[hoverIndex]}
-              alt={food.foodName}
-              className="absolute inset-0 w-full h-full object-cover rounded-[10px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              draggable={false}
-            />
-          </AnimatePresence>
-
-          {/* Hover indicator bars */}
+          {/* IMAGE INDICATORS */}
           {displayImages.length > 1 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isHovered ? 1 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute bottom-0 left-0 w-full flex justify-between"
+            <div
+              className={`absolute bottom-2 left-2 right-2 flex gap-1 transition-opacity ${
+                isHovered ? "opacity-100" : "opacity-0"
+              }`}
             >
               {displayImages.map((_, i) => (
-                <div
+                <span
                   key={i}
-                  className={`h-[3px] flex-1 transition ${
-                    i === hoverIndex ? "bg-white" : "bg-white/30"
+                  className={`h-[4px] flex-1 rounded-full ${
+                    i === hoverIndex ? "bg-foreground" : "bg-foreground/30"
                   }`}
                 />
               ))}
-            </motion.div>
+            </div>
           )}
         </div>
 
-        {/* Info */}
-        <div className="pt-2 flex flex-col items-start text-left w-full">
-          <h3 className="text-white font-medium text-[15px] leading-tight line-clamp-2">
+        {/* INFO */}
+        <div className="pt-3 space-y-1">
+          <h3 className="text-foreground font-medium text-[15px] line-clamp-2">
             {food.foodName}
           </h3>
 
-          <div className="mt-[6px] flex items-baseline gap-3">
-            {/* Price area */}
-            <div className="flex items-center gap-2">
-              <p className="text-white font-semibold text-[14px]">
-                {Number.isNaN(price) ? "-" : `${fmt(price)}₮`}
-              </p>
+          <div className="flex items-center gap-2">
+            <span className="text-foreground font-semibold text-sm">
+              {fmt(price)}₮
+            </span>
 
-              {showOldPrice && (
-                <p className="text-gray-300 text-sm line-through text-[13px]">
-                  {fmt(oldPrice!)}₮
-                </p>
-              )}
+            {showOldPrice && (
+              <span className="text-muted-foreground text-xs line-through">
+                {fmt(oldPrice)}₮
+              </span>
+            )}
 
-              {savings !== undefined && savings > 0 && (
-                <p className="text-green-300 text-sm font-medium text-[12px]">
-                  {t("save")} {fmt(savings)}₮
-                </p>
-              )}
-            </div>
+            {savings && savings > 0 && (
+              <span className="text-green-400 text-xs font-medium">
+                {t("save")} {fmt(savings)}₮
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Sold out overlay */}
+        {/* SOLD OUT */}
         {food.stock === 0 && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold text-lg rounded-[10px]">
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold rounded-[10px]">
             {t("sold_out")}
           </div>
         )}
@@ -185,3 +176,5 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
     </Link>
   );
 };
+
+export default FoodCard;

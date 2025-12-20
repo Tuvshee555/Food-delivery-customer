@@ -1,160 +1,143 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
+type DeliveryFormData = {
+  lastName?: string;
+  phonenumber?: string;
+  city?: string;
+  district?: string;
+  khoroo?: string;
+  address?: string;
+  notes?: string;
+};
+
+interface DeliveryFormProps {
+  form: DeliveryFormData;
+  setForm: React.Dispatch<React.SetStateAction<DeliveryFormData>>;
+  errors: Record<string, boolean>;
+}
+
 export default function DeliveryForm({
   form,
   setForm,
   errors,
-}: {
-  form: any;
-  setForm: any;
-  errors: Record<string, boolean>;
-}) {
+}: DeliveryFormProps) {
   const { t } = useI18n();
 
-  const handleChange = (key: string, value: string) => {
-    setForm((prev: any) => ({ ...prev, [key]: value }));
+  const handleChange = (key: keyof DeliveryFormData, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const labelClass = (error?: boolean) =>
+    `text-sm ${error ? "text-destructive" : "text-muted-foreground"}`;
+
+  const inputClass = (error?: boolean) =>
+    `mt-1 h-[44px] ${
+      error ? "border-destructive focus-visible:ring-destructive" : ""
+    }`;
+
   return (
-    <div className="bg-[#111]/90 border border-gray-800 rounded-3xl p-8 shadow-[0_0_40px_-10px_rgba(250,204,21,0.15)]">
-      <h2 className="text-xl font-semibold mb-6 border-b border-gray-800 pb-3">
-        {t("customer_info")}
-      </h2>
+    <section className="bg-card border border-border rounded-2xl p-6 space-y-8">
+      {/* Customer info */}
+      <div className="space-y-4">
+        <h2 className="text-base font-semibold border-b border-border pb-2">
+          {t("customer_info")}
+        </h2>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <label
-            className={`text-sm ${
-              errors.lastName ? "text-red-500" : "text-gray-400"
-            }`}
-          >
-            {t("full_name")} *
-          </label>
-          <Input
-            value={form.lastName || ""}
-            onChange={(e) => handleChange("lastName", e.target.value)}
-            className={`bg-[#1a1a1a] mt-1 ${
-              errors.lastName
-                ? "border-red-500"
-                : "border-gray-700 focus:border-[#facc15]"
-            } text-white`}
-          />
-        </div>
-        <div>
-          <label
-            className={`text-sm ${
-              errors.phonenumber ? "text-red-500" : "text-gray-400"
-            }`}
-          >
-            {t("phone_number")} *
-          </label>
-          <Input
-            value={form.phonenumber || ""}
-            onChange={(e) => handleChange("phonenumber", e.target.value)}
-            className={`bg-[#1a1a1a] mt-1 ${
-              errors.phonenumber
-                ? "border-red-500"
-                : "border-gray-700 focus:border-[#facc15]"
-            } text-white`}
-          />
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass(errors.lastName)}>
+              {t("full_name")} *
+            </label>
+            <Input
+              value={form.lastName ?? ""}
+              onChange={(e) => handleChange("lastName", e.target.value)}
+              className={inputClass(errors.lastName)}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass(errors.phonenumber)}>
+              {t("phone_number")} *
+            </label>
+            <Input
+              value={form.phonenumber ?? ""}
+              onChange={(e) => handleChange("phonenumber", e.target.value)}
+              className={inputClass(errors.phonenumber)}
+            />
+          </div>
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold mt-10 mb-4 border-b border-gray-800 pb-3">
-        {t("delivery_info")}
-      </h2>
+      {/* Delivery info */}
+      <div className="space-y-4">
+        <h2 className="text-base font-semibold border-b border-border pb-2">
+          {t("delivery_info")}
+        </h2>
 
-      <div className="grid md:grid-cols-2 gap-6 mt-2">
-        <div>
-          <label
-            className={`text-sm ${
-              errors.city ? "text-red-500" : "text-gray-400"
-            }`}
-          >
-            {t("city")} *
-          </label>
-          <Input
-            value={form.city || ""}
-            onChange={(e) => handleChange("city", e.target.value)}
-            className={`bg-[#1a1a1a] mt-1 ${
-              errors.city
-                ? "border-red-500"
-                : "border-gray-700 focus:border-[#facc15]"
-            } text-white`}
-          />
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass(errors.city)}>{t("city")} *</label>
+            <Input
+              value={form.city ?? ""}
+              onChange={(e) => handleChange("city", e.target.value)}
+              className={inputClass(errors.city)}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass(errors.district)}>
+              {t("district")} *
+            </label>
+            <Input
+              value={form.district ?? ""}
+              onChange={(e) => handleChange("district", e.target.value)}
+              className={inputClass(errors.district)}
+            />
+          </div>
         </div>
-        <div>
-          <label
-            className={`text-sm ${
-              errors.district ? "text-red-500" : "text-gray-400"
-            }`}
-          >
-            {t("district")} *
-          </label>
-          <Input
-            value={form.district || ""}
-            onChange={(e) => handleChange("district", e.target.value)}
-            className={`bg-[#1a1a1a] mt-1 ${
-              errors.district
-                ? "border-red-500"
-                : "border-gray-700 focus:border-[#facc15]"
-            } text-white`}
-          />
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass(errors.khoroo)}>{t("khoroo")} *</label>
+            <Input
+              value={form.khoroo ?? ""}
+              onChange={(e) => handleChange("khoroo", e.target.value)}
+              className={inputClass(errors.khoroo)}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass(errors.address)}>
+              {t("address")} *
+            </label>
+            <Textarea
+              value={form.address ?? ""}
+              onChange={(e) => handleChange("address", e.target.value)}
+              className={`mt-1 h-[90px] ${
+                errors.address
+                  ? "border-destructive focus-visible:ring-destructive"
+                  : ""
+              }`}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <div>
-          <label
-            className={`text-sm ${
-              errors.khoroo ? "text-red-500" : "text-gray-400"
-            }`}
-          >
-            {t("khoroo")} *
-          </label>
-          <Input
-            value={form.khoroo || ""}
-            onChange={(e) => handleChange("khoroo", e.target.value)}
-            className={`bg-[#1a1a1a] mt-1 ${
-              errors.khoroo
-                ? "border-red-500"
-                : "border-gray-700 focus:border-[#facc15]"
-            } text-white`}
-          />
-        </div>
-        <div>
-          <label
-            className={`text-sm ${
-              errors.address ? "text-red-500" : "text-gray-400"
-            }`}
-          >
-            {t("address")} *
-          </label>
-          <Textarea
-            value={form.address || ""}
-            onChange={(e) => handleChange("address", e.target.value)}
-            className={`bg-[#1a1a1a] mt-1 h-[90px] ${
-              errors.address
-                ? "border-red-500"
-                : "border-gray-700 focus:border-[#facc15]"
-            } text-white`}
-          />
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <label className="text-sm text-gray-400">{t("additional_info")}</label>
+      {/* Additional info */}
+      <div>
+        <label className="text-sm text-muted-foreground">
+          {t("additional_info")}
+        </label>
         <Textarea
-          value={form.notes || ""}
+          value={form.notes ?? ""}
           onChange={(e) => handleChange("notes", e.target.value)}
-          className="bg-[#1a1a1a] border-gray-700 text-white mt-1 h-[90px] focus:border-[#facc15]"
+          className="mt-1 h-[90px]"
         />
       </div>
-    </div>
+    </section>
   );
 }

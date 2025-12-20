@@ -39,15 +39,29 @@ export default function FoodDetailPage({
   if (!food) return null;
 
   return (
-    <>
-      <main className="min-h-screen w-full bg-[#0a0a0a] text-white relative pt-[90px] pb-20">
-        <section className="flex flex-col lg:flex-row items-start justify-center gap-10 p-6 md:p-10 max-w-7xl mx-auto">
-          <FoodMedia food={food} />
-          <FoodInfo food={food} />
-        </section>
+    <main
+      className="
+        min-h-screen w-full
+        bg-background text-foreground
+        relative pt-[90px] pb-20
+      "
+    >
+      {/* MAIN PRODUCT */}
+      <section
+        className="
+    max-w-7xl mx-auto
+    px-4 sm:px-6 md:px-10
+    grid grid-cols-1 lg:grid-cols-2
+    gap-8 lg:gap-10
+    items-start
+  "
+      >
+        <FoodMedia food={food} />
+        <FoodInfo food={food} />
+      </section>
 
-        <SimilarFoods food={food} allFoods={allFoods} />
-      </main>
-    </>
+      {/* SIMILAR PRODUCTS */}
+      <SimilarFoods food={food} allFoods={allFoods} />
+    </main>
   );
 }

@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, X } from "lucide-react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 type Category = {
@@ -59,6 +59,9 @@ export const CategorySidebar = ({
 
   // mounted = true only after client mount; prevents hydration mismatch
   const [mounted, setMounted] = useState(false);
+
+  // mobile drawer state
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -213,8 +216,8 @@ export const CategorySidebar = ({
             onClick={() => node.children.length > 0 && toggle(node.id)}
             className={`flex-1 cursor-pointer text-sm select-none ${
               isActive
-                ? "text-[#facc15] font-medium"
-                : "text-gray-100 hover:text-yellow-400"
+                ? "text-primary font-medium"
+                : "text-foreground/90 hover:text-primary"
             }`}
             tabIndex={0}
             onKeyDown={(e) => {
@@ -232,8 +235,8 @@ export const CategorySidebar = ({
               href={`/${locale}/category/${node.id}`}
               className={`text-xs whitespace-nowrap ${
                 isActive
-                  ? "text-[#facc15]"
-                  : "text-gray-400 hover:text-yellow-400"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-primary"
               }`}
             >
               {t("all") ?? "All"}
@@ -247,7 +250,10 @@ export const CategorySidebar = ({
                   e.stopPropagation();
                   toggle(node.id);
                 }}
-                className="p-1 hover:text-yellow-400"
+                className="p-1 hover:text-primary"
+                aria-label={
+                  isOpen ? t("collapse") ?? "Collapse" : t("expand") ?? "Expand"
+                }
               >
                 {isOpen ? (
                   <ChevronDown size={16} />
@@ -260,7 +266,7 @@ export const CategorySidebar = ({
         </div>
 
         {isOpen && node.children.length > 0 && (
-          <ul className="mt-1 pl-4 border-l border-gray-800">
+          <ul className="mt-1 pl-4 border-l border-border/60">
             {node.children.map((child) => renderNode(child, depth + 1))}
           </ul>
         )}
@@ -268,21 +274,21 @@ export const CategorySidebar = ({
     );
   };
 
-  return (
-    <aside className="bg-gradient-to-b from-[#111]/95 to-[#0a0a0a]/95 border border-gray-800/60 rounded-2xl p-5 flex flex-col gap-6 backdrop-blur-sm">
+  const SidebarBody = () => (
+    <div className="flex flex-col gap-6">
       <div className="relative">
-        <Search className="absolute left-3 top-2.5 text-gray-500 w-4 h-4" />
+        <Search className="absolute left-3 top-2.5 text-muted-foreground w-4 h-4" />
         <input
           type="text"
           placeholder={t("search_by_name")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white"
+          className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary transition"
         />
       </div>
 
       <div>
-        <h3 className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-3 border-b border-gray-800/80 pb-2">
+        <h3 className="text-xs uppercase text-muted-foreground font-semibold tracking-wider mb-3 border-b border-border/60 pb-2">
           {t("categories")}
         </h3>
 
@@ -291,13 +297,15 @@ export const CategorySidebar = ({
             href={`/${locale}/category/all`}
             className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex justify-between items-center ${
               isAllActive
-                ? "text-[#facc15] bg-[#1f1f1f]"
-                : "text-gray-300 hover:text-[#facc15]"
+                ? "text-primary bg-card/70"
+                : "text-foreground/90 hover:text-primary"
             }`}
+            onClick={() => {
+              if (mobileOpen) setMobileOpen(false);
+            }}
           >
             <span>{t("all_products")}</span>
-            {/* show count only after mounted to avoid mismatch */}
-            <span className="text-gray-400 text-xs">
+            <span className="text-muted-foreground text-xs">
               {mounted ? allCount ?? "-" : "-"}
             </span>
           </Link>
@@ -305,7 +313,7 @@ export const CategorySidebar = ({
           {/* If searching use the flat results */}
           {showFlatList ? (
             filteredFlat.length === 0 ? (
-              <li className="text-gray-500 text-xs italic mt-2">
+              <li className="text-muted-foreground text-xs italic mt-2">
                 {t("empty")}
               </li>
             ) : (
@@ -320,9 +328,12 @@ export const CategorySidebar = ({
                     href={`/${locale}/category/${catId}`}
                     className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                       isActive
-                        ? "text-[#facc15] bg-[#1f1f1f]"
-                        : "text-gray-300 hover:text-[#facc15]"
+                        ? "text-primary bg-card/70"
+                        : "text-foreground/90 hover:text-primary"
                     }`}
+                    onClick={() => {
+                      if (mobileOpen) setMobileOpen(false);
+                    }}
                   >
                     {cat.categoryName}
                   </Link>
@@ -330,52 +341,109 @@ export const CategorySidebar = ({
               })
             )
           ) : roots.length === 0 ? (
-            // render a consistent "no categories" message — this is server-safe
-            <li className="text-gray-400 text-xs py-2">
+            <li className="text-muted-foreground text-xs py-2">
               {t("no_categories") ?? "No categories"}
             </li>
           ) : (
-            // render actual tree (this can safely change after mount; the server initial is an empty tree)
-            roots.map((root) => renderNode(root, 0))
+            roots.map((root) => <div key={root.id}>{renderNode(root, 0)}</div>)
           )}
         </ul>
       </div>
 
       <div>
-        <h3 className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-3 border-b border-gray-800/80 pb-2">
+        <h3 className="text-xs uppercase text-muted-foreground font-semibold tracking-wider mb-3 border-b border-border/60 pb-2">
           {t("filters")}
         </h3>
 
-        <ul className="flex flex-col gap-3 text-sm text-gray-300">
-          <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
+        <ul className="flex flex-col gap-3 text-sm">
+          <label className="flex items-center gap-3 cursor-pointer hover:text-primary transition text-foreground/90">
             <input
               type="checkbox"
               checked={filters.discount}
               onChange={() => onFilterToggle("discount")}
-              className="w-4 h-4"
+              className="w-4 h-4 accent-primary"
             />
             {t("discount")}
           </label>
-          <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
+          <label className="flex items-center gap-3 cursor-pointer hover:text-primary transition text-foreground/90">
             <input
               type="checkbox"
               checked={filters.featured}
               onChange={() => onFilterToggle("featured")}
-              className="w-4 h-4"
+              className="w-4 h-4 accent-primary"
             />
             {t("featured")}
           </label>
-          <label className="flex items-center gap-3 cursor-pointer hover:text-[#facc15] transition">
+          <label className="flex items-center gap-3 cursor-pointer hover:text-primary transition text-foreground/90">
             <input
               type="checkbox"
               checked={filters.bestseller}
               onChange={() => onFilterToggle("bestseller")}
-              className="w-4 h-4"
+              className="w-4 h-4 accent-primary"
             />
             {t("bestseller")}
           </label>
         </ul>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile open button (parent layouts can hide this if they render their own) */}
+      <div className="md:hidden">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-card border border-border text-foreground/90 hover:bg-card/95 transition"
+          aria-label={t("open_categories")}
+        >
+          <span className="font-medium">{t("categories")}</span>
+          <span className="text-sm text-muted-foreground">
+            {mounted ? allCount ?? "-" : "-"}
+          </span>
+        </button>
+      </div>
+
+      {/* Desktop / tablet sidebar */}
+      <aside className="hidden md:flex md:w-80 lg:w-96 flex-col">
+        <div className="bg-card text-card-foreground border border-border rounded-2xl p-5 flex flex-col gap-6">
+          <SidebarBody />
+        </div>
+      </aside>
+
+      {/* Mobile sheet */}
+      {mobileOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[2000] flex"
+        >
+          {/* backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+
+          {/* sheet body */}
+          <div className="relative w-full max-w-[420px] ml-auto h-full bg-card text-card-foreground border-l border-border p-5 overflow-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">
+                {t("categories")}
+              </h3>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground"
+                aria-label={t("close")}
+              >
+                <X />
+              </button>
+            </div>
+
+            <SidebarBody />
+          </div>
+        </div>
+      )}
+    </>
   );
 };

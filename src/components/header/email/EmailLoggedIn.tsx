@@ -1,74 +1,111 @@
 "use client";
 
 import { LogOut, User, Package, Ticket } from "lucide-react";
-import { handleLogout } from "./handlers/handleLogout";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { handleLogout } from "./handlers/handleLogout";
+
+interface EmailLoggedInProps {
+  email: string;
+  firstLetter: string;
+  clearToken: () => void;
+}
 
 export const EmailLoggedIn = ({
   email,
   firstLetter,
   clearToken,
-}: {
-  email: string;
-  firstLetter: string;
-  clearToken: () => void;
-}) => {
+}: EmailLoggedInProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { locale, t } = useI18n();
 
+  const activeTab = searchParams.get("tab");
+
+  const navItem = (
+    key: string,
+    label: string,
+    desc: string,
+    icon: React.ReactNode,
+    href: string
+  ) => {
+    const active = activeTab === key;
+
+    return (
+      <button
+        onClick={() => router.push(href)}
+        className={`flex items-center gap-4 h-[56px] px-4 rounded-lg border transition
+          ${
+            active
+              ? "bg-muted border-border"
+              : "bg-card border-border hover:bg-muted"
+          }`}
+      >
+        <div className="w-9 h-9 flex items-center justify-center rounded-md bg-muted">
+          {icon}
+        </div>
+
+        <div className="flex flex-col justify-center text-left leading-tight">
+          <span className="text-sm font-medium">{label}</span>
+          <span className="text-xs text-muted-foreground">{desc}</span>
+        </div>
+      </button>
+    );
+  };
+
   return (
-    <>
-      <div className="flex flex-col items-center pt-8 pb-6 border-b border-gray-800">
-        <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-semibold text-[#facc15]">
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex flex-col items-center pt-6 pb-5 border-b border-border">
+        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">
           {firstLetter}
         </div>
-        <h2 className="mt-3 font-medium text-gray-300 text-sm">{email}</h2>
+
+        <p className="mt-3 text-sm text-muted-foreground truncate max-w-[220px]">
+          {email}
+        </p>
       </div>
 
-      <div className="flex flex-col px-6 py-5 gap-4">
-        <button
-          onClick={() => router.push(`/${locale}/profile?tab=profile`)}
-          className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/90 border border-gray-800 hover:border-[#facc15]"
-        >
-          <User className="w-5 h-5 text-[#facc15]" />
-          <div>
-            <p className="font-semibold">{t("profile")}</p>
-            <p className="text-gray-400 text-sm">{t("yourInfo")}</p>
-          </div>
-        </button>
+      {/* Navigation */}
+      <div className="flex flex-col gap-3 px-5 py-5">
+        {navItem(
+          "profile",
+          t("profile"),
+          t("yourInfo"),
+          <User className="w-5 h-5 text-muted-foreground" />,
+          `/${locale}/profile?tab=profile`
+        )}
 
-        <button
-          onClick={() => router.push(`/${locale}/profile?tab=orders`)}
-          className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/90 border border-gray-800 hover:border-[#facc15]"
-        >
-          <Package className="w-5 h-5 text-[#facc15]" />
-          <div>
-            <p className="font-semibold">{t("orders")}</p>
-            <p className="text-gray-400 text-sm">{t("yourOrders")}</p>
-          </div>
-        </button>
+        {navItem(
+          "orders",
+          t("orders"),
+          t("yourOrders"),
+          <Package className="w-5 h-5 text-muted-foreground" />,
+          `/${locale}/profile?tab=orders`
+        )}
 
-        <button
-          onClick={() => router.push(`/${locale}/profile?tab=tickets`)}
-          className="flex items-start gap-3 p-4 rounded-xl bg-[#111]/90 border border-gray-800 hover:border-[#facc15]"
-        >
-          <Ticket className="w-5 h-5 text-[#facc15]" />
-          <div>
-            <p className="font-semibold">{t("tickets")}</p>
-            <p className="text-gray-400 text-sm">{t("yourTickets")}</p>
-          </div>
-        </button>
+        {navItem(
+          "tickets",
+          t("tickets"),
+          t("yourTickets"),
+          <Ticket className="w-5 h-5 text-muted-foreground" />,
+          `/${locale}/profile?tab=tickets`
+        )}
       </div>
 
-      <div className="border-t border-gray-800 p-5 bg-[#111]/80">
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Logout */}
+      <div className="border-t border-border px-5 py-4">
         <button
           onClick={() => handleLogout(router, clearToken, locale)}
-          className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
+          className="w-full h-[44px] rounded-md border border-destructive text-destructive text-sm font-medium flex items-center justify-center gap-2 hover:bg-destructive/5 transition"
         >
-          <LogOut className="w-4 h-4" /> {t("logout")}
+          <LogOut className="w-4 h-4" />
+          {t("logout")}
         </button>
       </div>
-    </>
+    </div>
   );
 };

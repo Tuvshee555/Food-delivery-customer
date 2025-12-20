@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import { FoodType } from "@/type/type";
 
 const getMediaUrl = (media?: string | File): string => {
@@ -11,78 +11,123 @@ const getMediaUrl = (media?: string | File): string => {
 };
 
 export const FoodMedia = ({ food }: { food: FoodType }) => {
-  const [mainMedia, setMainMedia] = useState({
-    type: "image" as "image" | "video",
-    src: getMediaUrl(food.image),
-  });
+  const mediaList = useMemo(() => {
+    const list: { type: "image" | "video"; src: string }[] = [];
 
-  const extraImages =
-    Array.isArray(food.extraImages) && food.extraImages.length > 0
-      ? food.extraImages.map(getMediaUrl)
-      : [];
+    if (food.image) {
+      list.push({ type: "image", src: getMediaUrl(food.image) });
+    }
 
-  const videoSrc =
-    typeof food.video === "string"
-      ? food.video
-      : food.video
-      ? URL.createObjectURL(food.video)
-      : undefined;
+    if (Array.isArray(food.extraImages)) {
+      food.extraImages.forEach((img) =>
+        list.push({ type: "image", src: getMediaUrl(img) })
+      );
+    }
+
+    if (food.video) {
+      list.push({
+        type: "video",
+        src:
+          typeof food.video === "string"
+            ? food.video
+            : URL.createObjectURL(food.video),
+      });
+    }
+
+    return list;
+  }, [food]);
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = mediaList[activeIndex];
+
+  useEffect(() => {
+    return () => {
+      mediaList.forEach((m) => {
+        if (m.src.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(m.src);
+          } catch {}
+        }
+      });
+    };
+  }, [mediaList]);
 
   return (
-    <>
-      {/* Thumbnails */}
-      <div className="flex lg:flex-col gap-3 w-full lg:w-[130px] overflow-x-auto lg:overflow-y-auto scrollbar-hide">
-        {[getMediaUrl(food.image), ...extraImages].map((img, i) => (
-          <img
-            key={i}
-            src={img}
-            alt={`img-${i}`}
-            onClick={() => setMainMedia({ type: "image", src: img })}
-            className={`w-24 h-24 object-cover rounded-xl border ${
-              mainMedia.src === img ? "border-[#facc15]" : "border-gray-700"
-            } hover:border-[#facc15] transition cursor-pointer`}
-          />
-        ))}
-        {videoSrc && (
-          <div
-            onClick={() => setMainMedia({ type: "video", src: videoSrc })}
-            className={`w-24 h-24 rounded-xl border flex items-center justify-center ${
-              mainMedia.src === videoSrc
-                ? "border-[#facc15]"
-                : "border-gray-700"
-            } hover:border-[#facc15] transition-all bg-black relative cursor-pointer`}
-          >
-            <video
-              src={videoSrc}
-              className="w-full h-full object-cover rounded-xl opacity-80"
+    <div className="w-full">
+      {/* MAIN MEDIA */}
+      <div
+        className="
+          relative
+          w-full
+          h-[320px] sm:h-[380px] lg:h-[460px]
+          bg-muted
+          rounded-xl
+          overflow-hidden
+          border border-border
+        "
+      >
+        <AnimatePresence mode="wait">
+          {active.type === "image" ? (
+            <motion.img
+              key={active.src}
+              src={active.src}
+              alt={food.foodName}
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0.6 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
             />
-            <span className="absolute text-xs text-white font-semibold bg-black/60 px-2 py-1 rounded">
-              ▶ Video
-            </span>
-          </div>
-        )}
+          ) : (
+            <motion.video
+              key={active.src}
+              src={active.src}
+              controls
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0.6 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Main Display */}
-      <div className="flex-1 flex justify-center items-center bg-[#111] rounded-3xl border border-gray-800 p-5 md:p-8 shadow-[0_0_40px_-10px_rgba(250,204,21,0.15)]">
-        {mainMedia.type === "image" ? (
-          <motion.img
-            key={mainMedia.src}
-            src={mainMedia.src}
-            alt={food.foodName}
-            className="object-contain w-full h-[400px] md:h-[520px] rounded-xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          />
-        ) : (
-          <video
-            src={mainMedia.src}
-            controls
-            className="object-contain w-full h-[400px] md:h-[520px] rounded-xl border border-gray-700"
-          />
-        )}
-      </div>
-    </>
+      {/* THUMBNAILS */}
+      {mediaList.length > 1 && (
+        <div className="flex gap-3 mt-3 overflow-x-auto">
+          {mediaList.map((m, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIndex(i)}
+              className={`
+                w-14 h-14
+                rounded-md
+                overflow-hidden
+                border
+                ${i === activeIndex ? "border-primary" : "border-border"}
+                flex-shrink-0
+              `}
+            >
+              {m.type === "image" ? (
+                <img
+                  src={m.src}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <video src={m.src} className="w-full h-full object-cover" />
+              )}
+
+              {m.type === "video" && (
+                <span className="absolute inset-0 flex items-center justify-center text-white text-xs bg-black/40">
+                  ▶
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

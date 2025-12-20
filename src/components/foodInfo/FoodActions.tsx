@@ -2,35 +2,49 @@
 
 import { motion } from "framer-motion";
 
+type FoodActionsProps = {
+  onAddToCart: () => void;
+  onOrderNow: () => void;
+  isProcessing: boolean;
+  addText: string;
+  orderText: string;
+  primaryClass?: string;
+  secondaryClass?: string;
+};
+
 export const FoodActions = ({
   onAddToCart,
   onOrderNow,
   isProcessing,
   addText,
   orderText,
-}: {
-  onAddToCart: () => void;
-  onOrderNow: () => void;
-  isProcessing: boolean;
-  addText: string;
-  orderText: string;
-}) => {
+  primaryClass = "",
+  secondaryClass = "",
+}: FoodActionsProps) => {
   return (
-    <div className="flex gap-4 mt-6">
+    <div className="flex gap-3 mt-4">
       <motion.button
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
         onClick={onAddToCart}
         disabled={isProcessing}
-        className="flex-1 py-4 rounded-2xl bg-[#111] border border-gray-700 text-white font-semibold text-lg hover:border-[#facc15] transition-all disabled:opacity-60"
+        className={`
+          flex-1
+          ${secondaryClass}
+          disabled:opacity-60
+        `}
       >
         {addText}
       </motion.button>
 
       <motion.button
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
         onClick={onOrderNow}
         disabled={isProcessing}
-        className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-[0_0_25px_rgba(250,204,21,0.4)] hover:brightness-110 transition-all disabled:opacity-60"
+        className={`
+          flex-1
+          ${primaryClass}
+          disabled:opacity-60
+        `}
       >
         {orderText}
       </motion.button>

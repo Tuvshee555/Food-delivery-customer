@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -29,8 +28,6 @@ export const FoodInfo = ({ food }: { food: any }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const totalPrice = food.price * quantity;
 
   const handleAddToCart = async () => {
     if (isProcessing) return;
@@ -100,46 +97,94 @@ export const FoodInfo = ({ food }: { food: any }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="flex-1 flex flex-col gap-8 bg-gradient-to-b from-[#111] to-[#0a0a0a]
-      border border-gray-800 rounded-3xl p-8 md:p-10
-      shadow-[0_0_40px_-10px_rgba(250,204,21,0.1)]"
+      transition={{ duration: 0.25 }}
+      className="
+        flex-1 flex flex-col gap-6
+        bg-card text-card-foreground
+        border border-border
+        rounded-xl
+        p-5 sm:p-6 md:p-8
+        shadow-[0_10px_32px_-18px_rgba(0,0,0,0.35)]
+      "
     >
+      {/* TITLE */}
       <FoodTitle
         name={food.foodName}
         price={food.price}
         oldPrice={food.oldPrice}
       />
 
+      {/* INGREDIENTS */}
       {food.ingredients && (
-        <div>
-          <h3 className="text-gray-400 mb-2 text-sm uppercase tracking-wide">
+        <div className="space-y-1.5">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             {t("ingredients")}
           </h3>
-          <p className="text-gray-300 text-sm md:text-base leading-relaxed">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {food.ingredients}
           </p>
         </div>
       )}
 
+      {/* SIZE */}
       <FoodSizes
         sizes={food.sizes || []}
         selectedSize={selectedSize}
         setSelectedSize={setSelectedSize}
       />
 
-      <FoodQuantity quantity={quantity} setQuantity={setQuantity} />
+      {/* QUANTITY – clean & usable */}
+      <FoodQuantity
+        quantity={quantity}
+        setQuantity={setQuantity}
+        buttonClass="
+          w-8 h-8
+          flex items-center justify-center
+          border border-border
+          rounded-md
+          bg-background
+          text-foreground
+          hover:bg-muted
+          transition
+        "
+        valueClass="
+          min-w-[28px]
+          text-center
+          font-medium
+          text-foreground
+        "
+      />
 
+      {/* ACTION BUTTONS */}
       <FoodActions
         onAddToCart={handleAddToCart}
         onOrderNow={handleOrderNow}
         isProcessing={isProcessing}
         addText={t("add_to_cart")}
         orderText={t("order_now")}
+        primaryClass="
+          h-[44px]
+          rounded-md
+          bg-blue-600 hover:bg-blue-700
+          text-white
+          text-sm font-medium
+          transition
+        "
+        secondaryClass="
+          h-[44px]
+          rounded-md
+          bg-background
+          border border-border
+          text-foreground
+          text-sm font-medium
+          hover:bg-muted
+          transition
+        "
       />
 
+      {/* ADDRESS */}
       <FoodAddress foodName={food.foodName} />
     </motion.div>
   );

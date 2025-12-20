@@ -12,59 +12,62 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, Truck, CreditCard } from "lucide-react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
+interface TermsDialogProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onConfirm: () => void;
+}
+
 export default function TermsDialog({
   open,
   onOpenChange,
   onConfirm,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onConfirm: () => void;
-}) {
+}: TermsDialogProps) {
   const { t } = useI18n();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0a0a] text-white border-gray-800 max-w-lg">
+      <DialogContent className="max-w-lg bg-card text-foreground border border-border">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold mb-4">
+          <DialogTitle className="text-base font-semibold">
             {t("terms_title")}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 text-gray-300">
-          <div>
-            <p className="flex items-center gap-2 font-medium text-white mb-1">
-              <ShieldCheck size={18} /> {t("terms_service")}
+        <div className="space-y-4 text-sm leading-relaxed">
+          <div className="space-y-1">
+            <p className="flex items-center gap-2 font-medium">
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              {t("terms_service")}
             </p>
-            <p className="text-sm">{t("terms_service_desc")}</p>
+            <p className="text-muted-foreground">{t("terms_service_desc")}</p>
           </div>
 
-          <div>
-            <p className="flex items-center gap-2 font-medium text-white mb-1">
-              <Truck size={18} /> {t("terms_delivery")}
+          <div className="space-y-1">
+            <p className="flex items-center gap-2 font-medium">
+              <Truck className="h-4 w-4 text-muted-foreground" />
+              {t("terms_delivery")}
             </p>
-            <p className="text-sm">{t("terms_delivery_desc")}</p>
+            <p className="text-muted-foreground">{t("terms_delivery_desc")}</p>
           </div>
 
-          <div>
-            <p className="flex items-center gap-2 font-medium text-white mb-1">
-              <CreditCard size={18} /> {t("terms_payment")}
+          <div className="space-y-1">
+            <p className="flex items-center gap-2 font-medium">
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              {t("terms_payment")}
             </p>
-            <p className="text-sm">{t("terms_payment_desc")}</p>
+            <p className="text-muted-foreground">{t("terms_payment_desc")}</p>
           </div>
         </div>
 
-        <DialogFooter className="flex justify-end gap-3 mt-6">
+        <DialogFooter className="flex gap-3 pt-4">
           <DialogClose asChild>
-            <Button variant="outline" className="text-gray-300 border-gray-700">
+            <Button variant="outline" className="h-[44px]">
               {t("cancel")}
             </Button>
           </DialogClose>
-          <Button
-            onClick={onConfirm}
-            className="bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold hover:brightness-110"
-          >
+
+          <Button onClick={onConfirm} className="h-[44px]">
             {t("continue")}
           </Button>
         </DialogFooter>

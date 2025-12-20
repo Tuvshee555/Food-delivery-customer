@@ -1,124 +1,126 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { useRouter } from "next/navigation";
+
+type CartItem = {
+  quantity: number;
+  price?: number;
+  food?: {
+    price?: number;
+  };
+};
+
+type PaymentMethod = "qpay" | "card" | "cod" | null;
+
+interface PaymentSummaryProps {
+  cart: CartItem[];
+  onSubmit: () => void;
+  paymentMethod: PaymentMethod;
+  setPaymentMethod: (p: PaymentMethod) => void;
+}
 
 export default function PaymentSummary({
   cart,
-  router,
   onSubmit,
   paymentMethod,
   setPaymentMethod,
-}: {
-  cart: any[];
-  router: any;
-  onSubmit: () => void;
-  paymentMethod: "qpay" | "card" | "cod" | null;
-  setPaymentMethod: (p: "qpay" | "card" | "cod" | null) => void;
-}) {
+}: PaymentSummaryProps) {
   const { locale, t } = useI18n();
+  const router = useRouter();
 
   const total = cart.reduce(
-    (sum, i) => sum + (i.food?.price || i.price) * i.quantity,
+    (sum, i) => sum + (i.food?.price ?? i.price ?? 0) * i.quantity,
     0
   );
+
   const delivery = 100;
   const grandTotal = total + delivery;
 
   return (
-    <div className="w-full lg:w-[400px] bg-[#111]/90 border border-gray-800 rounded-3xl p-8 h-fit shadow-[0_0_40px_-10px_rgba(250,204,21,0.15)]">
-      <h2 className="text-xl font-semibold mb-6 border-b border-gray-800 pb-3">
+    <aside className="w-full lg:w-[400px] bg-card border border-border rounded-2xl p-6 space-y-6 h-fit">
+      {/* Title */}
+      <h2 className="text-base font-semibold border-b border-border pb-3">
         {t("payment_info")}
       </h2>
 
-      <div className="flex justify-between text-gray-300 mb-3">
-        <span>{t("product_total")}</span>
-        <span>{total.toLocaleString()}₮</span>
-      </div>
-      <div className="flex justify-between text-gray-300 mb-3">
-        <span>{t("delivery_price")}</span>
-        <span>{delivery.toLocaleString()}₮</span>
+      {/* Price breakdown */}
+      <div className="space-y-2 text-sm">
+        <div className="flex justify-between text-muted-foreground">
+          <span>{t("product_total")}</span>
+          <span>{total.toLocaleString()}₮</span>
+        </div>
+
+        <div className="flex justify-between text-muted-foreground">
+          <span>{t("delivery_price")}</span>
+          <span>{delivery.toLocaleString()}₮</span>
+        </div>
       </div>
 
-      <div className="border-t border-gray-700 my-4" />
+      <div className="border-t border-border" />
 
-      <div className="flex justify-between items-center font-semibold text-lg">
+      {/* Grand total */}
+      <div className="flex justify-between items-center font-semibold">
         <span>{t("grand_total")}</span>
-        <span className="text-[#facc15] text-2xl">
-          {grandTotal.toLocaleString()}₮
-        </span>
+        <span className="text-lg">{grandTotal.toLocaleString()}₮</span>
       </div>
 
-      {/* Payment method selection */}
-      <div className="mt-6 space-y-2">
-        <div className="text-sm text-gray-300 mb-2">{t("choose_payment")}</div>
+      {/* Payment method */}
+      <div className="space-y-3">
+        <p className="text-sm font-medium">{t("choose_payment")}</p>
 
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="radio"
-            name="payment"
-            value="qpay"
-            checked={paymentMethod === "qpay"}
-            onChange={() => setPaymentMethod("qpay")}
-          />
-          <span className="ml-2">QPay</span>
-        </label>
-
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="radio"
-            name="payment"
-            value="card"
-            checked={paymentMethod === "card"}
-            onChange={() => setPaymentMethod("card")}
-          />
-          <span className="ml-2">Card (Visa / Mastercard)</span>
-        </label>
-
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="radio"
-            name="payment"
-            value="cod"
-            checked={paymentMethod === "cod"}
-            onChange={() => setPaymentMethod("cod")}
-          />
-          <span className="ml-2">{t("cash_on_delivery")}</span>
-        </label>
+        {(["qpay", "card", "cod"] as PaymentMethod[]).map((method) => (
+          <label
+            key={method}
+            className="flex items-center gap-3 h-[44px] px-3 rounded-md border border-border cursor-pointer hover:bg-muted transition"
+          >
+            <input
+              type="radio"
+              name="payment"
+              checked={paymentMethod === method}
+              onChange={() => setPaymentMethod(method)}
+            />
+            <span className="text-sm">{t(`payment.${method}`)}</span>
+          </label>
+        ))}
       </div>
 
-      <div className="flex mt-6 gap-2">
+      {/* Coupon */}
+      {/* <div className="flex gap-2">
         <input
           type="text"
           placeholder={t("coupon_placeholder")}
-          className="flex-1 bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-[#facc15] outline-none transition"
+          className="flex-1 h-[44px] rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-1 focus:ring-border"
         />
-        <button className="bg-[#facc15] text-black px-5 py-2 rounded-lg font-semibold hover:brightness-110 transition">
+        <Button variant="secondary" className="h-[44px] px-4">
           {t("check")}
-        </button>
-      </div>
+        </Button>
+      </div> */}
 
-      <div className="flex gap-3 mt-8">
+      {/* Actions (desktop only) */}
+      <div className="hidden lg:flex gap-3">
         <Button
           variant="outline"
+          className="w-full h-[44px]"
           onClick={() => router.push(`/${locale}/checkout?step=cart`)}
-          className="border-gray-600 text-gray-300 hover:border-[#facc15] hover:text-[#facc15] w-full"
         >
           {t("back")}
         </Button>
 
         <Button
+          className="w-full h-[44px]"
           onClick={onSubmit}
-          className="w-full bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold hover:brightness-110"
+          disabled={!paymentMethod}
         >
           {t("order")}
         </Button>
       </div>
 
-      <p className="text-gray-500 text-sm mt-6 leading-snug flex gap-2 items-start">
-        ⚠️ {t("delivery_notice")}
+      {/* Notice */}
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {t("delivery_notice")}
       </p>
-    </div>
+    </aside>
   );
 }

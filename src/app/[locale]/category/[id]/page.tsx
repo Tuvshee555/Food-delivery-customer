@@ -203,7 +203,7 @@ export default function CategoryPage({
   const pagedFoods = sortedFoods.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <main className="min-h-screen w-full bg-[#0a0a0a] text-white pt-[90px] px-6 md:px-12 flex flex-col md:flex-row gap-8">
+    <main className="min-h-screen w-full bg-[#0a0a0a] text-white  px-6 md:px-12 flex flex-col md:flex-row gap-8">
       <div className="md:w-[250px] w-full">
         <CategorySidebar
           filters={filters}

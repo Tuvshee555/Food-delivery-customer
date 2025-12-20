@@ -236,7 +236,23 @@
   "blog_post_3_title": "Ор дэрээ хэрхэн зөв арчлах вэ?",
   "blog_post_3_excerpt": "Ор дэрний хэрэглээг уртасгах, ариун цэврийг хадгалах энгийн аргууд.",
 
-  "blog_read_more": "Дэлгэрэнгүй унших"
-
+  "blog_read_more": "Дэлгэрэнгүй унших",
+  "user": "Хэрэглэгч",
+  "user_menu": "Хэрэглэгчийн цэс",
+  "login_with_email": "Имэйлээр нэвтрэх",
+  "login_with_facebook": "Facebook-р нэвтрэх",
+  "login_as_guest": "Зочноор нэвтрэх",
+  "or": "эсвэл",
+  "google_login_error": "Google нэвтрэхэд алдаа гарлаа",
+  "profile_description": "Таны хувийн мэдээлэл",
+  "orders_description": "Таны захиалгын түүх",
+  "tickets_description": "Таны тусламжийн хүсэлтүүд",
+  "search": "Хайх",
+  "search_food": "Хоол хайх",
+  "search_food_placeholder": "Хоолны нэрээр хайх…",
+  "searching": "Хайж байна…",
+  "no_food_found": "Хоол олдсонгүй",
+  "cart": "Сагс",
+  "product_sections": "Бүтээгдэхүүний хэсгүүд"
   
 }

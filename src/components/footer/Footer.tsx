@@ -30,7 +30,7 @@ export default function Footer() {
         <div>
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 relative rounded-md overflow-hidden bg-gray-100">
-              <Image src="/order.png" alt={t("site_name")} fill />
+              <Image src="/order.png" sizes="28" alt={t("site_name")} fill />
             </div>
             <div>
               <h4 className="text-lg font-semibold">{t("site_name")}</h4>

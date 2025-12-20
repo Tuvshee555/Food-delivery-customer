@@ -51,7 +51,6 @@ export const PayFood = () => {
     };
 
     handler();
-
     window.addEventListener("cart-updated", handler);
     return () => window.removeEventListener("cart-updated", handler);
   }, [userId, token, loadLocalCart, loadServerCart]);
@@ -87,20 +86,25 @@ export const PayFood = () => {
 
   return (
     <>
-      <div className="w-full bg-[#0e0e0e] text-white rounded-2xl border border-gray-800 p-5 flex flex-col gap-6">
+      {/* CONTENT (FLAT – NO CARD) */}
+      <div className="flex flex-col gap-6">
+        {/* HEADER */}
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-semibold">{t("your_cart")}</h1>
+          <h1 className="text-xl font-semibold text-foreground">
+            {t("your_cart")}
+          </h1>
 
           {cartItems.length > 0 && (
             <button
               onClick={clearAll}
-              className="text-gray-400 hover:text-red-500"
+              className="text-sm text-muted-foreground hover:text-destructive transition"
             >
               {t("clear_cart")}
             </button>
           )}
         </div>
 
+        {/* ITEMS */}
         <div className="space-y-5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
           {cartItems.length > 0 ? (
             cartItems.map((item) => (
@@ -112,10 +116,13 @@ export const PayFood = () => {
               />
             ))
           ) : (
-            <p className="text-gray-500 text-center py-10">{t("cart_empty")}</p>
+            <p className="text-muted-foreground text-center py-10">
+              {t("cart_empty")}
+            </p>
           )}
         </div>
 
+        {/* SUMMARY */}
         {cartItems.length > 0 && <CartSummary total={totalPrice} />}
       </div>
 

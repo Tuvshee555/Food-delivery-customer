@@ -240,11 +240,22 @@
   "blog_post_3_title": "How to Properly Care for Your Bedding",
   "blog_post_3_excerpt": "Simple tips to maintain hygiene and extend the life of your bedding.",
 
-  "blog_read_more": "Read more"
-
-
-
-
-
-
+  "blog_read_more": "Read more",
+  "user": "User",
+  "user_menu": "User Menu",
+  "login_with_email": "Sign in with email",
+  "login_with_facebook": "Continue with Facebook",
+  "login_as_guest": "Continue as guest",
+  "or": "or",
+  "google_login_error": "Google login failed",
+  "profile_description": "Your personal information",
+  "orders_description": "Your order history",
+  "tickets_description": "Your support requests",
+  "search": "Search",
+  "search_food": "Search food",
+  "search_food_placeholder": "Search by food name…",
+  "searching": "Searching…",
+  "no_food_found": "No food found",
+  "cart": "Cart",
+  "product_sections": "Product sections"
 }

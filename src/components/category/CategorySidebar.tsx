@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-// src/components/category/CategorySidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -51,28 +50,14 @@ export const CategorySidebar = ({
   const { t, locale } = useI18n();
   const pathname = usePathname();
 
-  const [rawCategories, setRawCategories] = useState<Category[]>(() => {
-    try {
-      if (typeof window === "undefined") return [];
-      const raw = sessionStorage.getItem(CAT_CACHE_KEY);
-      return raw ? (JSON.parse(raw) as Category[]) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [allCount, setAllCount] = useState<number | null>(() => {
-    try {
-      if (typeof window === "undefined") return null;
-      const raw = sessionStorage.getItem(ALL_COUNT_KEY);
-      return raw ? Number(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  // server-safe initial states (no window/sessionStorage access here)
+  const [rawCategories, setRawCategories] = useState<Category[]>([]);
+  const [allCount, setAllCount] = useState<number | null>(null);
 
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  // mounted = true only after client mount; prevents hydration mismatch
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -83,15 +68,19 @@ export const CategorySidebar = ({
     const controller = new AbortController();
     const signal = controller.signal;
 
+    // fetch categories from backend and populate state + sessionStorage
     async function fetchCategories() {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/category`,
-          { signal }
+          {
+            signal,
+          }
         );
         if (!res.ok) return;
         const data = (await res.json()) as unknown;
         if (!Array.isArray(data)) return;
+
         const cats = data.map((c: any) => ({
           id: String(c.id),
           categoryName: String(c.categoryName ?? c.name ?? ""),
@@ -99,15 +88,21 @@ export const CategorySidebar = ({
         })) as Category[];
 
         setRawCategories(cats);
-        try {
-          sessionStorage.setItem(CAT_CACHE_KEY, JSON.stringify(cats));
-        } catch {}
+
+        if (mounted) {
+          try {
+            sessionStorage.setItem(CAT_CACHE_KEY, JSON.stringify(cats));
+          } catch {
+            /* ignore */
+          }
+        }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         console.error("Failed to fetch categories:", err);
       }
     }
 
+    // fetch all products to count (used in "All products" badge)
     async function fetchAllCount() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`, {
@@ -117,20 +112,45 @@ export const CategorySidebar = ({
         const data = await res.json();
         if (!Array.isArray(data)) return;
         setAllCount(data.length);
-        try {
-          sessionStorage.setItem(ALL_COUNT_KEY, String(data.length));
-        } catch {}
+        if (mounted) {
+          try {
+            sessionStorage.setItem(ALL_COUNT_KEY, String(data.length));
+          } catch {}
+        }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         console.error("Failed to fetch all count:", err);
       }
     }
 
+    // Attempt to hydrate from sessionStorage (client-side only)
+    try {
+      if (typeof window !== "undefined" && mounted) {
+        const raw = sessionStorage.getItem(CAT_CACHE_KEY);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as Category[];
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setRawCategories(parsed);
+            }
+          } catch {}
+        }
+
+        const rawCount = sessionStorage.getItem(ALL_COUNT_KEY);
+        if (rawCount) {
+          const n = Number(rawCount);
+          if (!Number.isNaN(n)) setAllCount(n);
+        }
+      }
+    } catch {
+      // ignore storage read errors
+    }
+
     fetchCategories();
     fetchAllCount();
 
     return () => controller.abort();
-  }, []);
+  }, [mounted]);
 
   const { roots } = useMemo(() => buildTree(rawCategories), [rawCategories]);
 
@@ -144,15 +164,17 @@ export const CategorySidebar = ({
 
   const showFlatList = search.trim().length > 0;
 
+  // helpers that depend on pathname should only run when mounted to avoid mismatch
   const extractIdFromPath = useCallback(() => {
-    if (!pathname) return null;
+    if (!mounted || !pathname) return null;
     const parts = pathname.split("/");
     const idx = parts.findIndex((p) => p === "category");
     if (idx === -1) return null;
     return parts[idx + 1] ?? null;
-  }, [pathname]);
+  }, [pathname, mounted]);
 
   useEffect(() => {
+    if (!mounted) return;
     const activeId = extractIdFromPath();
     if (!activeId) return;
     const parentMap = new Map<string, string | null>();
@@ -166,17 +188,18 @@ export const CategorySidebar = ({
       cur = parent ?? null;
     }
     setExpanded((prev) => ({ ...prev, ...toOpen }));
-  }, [pathname, rawCategories.length]);
+  }, [pathname, rawCategories.length, mounted]);
 
   const isAllActive =
-    pathname?.includes(`/${locale}/category/all`) ||
-    pathname?.includes(`/${locale}/all-products`);
+    mounted &&
+    (pathname?.includes(`/${locale}/category/all`) ||
+      pathname?.includes(`/${locale}/all-products`));
 
   const toggle = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
 
   const renderNode = (node: CategoryNode, depth = 0) => {
     const isOpen = !!expanded[node.id];
-    const activeId = extractIdFromPath();
+    const activeId = mounted ? extractIdFromPath() : null;
     const isActive = activeId === node.id;
     return (
       <li key={node.id} className="mt-2">
@@ -273,11 +296,13 @@ export const CategorySidebar = ({
             }`}
           >
             <span>{t("all_products")}</span>
+            {/* show count only after mounted to avoid mismatch */}
             <span className="text-gray-400 text-xs">
               {mounted ? allCount ?? "-" : "-"}
             </span>
           </Link>
 
+          {/* If searching use the flat results */}
           {showFlatList ? (
             filteredFlat.length === 0 ? (
               <li className="text-gray-500 text-xs italic mt-2">
@@ -286,9 +311,9 @@ export const CategorySidebar = ({
             ) : (
               filteredFlat.map((cat) => {
                 const catId = cat.id;
-                const isActive = pathname?.includes(
-                  `/${locale}/category/${catId}`
-                );
+                const isActive = mounted
+                  ? pathname?.includes(`/${locale}/category/${catId}`)
+                  : false;
                 return (
                   <Link
                     key={catId}
@@ -305,10 +330,12 @@ export const CategorySidebar = ({
               })
             )
           ) : roots.length === 0 ? (
+            // render a consistent "no categories" message — this is server-safe
             <li className="text-gray-400 text-xs py-2">
               {t("no_categories") ?? "No categories"}
             </li>
           ) : (
+            // render actual tree (this can safely change after mount; the server initial is an empty tree)
             roots.map((root) => renderNode(root, 0))
           )}
         </ul>

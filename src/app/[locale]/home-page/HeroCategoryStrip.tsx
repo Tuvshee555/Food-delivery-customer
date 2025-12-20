@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
 import { useFood } from "@/app/[locale]/provider/FoodDataProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
@@ -11,43 +12,88 @@ export const HeroCategoryStrip = () => {
   const { foodData } = useFood();
   const { locale } = useI18n();
 
-  const getPreviewImage = (catId: string) => {
-    const f = foodData.find(
-      (item) => item.category === catId || item.categoryId === catId
-    );
-    const img = f?.image;
-    return img
-      ? typeof img === "string"
-        ? img
-        : URL.createObjectURL(img)
-      : "/BackMain.png";
-  };
+  const previewImages = useMemo(() => {
+    const map = new Map<string, string>();
+
+    category.forEach((cat) => {
+      const f = foodData.find(
+        (item) => item.category === cat.id || item.categoryId === cat.id
+      );
+
+      if (f?.image) {
+        map.set(
+          cat.id,
+          typeof f.image === "string" ? f.image : URL.createObjectURL(f.image)
+        );
+      }
+    });
+
+    return map;
+  }, [category, foodData]);
 
   return (
-    <div className="w-full bg-white py-8 border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-6 flex gap-10 justify-center overflow-x-auto no-scrollbar">
-        {category
-          .filter((c) => c.parentId === null)
-          .map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/${locale}/category/${cat.id}`}
-              className="flex flex-col items-center gap-3 group"
-            >
-              <div className="w-[70px] h-[70px] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden group-hover:shadow-md transition">
+    <section className="w-full bg-background border-t border-border py-10">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex gap-6 overflow-x-auto no-scrollbar">
+          {category
+            .filter((c) => c.parentId === null)
+            .map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/${locale}/category/${cat.id}`}
+                className="
+                  group
+                  relative
+                  min-w-[220px]
+                  h-[140px]
+                  rounded-2xl
+                  overflow-hidden
+                  bg-card
+                  border border-border
+                  shrink-0
+                "
+              >
+                {/* IMAGE */}
                 <img
-                  src={getPreviewImage(cat.id)}
-                  className="w-full h-full object-cover group-hover:scale-105 transition"
+                  src={previewImages.get(cat.id) ?? "/BackMain.png"}
                   alt={cat.categoryName}
+                  className="
+                    absolute inset-0
+                    w-full h-full
+                    object-cover
+                    transition-transform duration-500
+                    group-hover:scale-105
+                  "
                 />
-              </div>
 
-              <span className="text-xs font-semibold text-gray-800 text-center group-hover:text-black transition">
-                {cat.categoryName}
-              </span>
-            </Link>
-          ))}
+                {/* OVERLAY */}
+                <div
+                  className="
+                    absolute inset-0
+                    bg-gradient-to-t
+                    from-black/70
+                    via-black/30
+                    to-transparent
+                  "
+                />
+
+                {/* TEXT */}
+                <div className="absolute bottom-4 left-4 right-4">
+                  <span
+                    className="
+                      text-white
+                      text-sm
+                      font-semibold
+                      tracking-wide
+                    "
+                  >
+                    {cat.categoryName}
+                  </span>
+                </div>
+              </Link>
+            ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

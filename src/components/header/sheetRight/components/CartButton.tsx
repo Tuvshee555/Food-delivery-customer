@@ -12,30 +12,44 @@ export const CartButton = forwardRef<HTMLButtonElement, Props>(
   ({ count, ...motionProps }, ref) => {
     return (
       <motion.button
-        // pass the ref to the real button element (required by Radix asChild)
         ref={ref}
         {...motionProps}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.95 }}
-        className="relative flex items-center justify-center w-[42px] h-[42px]
-                 rounded-full border border-gray-700 bg-[#1a1a1a]
-                 hover:border-[#facc15] transition-all duration-300
-                 hover:shadow-[0_0_12px_rgba(250,204,21,0.3)] group"
+        aria-label="Cart"
+        className="
+          relative
+          flex items-center justify-center
+          w-[42px] h-[42px]
+          rounded-full
+          bg-background
+          border border-border
+          text-foreground
+          transition
+          hover:border-primary
+          hover:shadow-[0_0_12px_hsl(var(--primary)/0.25)]
+          focus:outline-none
+        "
       >
-        <ShoppingCart
-          className="w-[20px] h-[20px] text-gray-300 group-hover:text-[#facc15]"
-          strokeWidth={1.8}
-        />
+        <ShoppingCart className="w-[20px] h-[20px]" strokeWidth={1.8} />
 
         {count > 0 && (
           <motion.span
             key={count}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            className="absolute -top-[6px] -right-[6px] bg-[#facc15] text-black
-                     text-[11px] font-bold rounded-full w-[18px] h-[18px]
-                     flex items-center justify-center shadow-[0_0_10px_rgba(250,204,21,0.5)]"
+            transition={{ type: "spring", stiffness: 300, damping: 16 }}
+            className="
+              absolute -top-[6px] -right-[6px]
+              min-w-[18px] h-[18px] px-1
+              rounded-full
+              bg-primary
+              text-primary-foreground
+              text-[11px] font-bold
+              flex items-center justify-center
+              leading-none
+              shadow-[0_0_10px_hsl(var(--primary)/0.45)]
+            "
           >
             {count}
           </motion.span>

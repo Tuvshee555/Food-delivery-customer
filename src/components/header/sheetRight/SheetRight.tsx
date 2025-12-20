@@ -11,9 +11,11 @@ import {
 import { useCartSync } from "./components/useCartSync";
 import { CartButton } from "./components/CartButton";
 import { PayFood } from "./payfood/PayFood";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export const SheetRight = () => {
   const cartCount = useCartSync();
+  const { t } = useI18n();
 
   return (
     <Sheet>
@@ -21,15 +23,26 @@ export const SheetRight = () => {
         <CartButton count={cartCount} />
       </SheetTrigger>
 
-      <SheetContent className="sm:max-w-[538px] p-[32px] bg-[#101010] border-l border-gray-800 text-white flex flex-col gap-6">
+      <SheetContent
+        className="
+    sm:max-w-[538px]
+    p-8
+    bg-card
+    text-card-foreground
+    border-l border-border
+    flex flex-col gap-6
+    shadow-2xl
+    z-[9999]
+  "
+      >
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-[#facc15] text-lg">
+          <SheetTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
             <ShoppingCart className="w-5 h-5" />
-            Сагс
+            {t("cart")}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar mt-2">
+        <div className="flex-1 overflow-y-auto mt-2 custom-scrollbar">
           <PayFood />
         </div>
       </SheetContent>

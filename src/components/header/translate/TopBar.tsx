@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Facebook, Instagram, Youtube } from "lucide-react";
 import TranslateButton from "../translate/TranslateButton";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import {
   useLocale,
   useTranslations,
@@ -13,10 +14,14 @@ export default function TopBar() {
   const locale = useLocale();
 
   return (
-    <div className="w-full bg-white border-b border-black/10 text-[12px] text-neutral-600">
+    <div className="w-full bg-background border-b border-border text-[12px]">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-8 md:h-9">
-        <span className="font-medium tracking-wide">Тавтай морил</span>
+        {/* LEFT */}
+        <span className="font-medium tracking-wide text-foreground">
+          {t("welcome")}
+        </span>
 
+        {/* RIGHT */}
         <div className="flex items-center gap-4">
           <NavLink href={`/${locale}/contact`} label={t("contact")} />
           <Divider />
@@ -25,14 +30,18 @@ export default function TopBar() {
           <NavLink href={`/${locale}/jobs`} label={t("jobs")} />
           <Divider />
 
-          <div className="flex items-center gap-3 text-neutral-500">
-            <Facebook className="hover:text-black transition" size={14} />
-            <Instagram className="hover:text-black transition" size={14} />
-            <Youtube className="hover:text-black transition" size={14} />
+          {/* SOCIAL */}
+          <div className="flex items-center gap-3 text-foreground">
+            <Facebook className="hover:opacity-80 transition" size={14} />
+            <Instagram className="hover:opacity-80 transition" size={14} />
+            <Youtube className="hover:opacity-80 transition" size={14} />
           </div>
 
           <Divider />
+
+          {/* ACTIONS */}
           <TranslateButton />
+          <ThemeToggle />
         </div>
       </div>
     </div>
@@ -40,14 +49,19 @@ export default function TopBar() {
 }
 
 function Divider() {
-  return <span className="h-3 w-px bg-black/20" />;
+  return <span className="h-3 w-px bg-border opacity-60" />;
 }
 
 function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="hover:text-black transition whitespace-nowrap px-2 py-1"
+      className="
+        whitespace-nowrap px-2 py-1
+        text-foreground
+        hover:opacity-80
+        transition
+      "
     >
       {label}
     </Link>

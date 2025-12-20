@@ -28,12 +28,15 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
   const [megaVisible, setMegaVisible] = useState(false);
 
   const hideTimeoutRef = useRef<number | null>(null);
-  const allProductsRef = useRef<HTMLButtonElement | null>(null);
-  const [caretLeft, setCaretLeft] = useState<number>(0);
+  const allProductsRef = useRef<HTMLAnchorElement | null>(null);
+  const [caretLeft, setCaretLeft] = useState(0);
 
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(false);
 
+  /* ======================
+     FETCH CATEGORY TREE
+     ====================== */
   useEffect(() => {
     setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/category/tree`)
@@ -42,6 +45,9 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
       .finally(() => setLoading(false));
   }, []);
 
+  /* ======================
+     SCROLL BEHAVIOR
+     ====================== */
   useEffect(() => {
     if (compact) return;
     const handler = () => {
@@ -54,6 +60,9 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
     return () => window.removeEventListener("scroll", handler);
   }, [compact]);
 
+  /* ======================
+     MEGA MENU CONTROL
+     ====================== */
   function openMega() {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     setMegaVisible(true);
@@ -73,6 +82,7 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
 
   return (
     <>
+      {/* TOP BAR */}
       {showTopBar && (
         <div className="fixed top-0 left-0 w-full z-[60]">
           <TopBar />
@@ -81,13 +91,15 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
 
       {/* HEADER */}
       <header
-        className={`fixed left-0 w-full z-[59] transition-all duration-300
+        className={`
+          fixed left-0 w-full z-[59] transition-all duration-300
           ${showTopBar ? "top-8 md:top-9" : "top-0"}
           ${
             scrolled
-              ? "bg-black/45 backdrop-blur-xl border-b border-white/10"
-              : "bg-black/75 border-b border-white/15"
-          }`}
+              ? "bg-background/80 backdrop-blur-xl border-b border-border"
+              : "bg-background/95 border-b border-border"
+          }
+        `}
       >
         <div className="max-w-7xl mx-auto px-6">
           <div className="h-[64px] flex items-center justify-between">
@@ -97,37 +109,42 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
               className="flex items-center gap-2"
             >
               <img src="/order.png" className="w-8 h-8" alt="logo" />
-              <span className="text-white text-lg font-semibold">NomNom</span>
+              <span className="text-foreground text-lg font-semibold">
+                NomNom
+              </span>
             </Link>
 
             {/* NAV */}
-            <div className="flex items-center gap-8">
-              <button
+            <nav className="flex items-center gap-8">
+              {/* ALL PRODUCTS */}
+              <Link
                 ref={allProductsRef}
+                href={`/${locale}/category/all`}
                 onMouseEnter={openMega}
                 onMouseLeave={closeMegaWithDelay}
-                className="group relative h-[64px] text-white font-medium"
+                className="group relative h-[64px] flex items-center font-medium text-foreground"
               >
                 {t("all_products")}
-                <span className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[2px] w-0 bg-white group-hover:w-10 transition-all" />
-              </button>
+                <span className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[2px] w-0 bg-foreground transition-all group-hover:w-10" />
+              </Link>
 
+              {/* OTHER CATEGORIES — NOW SHARP */}
               {category
                 .filter((c) => c.parentId === null)
                 .map((c) => (
                   <Link
                     key={c.id}
                     href={`/${locale}/category/${c.id}`}
-                    className="group relative h-[64px] flex items-center text-white/90 hover:text-white"
+                    className="group relative h-[64px] flex items-center font-medium text-foreground hover:opacity-80"
                   >
                     {c.categoryName}
-                    <span className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[2px] w-0 bg-white group-hover:w-10 transition-all" />
+                    <span className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[2px] w-0 bg-foreground transition-all group-hover:w-10" />
                   </Link>
                 ))}
-            </div>
+            </nav>
 
             {/* ACTIONS */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-foreground">
               <SearchDialog />
               <SheetRight />
               <Email />
@@ -151,41 +168,42 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
                 showTopBar
                   ? "top-[calc(32px+64px)] md:top-[calc(36px+64px)]"
                   : "top-[64px]"
-              }`}
+              }
+            `}
           >
-            <div className="w-full bg-white border-t border-black/10 shadow-2xl relative">
+            <div className="relative bg-card border-t border-border shadow-2xl">
               {/* CARET */}
               <div
-                className="absolute -top-2 w-4 h-4 bg-white rotate-45 border-l border-t border-black/10"
+                className="absolute -top-2 w-4 h-4 rotate-45 bg-card border-l border-t border-border"
                 style={{ left: caretLeft }}
               />
 
               <div className="max-w-7xl mx-auto px-10 py-8">
                 {loading ? (
-                  <p>Loading…</p>
+                  <p className="text-muted-foreground">Loading…</p>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4">
                     {tree.map((root, i) => (
                       <div
                         key={root.id}
                         className={`px-6 ${
-                          i !== 0 ? "md:border-l border-black/10" : ""
+                          i !== 0 ? "md:border-l border-border" : ""
                         }`}
                       >
                         <Link
                           href={`/${locale}/category/${root.id}`}
-                          className="font-semibold text-gray-900"
+                          className="font-semibold text-foreground"
                         >
                           {root.categoryName}
                         </Link>
 
                         {root.children && (
-                          <ul className="mt-4 space-y-2 text-sm text-gray-600">
+                          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                             {root.children.map((child) => (
                               <li key={child.id}>
                                 <Link
                                   href={`/${locale}/category/${child.id}`}
-                                  className="hover:text-black"
+                                  className="hover:text-foreground transition"
                                 >
                                   {child.categoryName}
                                 </Link>

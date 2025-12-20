@@ -5,7 +5,7 @@ import { HeroCategoryStrip } from "./HeroCategoryStrip";
 
 export default function Home() {
   return (
-    <div className="w-screen min-h-screen bg-[#0a0a0a]">
+    <div className="w-screen min-h-screen bg-background text-foreground">
       {/* HERO */}
       <div className="relative w-full h-[668px]">
         <Image
@@ -17,18 +17,14 @@ export default function Home() {
         />
       </div>
 
-      {/* Category Strip BELOW HERO */}
+      {/* CATEGORY STRIP */}
       <HeroCategoryStrip />
 
-      {/* Auto Scroll Product Section */}
-      <div className="px-6 mt-10">
-        <AutoScrollProducts />
-      </div>
+      {/* AUTO SCROLL PRODUCTS */}
+      <AutoScrollProducts />
 
-      {/* Category Food Sections */}
-      <div className="px-6 mt-10">
-        <FoodCategoryList />
-      </div>
+      {/* CATEGORY FOOD SECTIONS */}
+      <FoodCategoryList />
     </div>
   );
 }

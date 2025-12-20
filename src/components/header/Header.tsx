@@ -4,13 +4,12 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
 import TopBar from "./translate/TopBar";
 import { SearchDialog } from "./SearchDialog";
 import { SheetRight } from "./sheetRight/SheetRight";
-import { Email } from "./email/Email";
+import { useEmailSync } from "./email/hooks/useEmailSync";
 
 type CategoryNode = {
   id: string;
@@ -19,7 +18,13 @@ type CategoryNode = {
   children?: CategoryNode[];
 };
 
-export const Header = ({ compact = false }: { compact?: boolean }) => {
+export const Header = ({
+  compact = false,
+  onOpenProfile,
+}: {
+  compact?: boolean;
+  onOpenProfile?: () => void;
+}) => {
   const { locale, t } = useI18n();
   const { category = [] } = useCategory();
 
@@ -34,9 +39,9 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(false);
 
-  /* ======================
-     FETCH CATEGORY TREE
-     ====================== */
+  const email = useEmailSync();
+  const firstLetter = email ? email[0].toUpperCase() : "?";
+
   useEffect(() => {
     setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/category/tree`)
@@ -45,9 +50,6 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  /* ======================
-     SCROLL BEHAVIOR
-     ====================== */
   useEffect(() => {
     if (compact) return;
     const handler = () => {
@@ -60,9 +62,6 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
     return () => window.removeEventListener("scroll", handler);
   }, [compact]);
 
-  /* ======================
-     MEGA MENU CONTROL
-     ====================== */
   function openMega() {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     setMegaVisible(true);
@@ -82,14 +81,12 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
 
   return (
     <>
-      {/* TOP BAR */}
       {showTopBar && (
         <div className="fixed top-0 left-0 w-full z-[60]">
           <TopBar />
         </div>
       )}
 
-      {/* HEADER */}
       <header
         className={`
           fixed left-0 w-full z-[59] transition-all duration-300
@@ -115,8 +112,7 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
             </Link>
 
             {/* NAV */}
-            <nav className="flex items-center gap-8">
-              {/* ALL PRODUCTS */}
+            <nav className="hidden md:flex items-center gap-8">
               <Link
                 ref={allProductsRef}
                 href={`/${locale}/category/all`}
@@ -128,7 +124,6 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
                 <span className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[2px] w-0 bg-foreground transition-all group-hover:w-10" />
               </Link>
 
-              {/* OTHER CATEGORIES — NOW SHARP */}
               {category
                 .filter((c) => c.parentId === null)
                 .map((c) => (
@@ -147,7 +142,17 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
             <div className="flex items-center gap-3 text-foreground">
               <SearchDialog />
               <SheetRight />
-              <Email />
+              {/* Avatar trigger — opens controlled sheet via prop */}
+              <motion.button
+                onClick={() => {
+                  if (onOpenProfile) onOpenProfile();
+                }}
+                whileTap={{ scale: 0.98 }}
+                aria-label={t("user")}
+                className="w-[42px] h-[42px] rounded-full flex items-center justify-center bg-background border border-border text-foreground text-sm font-semibold"
+              >
+                {firstLetter}
+              </motion.button>
             </div>
           </div>
         </div>
@@ -172,7 +177,6 @@ export const Header = ({ compact = false }: { compact?: boolean }) => {
             `}
           >
             <div className="relative bg-card border-t border-border shadow-2xl">
-              {/* CARET */}
               <div
                 className="absolute -top-2 w-4 h-4 rotate-45 bg-card border-l border-t border-border"
                 style={{ left: caretLeft }}

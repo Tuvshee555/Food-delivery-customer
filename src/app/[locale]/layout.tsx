@@ -8,10 +8,8 @@ import { AuthProvider } from "./provider/AuthProvider";
 import { FoodDataProvider } from "./provider/FoodDataProvider";
 import { CategoryProvider } from "./provider/CategoryProvider";
 
-import HeaderClient from "@/components/header/HeaderClient";
-import Footer from "@/components/footer/Footer";
 import Providers from "@/components/Providers"; // client wrapper for next-themes
-import MobileBottomNav from "@/components/navigation/MobileBottomNav";
+import AppShellClient from "@/components/AppShellClient";
 
 type Props = {
   children: ReactNode;
@@ -41,12 +39,8 @@ export default async function LocaleLayout({ children, params }: Props) {
           <FoodDataProvider>
             <CategoryProvider>
               <Providers>
-                <HeaderClient />
-                {/* increased bottom padding so mobile fixed nav doesn't cover content */}
-                <main className="min-h-screen pt-24 pb-28">{children}</main>
-                <Footer />
-                {/* mobile-only bottom nav (fixed) */}
-                <MobileBottomNav />
+                {/* AppShellClient handles header, footer, bottom nav, and the email sheet */}
+                <AppShellClient>{children}</AppShellClient>
               </Providers>
             </CategoryProvider>
           </FoodDataProvider>

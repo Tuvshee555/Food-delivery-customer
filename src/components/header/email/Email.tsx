@@ -1,12 +1,5 @@
-"use client";
-
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { motion } from "framer-motion";
+// "use client";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 import { useFacebookSDK } from "./hooks/useFacebookSDK";
@@ -16,7 +9,12 @@ import { EmailLoggedIn } from "./EmailLoggedIn";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
-export const Email = () => {
+interface EmailProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}
+
+export const Email = ({ open, onOpenChange }: EmailProps) => {
   useFacebookSDK();
 
   const { t } = useI18n();
@@ -26,29 +24,7 @@ export const Email = () => {
   const firstLetter = email ? email[0].toUpperCase() : "?";
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <motion.button
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label={t("user")}
-          className="
-            w-[42px] h-[42px]
-            rounded-full
-            flex items-center justify-center
-            bg-background
-            border border-border
-            text-foreground
-            text-sm font-semibold
-            transition
-            hover:border-primary
-            hover:shadow-[0_0_12px_hsl(var(--primary)/0.25)]
-          "
-        >
-          {firstLetter}
-        </motion.button>
-      </SheetTrigger>
-
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
         className="
@@ -78,3 +54,5 @@ export const Email = () => {
     </Sheet>
   );
 };
+
+export default Email;

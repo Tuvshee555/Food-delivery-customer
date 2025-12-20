@@ -27,7 +27,7 @@ export const AutoScrollProducts = () => {
     return [...foodData].sort(() => Math.random() - 0.5);
   }, [foodData]);
 
-  // SAFE image object URL map (create once per foodData change, revoke on cleanup)
+  // SAFE image object URL map (create once per products change, revoke on cleanup)
   const mediaMapRef = useRef<Map<string, string>>(new Map());
   useEffect(() => {
     const created: string[] = [];
@@ -40,9 +40,13 @@ export const AutoScrollProducts = () => {
       if (typeof img === "string") {
         mediaMapRef.current.set(id, img);
       } else {
-        const u = URL.createObjectURL(img);
-        created.push(u);
-        mediaMapRef.current.set(id, u);
+        try {
+          const u = URL.createObjectURL(img);
+          created.push(u);
+          mediaMapRef.current.set(id, u);
+        } catch {
+          /* noop */
+        }
       }
     });
 
@@ -106,6 +110,7 @@ export const AutoScrollProducts = () => {
       setItemWidth(el.offsetWidth + gap);
     };
 
+    // initial
     measure();
 
     if (typeof ResizeObserver !== "undefined") {
@@ -161,6 +166,7 @@ export const AutoScrollProducts = () => {
     return () => stopAutoScroll();
   }, [itemWidth, filtered.length, startAutoScroll, stopAutoScroll]);
 
+  // pause on hover / resume on leave (desktop); touch drag always allowed on mobile
   useEffect(() => {
     const cont = scrollRef.current;
     if (!cont) return;
@@ -175,12 +181,14 @@ export const AutoScrollProducts = () => {
     };
   }, [startAutoScroll, stopAutoScroll]);
 
+  // reset scroll when switching tabs
   useEffect(() => {
     const cont = scrollRef.current;
     if (!cont) return;
     cont.scrollTo({ left: 0, behavior: "smooth" });
   }, [activeTab]);
 
+  // keyboard nav for tabs
   const tabButtonsRef = useRef<Array<HTMLButtonElement | null>>([]);
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const idx = tabs.findIndex((t) => t.key === activeTab);
@@ -268,23 +276,26 @@ export const AutoScrollProducts = () => {
         ) : (
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar py-2"
+            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory touch-pan-x no-scrollbar"
             id={`panel-${activeTab}`}
             role="tabpanel"
             aria-labelledby={`tab-${activeTab}`}
           >
             {filtered.map((item: any) => (
               <div
-                key={item.id}
+                key={
+                  item.id ??
+                  item.foodId ??
+                  Math.random().toString(36).slice(2, 9)
+                }
                 data-auto-item
                 className="
                   snap-start
-                  min-w-[46vw]        /* mobile: ~2 per screen */
-                  sm:min-w-[200px]
-                  md:min-w-[220px]
-                  lg:min-w-[240px]
-                  xl:min-w-[260px]
-                  max-w-[260px]
+                  min-w-[48vw]      /* mobile: ~2 per screen (big) */
+                  sm:min-w-[32%]    /* ~3 per screen */
+                  md:min-w-[25%]    /* ~4 per screen */
+                  lg:min-w-[20%]    /* ~5 per screen */
+                  max-w-[320px]
                 "
               >
                 <FoodCard food={item} />

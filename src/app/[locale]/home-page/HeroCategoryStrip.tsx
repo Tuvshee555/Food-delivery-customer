@@ -2,7 +2,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
 import { useFood } from "@/app/[locale]/provider/FoodDataProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
@@ -11,6 +14,11 @@ export const HeroCategoryStrip = () => {
   const { category } = useCategory();
   const { foodData } = useFood();
   const { locale } = useI18n();
+  const pathname = usePathname();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const activeId = pathname?.split("/category/")[1];
 
   const previewImages = useMemo(() => {
     const map = new Map<string, string>();
@@ -19,7 +27,6 @@ export const HeroCategoryStrip = () => {
       const f = foodData.find(
         (item) => item.category === cat.id || item.categoryId === cat.id
       );
-
       if (f?.image) {
         map.set(
           cat.id,
@@ -31,67 +38,118 @@ export const HeroCategoryStrip = () => {
     return map;
   }, [category, foodData]);
 
+  const scroll = (dir: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const amount = dir === "left" ? -300 : 300;
+    scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
   return (
-    <section className="w-full bg-background border-t border-border py-10">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex gap-6 overflow-x-auto no-scrollbar">
-          {category
-            .filter((c) => c.parentId === null)
-            .map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/${locale}/category/${cat.id}`}
-                className="
-                  group
-                  relative
-                  min-w-[220px]
-                  h-[140px]
-                  rounded-2xl
-                  overflow-hidden
-                  bg-card
-                  border border-border
-                  shrink-0
-                "
-              >
-                {/* IMAGE */}
-                <img
-                  src={previewImages.get(cat.id) ?? "/BackMain.png"}
-                  alt={cat.categoryName}
-                  className="
-                    absolute inset-0
-                    w-full h-full
-                    object-cover
-                    transition-transform duration-500
-                    group-hover:scale-105
-                  "
-                />
+    <section className="sticky top-[64px] z-30 bg-background border-t border-border">
+      <div className="relative max-w-7xl mx-auto px-4 py-4">
+        {/* DESKTOP ARROWS */}
+        <button
+          onClick={() => scroll("left")}
+          className="
+            hidden md:flex
+            absolute left-2 top-1/2 -translate-y-1/2
+            z-10
+            h-9 w-9
+            items-center justify-center
+            rounded-full
+            bg-background border border-border
+            shadow-sm
+          "
+        >
+          <ChevronLeft size={18} />
+        </button>
 
-                {/* OVERLAY */}
-                <div
-                  className="
-                    absolute inset-0
-                    bg-gradient-to-t
-                    from-black/70
-                    via-black/30
-                    to-transparent
-                  "
-                />
+        <button
+          onClick={() => scroll("right")}
+          className="
+            hidden md:flex
+            absolute right-2 top-1/2 -translate-y-1/2
+            z-10
+            h-9 w-9
+            items-center justify-center
+            rounded-full
+            bg-background border border-border
+            shadow-sm
+          "
+        >
+          <ChevronRight size={18} />
+        </button>
 
-                {/* TEXT */}
-                <div className="absolute bottom-4 left-4 right-4">
-                  <span
-                    className="
-                      text-white
-                      text-sm
-                      font-semibold
-                      tracking-wide
-                    "
+        {/* EDGE FADE */}
+        <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-background to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background to-transparent z-10" />
+
+        {/* SCROLL AREA */}
+        <div className="mx-auto max-w-[980px]">
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto no-scrollbar"
+          >
+            {category
+              .filter((c) => c.parentId === null)
+              .map((cat) => {
+                const isActive = activeId === cat.id;
+
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/${locale}/category/${cat.id}`}
+                    className={`
+                      shrink-0
+                      rounded-xl
+                      overflow-hidden
+                      border
+                      transition
+                      ${
+                        isActive
+                          ? "border-foreground"
+                          : "border-border hover:border-foreground/40"
+                      }
+                    `}
                   >
-                    {cat.categoryName}
-                  </span>
-                </div>
-              </Link>
-            ))}
+                    <div
+                      className="
+                        w-[70vw]
+                        max-w-[240px]
+                        sm:w-[220px]
+                        md:w-[180px]
+                        lg:w-[160px]
+                        h-[84px]
+                        sm:h-[96px]
+                        relative
+                      "
+                    >
+                      <img
+                        src={previewImages.get(cat.id) ?? "/BackMain.png"}
+                        alt={cat.categoryName}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+
+                      <div
+                        className={`absolute inset-0 ${
+                          isActive ? "bg-black/15" : "bg-black/25"
+                        }`}
+                      />
+
+                      <div className="absolute inset-0 flex items-center justify-center px-3">
+                        <span
+                          className={`text-sm font-medium text-center ${
+                            isActive ? "text-white" : "text-white/90"
+                          }`}
+                        >
+                          {cat.categoryName}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
         </div>
       </div>
     </section>

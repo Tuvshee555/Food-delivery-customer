@@ -23,132 +23,146 @@ export default function Footer() {
     router.push(`/${locale}${path}`);
   };
 
+  const helpLinks: [string, string][] = [
+    ["/about", "footer_about_us"],
+    ["/contact", "footer_contact"],
+    ["/faq", "footer_faq"],
+    ["/blog", "footer_posts"],
+    ["/careers", "footer_jobs"],
+    ["/branches", "footer_branches"],
+  ];
+
+  const productLinks: [string, string][] = [
+    ["/category/all", "footer_all_products"],
+    ["/category/featured", "footer_featured"],
+    ["/category/bestseller", "footer_bestseller"],
+    ["/category/discounted", "footer_discounted"],
+  ];
+
   return (
-    <footer className="w-full bg-white text-gray-900 pt-12 pb-8">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-        {/* Column 1 */}
-        <div>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 relative rounded-md overflow-hidden bg-gray-100">
-              <Image src="/order.png" sizes="28" alt={t("site_name")} fill />
+    <footer className="w-full bg-background text-foreground border-t border-border">
+      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+        {/* Brand */}
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 relative rounded-md overflow-hidden bg-muted">
+              <Image
+                src="/order.png"
+                alt={t("site_name")}
+                fill
+                className="object-contain"
+              />
             </div>
             <div>
-              <h4 className="text-lg font-semibold">{t("site_name")}</h4>
-              <p className="text-sm text-gray-500">
-                {t("footer_followers", "56,963") ?? "56,963 followers"}
+              <h4 className="text-base font-semibold text-foreground">
+                {t("site_name")}
+              </h4>
+              <p className="text-sm text-foreground">
+                {t("footer_followers", "56963")}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={() => window.open("https://facebook.com", "_blank")}
+          <div className="flex gap-2">
+            <a
+              href={t("social_facebook_url") || "https://facebook.com"}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("social_facebook")}
+              className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
             >
-              <Facebook />
-            </button>
-            <button
-              onClick={() => window.open("https://instagram.com", "_blank")}
+              <Facebook size={18} />
+            </a>
+
+            <a
+              href={t("social_instagram_url") || "https://instagram.com"}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("social_instagram")}
+              className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
             >
-              <Instagram />
-            </button>
-            <button
-              onClick={() => window.open("https://youtube.com", "_blank")}
+              <Instagram size={18} />
+            </a>
+
+            <a
+              href={t("social_youtube_url") || "https://youtube.com"}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("social_youtube")}
+              className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
             >
-              <Youtube />
-            </button>
+              <Youtube size={18} />
+            </a>
           </div>
         </div>
 
         {/* Help */}
         <div>
-          <h3 className="font-semibold mb-4">{t("footer_menu_help")}</h3>
-          <ul className="space-y-2 text-sm">
-            <li
-              onClick={() => go("/about")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_about_us")}
-            </li>
-            <li
-              onClick={() => go("/contact")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_contact")}
-            </li>
-            <li
-              onClick={() => go("/faq")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_faq")}
-            </li>
-            <li
-              onClick={() => go("/blog")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_posts")}
-            </li>
-            <li
-              onClick={() => go("/careers")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_jobs")}
-            </li>
-            <li
-              onClick={() => go("/branches")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_branches")}
-            </li>
+          <h3 className="text-base font-semibold mb-3 text-foreground">
+            {t("footer_menu_help")}
+          </h3>
+          <ul className="space-y-1">
+            {helpLinks.map(([path, key]) => (
+              <li key={path}>
+                <button
+                  onClick={() => go(path)}
+                  className="min-h-[44px] flex items-center w-full text-sm text-foreground hover:underline text-left"
+                >
+                  {t(key)}
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Products */}
         <div>
-          <h3 className="font-semibold mb-4">{t("footer_products")}</h3>
-          <ul className="space-y-2 text-sm">
-            {/* IMPORTANT: goes to /category/all which CategoryPage expects */}
-            <li
-              onClick={() => go("/category/all")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_all_products")}
-            </li>
-            <li
-              onClick={() => go("/category/featured")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_featured")}
-            </li>
-            <li
-              onClick={() => go("/category/bestseller")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_bestseller")}
-            </li>
-            <li
-              onClick={() => go("/category/discounted")}
-              className="cursor-pointer hover:underline"
-            >
-              {t("footer_discounted")}
-            </li>
+          <h3 className="text-base font-semibold mb-3 text-foreground">
+            {t("footer_products")}
+          </h3>
+          <ul className="space-y-1">
+            {productLinks.map(([path, key]) => (
+              <li key={path}>
+                <button
+                  onClick={() => go(path)}
+                  className="min-h-[44px] flex items-center w-full text-sm text-foreground hover:underline text-left"
+                >
+                  {t(key)}
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Contact */}
         <div>
-          <h3 className="font-semibold mb-4">{t("footer_contact")}</h3>
-          <ul className="space-y-3 text-sm">
-            <li className="flex items-center gap-2">
-              <Phone size={16} />
-              99125635
+          <h3 className="text-base font-semibold mb-3 text-foreground">
+            {t("footer_contact")}
+          </h3>
+          <ul className="space-y-2">
+            <li>
+              <a
+                href={`tel:${t("footer_phone")}`}
+                className="min-h-[44px] flex items-center gap-2 text-sm text-foreground"
+              >
+                <Phone size={16} />
+                <span>{t("footer_phone")}</span>
+              </a>
             </li>
-            <li className="flex items-center gap-2">
-              <Mail size={16} />
-              daisyshopmongol@gmail.com
+
+            <li>
+              <a
+                href={`mailto:${t("footer_email")}`}
+                className="min-h-[44px] flex items-center gap-2 text-sm text-foreground"
+              >
+                <Mail size={16} />
+                <span>{t("footer_email")}</span>
+              </a>
             </li>
-            <li className="flex items-start gap-2">
-              <MapPin size={16} className="mt-1" />
-              {t("footer_address")}
+
+            <li className="min-h-[44px] flex items-start gap-2 text-sm text-foreground">
+              <MapPin size={16} className="mt-0.5" />
+              <span>{t("footer_address")}</span>
             </li>
           </ul>
         </div>
@@ -157,8 +171,8 @@ export default function Footer() {
       {/* Back to top */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed right-6 bottom-6 w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center"
-        aria-label="Back to top"
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted"
+        aria-label={t("back_to_top")}
       >
         <ArrowUp size={18} />
       </button>

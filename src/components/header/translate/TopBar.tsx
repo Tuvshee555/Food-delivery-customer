@@ -16,12 +16,10 @@ export default function TopBar() {
   return (
     <div className="w-full bg-background border-b border-border text-[12px]">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-8 md:h-9">
-        {/* LEFT */}
-        <span className="font-medium tracking-wide text-foreground">
+        <span className="font-medium tracking-wide text-foreground hidden md:inline">
           {t("welcome")}
         </span>
 
-        {/* RIGHT */}
         <div className="flex items-center gap-4">
           <NavLink href={`/${locale}/contact`} label={t("contact")} />
           <Divider />
@@ -30,7 +28,6 @@ export default function TopBar() {
           <NavLink href={`/${locale}/jobs`} label={t("jobs")} />
           <Divider />
 
-          {/* SOCIAL */}
           <div className="flex items-center gap-3 text-foreground">
             <Facebook className="hover:opacity-80 transition" size={14} />
             <Instagram className="hover:opacity-80 transition" size={14} />
@@ -39,7 +36,6 @@ export default function TopBar() {
 
           <Divider />
 
-          {/* ACTIONS */}
           <TranslateButton />
           <ThemeToggle />
         </div>
@@ -56,12 +52,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="
-        whitespace-nowrap px-2 py-1
-        text-foreground
-        hover:opacity-80
-        transition
-      "
+      className="whitespace-nowrap px-2 py-1 text-foreground hover:opacity-80 transition"
     >
       {label}
     </Link>

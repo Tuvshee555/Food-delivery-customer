@@ -1,10 +1,10 @@
 "use client";
 
 import { ReactNode, useState, useCallback } from "react";
-import HeaderClient from "@/components/header/HeaderClient";
 import Footer from "@/components/footer/Footer";
 import MobileBottomNav from "@/components/navigation/MobileBottomNav";
 import Email from "@/components/header/email/Email"; // path to controlled Email
+import HeaderClient from "./header/HeaderClient";
 
 export default function AppShellClient({ children }: { children: ReactNode }) {
   const [emailOpen, setEmailOpen] = useState(false);

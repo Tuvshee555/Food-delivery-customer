@@ -87,7 +87,7 @@ function CheckoutInner() {
   }
 
   return step === "info" ? (
-    <InfoStep router={router} cart={cart} refreshCart={fetchCart} />
+    <InfoStep cart={cart} refreshCart={fetchCart} />
   ) : (
     <CartStep />
   );

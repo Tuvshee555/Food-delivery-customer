@@ -50,70 +50,68 @@ export const OrdersList = () => {
     enabled: !!token,
   });
 
-  const statusStyle: Record<OrderStatus, string> = {
-    PENDING: "bg-yellow-500/20 text-yellow-400",
-    DELIVERED: "bg-green-500/20 text-green-400",
-    CANCELLED: "bg-red-500/20 text-red-400",
+  const statusLabel: Record<OrderStatus, string> = {
+    PENDING: t("order_status_pending"),
+    DELIVERED: t("order_status_delivered"),
+    CANCELLED: t("order_status_cancelled"),
   };
 
   if (isLoading)
     return (
-      <div className="space-y-4 mt-6">
+      <div className="space-y-3 mt-6">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800 animate-pulse"
+            className="h-24 rounded-lg border border-border bg-card animate-pulse"
           />
         ))}
       </div>
     );
 
   if (!orders.length)
-    return (
-      <p className="text-gray-400 text-center mt-8">{t("orders_empty")}</p>
-    );
+    return <p className="text-center text-sm mt-8">{t("orders_empty")}</p>;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
-        <Receipt className="w-5 h-5" /> {t("my_orders")}
+    <div className="space-y-5">
+      <h1 className="text-base font-semibold flex items-center gap-2">
+        <Receipt size={16} />
+        {t("my_orders")}
       </h1>
 
       {orders.map((order, i) => (
         <motion.div
           key={order.id}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: i * 0.05 }}
-          className="bg-[#1a1a1a] p-6 rounded-2xl border border-gray-800 hover:border-[#facc15]/60 transition"
+          transition={{ duration: 0.2, delay: i * 0.04 }}
+          className="bg-card border border-border rounded-lg p-4"
         >
-          <div className="flex justify-between mb-4">
+          {/* Top */}
+          <div className="flex justify-between items-start mb-3">
             <div>
-              <p className="text-gray-400 text-xs">{t("order_id")}:</p>
-              <p className="text-gray-200 font-medium">{order.id}</p>
+              <p className="text-xs">{t("order_id")}</p>
+              <p className="text-sm font-medium">{order.id}</p>
             </div>
 
-            <span
-              className={`px-3 py-1 text-xs font-medium rounded-full ${
-                statusStyle[order.status]
-              }`}
-            >
-              {t(`order_status_${order.status.toLowerCase()}`)}
+            <span className="text-xs px-2 py-1 border border-border rounded-md">
+              {statusLabel[order.status]}
             </span>
           </div>
 
-          <div className="text-sm text-gray-300 space-y-2 mb-4">
+          {/* Meta */}
+          <div className="space-y-1 text-sm mb-3">
             <p className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
+              <Clock size={14} />
               {new Date(order.createdAt).toLocaleDateString()}
             </p>
+
             <p className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
+              <MapPin size={14} />
               {order.location}
             </p>
 
             {order.foodOrderItems?.length > 0 && (
-              <p className="text-gray-400 text-xs">
+              <p className="text-xs leading-relaxed">
                 {order.foodOrderItems
                   .map((item) => `${item.quantity}× ${item.food.foodName}`)
                   .join(" · ")}
@@ -121,8 +119,9 @@ export const OrdersList = () => {
             )}
           </div>
 
+          {/* Bottom */}
           <div className="flex justify-between items-center">
-            <p className="text-[#facc15] text-lg font-semibold">
+            <p className="text-sm font-semibold">
               {order.totalPrice.toLocaleString()}₮
             </p>
 
@@ -130,7 +129,7 @@ export const OrdersList = () => {
               onClick={() =>
                 router.push(`/${locale}/profile/orders/${order.id}`)
               }
-              className="text-[#facc15] underline text-sm hover:text-yellow-300 transition"
+              className="text-sm underline"
             >
               {t("view_details")}
             </button>
@@ -138,9 +137,7 @@ export const OrdersList = () => {
         </motion.div>
       ))}
 
-      {isFetching && (
-        <p className="text-gray-500 text-xs text-center">{t("refreshing")}</p>
-      )}
+      {isFetching && <p className="text-xs text-center">{t("refreshing")}</p>}
     </div>
   );
 };

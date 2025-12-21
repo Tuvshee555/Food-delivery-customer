@@ -11,43 +11,74 @@ type Props = {
 };
 
 export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
+  const disableMinus = item.quantity <= 1;
+
   return (
-    <div className="flex justify-between items-center border-b border-gray-800 pb-4">
+    <div className="flex justify-between items-center border-b border-border py-4">
+      {/* LEFT */}
       <div className="flex items-center gap-3">
         <img
           src={item.food.image}
           alt={item.food.foodName}
-          className="w-[72px] h-[72px] rounded-xl"
+          className="w-[72px] h-[72px] rounded-lg object-cover"
         />
-        <div>
-          <p className="font-semibold">{item.food.foodName}</p>
-          <p className="text-gray-400 text-sm">
+
+        <div className="space-y-0.5">
+          <p className="text-sm font-medium text-foreground">
+            {item.food.foodName}
+          </p>
+          <p className="text-sm text-foreground">
             ₮ {item.food.price.toLocaleString()}
           </p>
         </div>
       </div>
 
+      {/* RIGHT */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onUpdateQty(item, -1)}
-          className="px-3 py-1 bg-[#1c1c1c] rounded-full"
+          disabled={disableMinus}
+          className="
+            h-[36px] w-[36px]
+            flex items-center justify-center
+            rounded-md
+            border border-border
+            text-foreground
+            disabled:opacity-40
+            disabled:cursor-not-allowed
+          "
         >
-          <Minus className="w-4 h-4" />
+          <Minus size={16} />
         </button>
 
-        <span className="px-4 py-1 bg-[#facc15] text-black font-semibold rounded-full">
+        <span className="min-w-[28px] text-center text-sm font-medium">
           {item.quantity}
         </span>
 
         <button
           onClick={() => onUpdateQty(item, 1)}
-          className="px-3 py-1 bg-[#1c1c1c] rounded-full"
+          className="
+            h-[36px] w-[36px]
+            flex items-center justify-center
+            rounded-md
+            border border-border
+            text-foreground
+          "
         >
-          <Plus className="w-4 h-4" />
+          <Plus size={16} />
         </button>
 
-        <button onClick={() => onRemove(item)}>
-          <X className="w-5 h-5 text-red-500" />
+        <button
+          onClick={() => onRemove(item)}
+          className="
+            h-[36px] w-[36px]
+            flex items-center justify-center
+            rounded-md
+            text-destructive
+          "
+          aria-label="Remove item"
+        >
+          <X size={16} />
         </button>
       </div>
     </div>

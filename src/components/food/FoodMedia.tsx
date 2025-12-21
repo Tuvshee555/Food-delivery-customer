@@ -55,17 +55,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
   return (
     <div className="w-full">
       {/* MAIN MEDIA */}
-      <div
-        className="
-          relative
-          w-full
-          h-[320px] sm:h-[380px] lg:h-[460px]
-          bg-muted
-          rounded-xl
-          overflow-hidden
-          border border-border
-        "
-      >
+      <div className="relative w-full h-[320px] sm:h-[380px] lg:h-[460px] bg-muted rounded-xl overflow-hidden border border-border">
         <AnimatePresence mode="wait">
           {active.type === "image" ? (
             <motion.img
@@ -83,6 +73,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
               key={active.src}
               src={active.src}
               controls
+              playsInline
               className="absolute inset-0 w-full h-full object-cover"
               initial={{ opacity: 0.6 }}
               animate={{ opacity: 1 }}
@@ -101,6 +92,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
               key={i}
               onClick={() => setActiveIndex(i)}
               className={`
+                relative
                 w-14 h-14
                 rounded-md
                 overflow-hidden
@@ -116,13 +108,12 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <video src={m.src} className="w-full h-full object-cover" />
-              )}
-
-              {m.type === "video" && (
-                <span className="absolute inset-0 flex items-center justify-center text-white text-xs bg-black/40">
-                  ▶
-                </span>
+                <>
+                  <video src={m.src} className="w-full h-full object-cover" />
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-white text-xs bg-black/40">
+                    ▶
+                  </span>
+                </>
               )}
             </button>
           ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SheetFooter } from "@/components/ui/sheet";
 import { CartItem } from "@/type/type";
 import { CartItemRow } from "./CartItemRow";
@@ -12,8 +12,6 @@ import {
   calculateTotal,
   loadLocalCartHelper,
   loadServerCartHelper,
-  updateLocalQtyHelper,
-  updateServerQtyHelper,
   removeLocalHelper,
   removeServerHelper,
   clearLocalHelper,
@@ -27,66 +25,73 @@ export const PayFood = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
-  const refreshTotals = (items: CartItem[]) => {
-    setTotalPrice(calculateTotal(items));
-  };
+  /* ---------------- LOAD CART ---------------- */
 
-  const loadLocalCart = useCallback(() => {
-    const cart = loadLocalCartHelper();
-    setCartItems(cart);
-    refreshTotals(cart);
-  }, []);
+  const loadCart = useCallback(async () => {
+    let items: CartItem[] = [];
 
-  const loadServerCart = useCallback(async () => {
-    if (!userId || !token) return;
-    const items = await loadServerCartHelper(userId, token);
+    if (!userId || !token) {
+      items = loadLocalCartHelper();
+    } else {
+      items = await loadServerCartHelper(userId, token);
+    }
+
     setCartItems(items);
-    refreshTotals(items);
+    setTotalPrice(calculateTotal(items));
   }, [userId, token]);
 
   useEffect(() => {
-    const handler = () => {
-      if (!userId || !token) loadLocalCart();
-      else loadServerCart();
-    };
+    loadCart();
+  }, [loadCart]);
 
-    handler();
-    window.addEventListener("cart-updated", handler);
-    return () => window.removeEventListener("cart-updated", handler);
-  }, [userId, token, loadLocalCart, loadServerCart]);
+  /* ---------------- PERSIST LOCAL CART ---------------- */
 
-  const updateQuantity = async (item: CartItem, change: number) => {
-    const newQty = Math.max(1, item.quantity + change);
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+    setTotalPrice(calculateTotal(cartItems));
+  }, [cartItems]);
 
-    if (!userId || !token) {
-      updateLocalQtyHelper(item, newQty);
-      return;
-    }
+  /* ---------------- FAST QUANTITY UPDATE ---------------- */
 
-    await updateServerQtyHelper(item.id, newQty, token);
+  const updateQuantity = (item: CartItem, change: number) => {
+    setCartItems((prev) =>
+      prev.map((i) => {
+        if (i.id !== item.id) return i;
+
+        const nextQty = Math.max(1, i.quantity + change);
+        return { ...i, quantity: nextQty };
+      })
+    );
   };
+
+  /* ---------------- REMOVE ITEM ---------------- */
 
   const removeItem = async (item: CartItem) => {
+    setCartItems((prev) => prev.filter((i) => i.id !== item.id));
+
     if (!userId || !token) {
       removeLocalHelper(item);
-      return;
+    } else {
+      removeServerHelper(item.id, token);
     }
-
-    await removeServerHelper(item.id, token);
   };
+
+  /* ---------------- CLEAR CART ---------------- */
 
   const clearAll = async () => {
+    setCartItems([]);
+
     if (!userId || !token) {
       clearLocalHelper();
-      return;
+    } else {
+      clearServerHelper(userId, token);
     }
-
-    await clearServerHelper(userId, token);
   };
+
+  /* ---------------- RENDER ---------------- */
 
   return (
     <>
-      {/* CONTENT (FLAT – NO CARD) */}
       <div className="flex flex-col gap-6">
         {/* HEADER */}
         <div className="flex justify-between items-center">
@@ -97,7 +102,7 @@ export const PayFood = () => {
           {cartItems.length > 0 && (
             <button
               onClick={clearAll}
-              className="text-sm text-muted-foreground hover:text-destructive transition"
+              className="text-sm text-muted-foreground hover:text-destructive"
             >
               {t("clear_cart")}
             </button>
@@ -105,18 +110,18 @@ export const PayFood = () => {
         </div>
 
         {/* ITEMS */}
-        <div className="space-y-5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+        <div className="space-y-5 max-h-[360px] overflow-y-auto pr-1">
           {cartItems.length > 0 ? (
             cartItems.map((item) => (
               <CartItemRow
-                key={item.id || item.foodId}
+                key={item.id || `${item.foodId}-${item.selectedSize ?? "d"}`}
                 item={item}
                 onUpdateQty={updateQuantity}
                 onRemove={removeItem}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">
+            <p className="text-center py-10 text-muted-foreground">
               {t("cart_empty")}
             </p>
           )}

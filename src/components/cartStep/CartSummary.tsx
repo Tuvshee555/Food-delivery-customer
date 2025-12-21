@@ -21,33 +21,33 @@ export const CartSummary: React.FC<Props> = ({
   const grandTotal = total + delivery;
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-4">
+    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+      <h2 className="text-base font-semibold border-b border-border pb-3">
         {t("payment_info")}
       </h2>
 
-      <div className="flex justify-between text-gray-300 mb-3">
+      <div className="flex justify-between text-sm">
         <span>{t("product_total")}</span>
         <span>{total.toLocaleString()}₮</span>
       </div>
 
-      <div className="flex justify-between text-gray-300 mb-3">
+      <div className="flex justify-between text-sm">
         <span>{t("delivery_fee")}</span>
         <span>{delivery.toLocaleString()}₮</span>
       </div>
 
-      <div className="border-t border-gray-700 my-4" />
-
-      <div className="flex justify-between items-center text-xl font-semibold">
-        <span>{t("grand_total")}</span>
-        <span className="text-[#facc15] text-3xl">
+      <div className="border-t border-border pt-4 flex justify-between items-center">
+        <span className="text-base font-semibold">
+          {t("grand_total")}
+        </span>
+        <span className="text-xl font-semibold">
           {grandTotal.toLocaleString()}₮
         </span>
       </div>
 
       <button
         onClick={onCheckout}
-        className="w-full mt-8 py-4 rounded-xl bg-gradient-to-r from-[#facc15] to-[#fbbf24] text-black font-semibold text-lg shadow-lg"
+        className="w-full h-[44px] rounded-md bg-primary text-primary-foreground text-sm font-medium"
       >
         {t("continue")}
       </button>
@@ -55,9 +55,9 @@ export const CartSummary: React.FC<Props> = ({
       {onClear && (
         <button
           onClick={onClear}
-          className="w-full mt-3 text-sm text-gray-400 hover:text-red-500"
+          className="w-full h-[44px] text-sm text-destructive"
         >
-          🗑 {t("clear_cart")}
+          {t("clear_cart")}
         </button>
       )}
     </div>

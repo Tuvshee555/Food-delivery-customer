@@ -406,7 +406,7 @@ export const CategorySidebar = ({
 
       {/* Desktop / tablet sidebar */}
       <aside className="hidden md:flex md:w-80 lg:w-96 flex-col">
-        <div className="bg-card text-card-foreground border border-border rounded-2xl p-5 flex flex-col gap-6">
+        <div className="bg-card text-card-foreground border border-border rounded-2xl p-5 flex flex-col gap-6 w-[250px]">
           <SidebarBody />
         </div>
       </aside>

@@ -61,7 +61,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
 
   const fmt = (v: number) => (Number.isNaN(v) ? "-" : v.toLocaleString());
 
-  const mainImage = displayImages[hoverIndex] ?? "/placeholder.png";
+  const mainImage = displayImages[hoverIndex];
 
   return (
     <Link

@@ -169,7 +169,7 @@ export const SearchDialog = () => {
                     "
                   >
                     <img
-                      src={item.image || "/placeholder.png"}
+                      src={item.image}
                       alt={item.foodName}
                       className="w-[52px] h-[52px] rounded-lg object-cover"
                     />

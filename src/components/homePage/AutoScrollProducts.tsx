@@ -60,7 +60,7 @@ export const AutoScrollProducts = () => {
   }, [products]);
 
   const getMediaUrl = (item: any) =>
-    mediaMapRef.current.get(item.id ?? item.foodId ?? "") ?? "/placeholder.png";
+    mediaMapRef.current.get(item.id ?? item.foodId ?? "");
 
   const filtered = useMemo(() => {
     if (!products || products.length === 0) return [];

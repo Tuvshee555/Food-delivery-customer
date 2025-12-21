@@ -19,6 +19,7 @@ interface PaymentSummaryProps {
   onSubmit: () => void;
   paymentMethod: PaymentMethod;
   setPaymentMethod: (p: PaymentMethod) => void;
+  hideActions?: boolean; // set true when using sticky actions
 }
 
 export default function PaymentSummary({
@@ -26,6 +27,7 @@ export default function PaymentSummary({
   onSubmit,
   paymentMethod,
   setPaymentMethod,
+  hideActions = false,
 }: PaymentSummaryProps) {
   const { locale, t } = useI18n();
   const router = useRouter();
@@ -40,12 +42,10 @@ export default function PaymentSummary({
 
   return (
     <aside className="w-full lg:w-[400px] bg-card border border-border rounded-2xl p-6 space-y-6 h-fit">
-      {/* Title */}
       <h2 className="text-base font-semibold border-b border-border pb-3">
         {t("payment_info")}
       </h2>
 
-      {/* Price breakdown */}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between text-muted-foreground">
           <span>{t("product_total")}</span>
@@ -60,13 +60,11 @@ export default function PaymentSummary({
 
       <div className="border-t border-border" />
 
-      {/* Grand total */}
       <div className="flex justify-between items-center font-semibold">
         <span>{t("grand_total")}</span>
         <span className="text-lg">{grandTotal.toLocaleString()}₮</span>
       </div>
 
-      {/* Payment method */}
       <div className="space-y-3">
         <p className="text-sm font-medium">{t("choose_payment")}</p>
 
@@ -86,8 +84,38 @@ export default function PaymentSummary({
         ))}
       </div>
 
-      {/* Coupon */}
-      {/* <div className="flex gap-2">
+      {!hideActions && (
+        <div className="lg:flex gap-3">
+          <Button
+            variant="outline"
+            className="w-full h-[44px]"
+            onClick={() => router.push(`/${locale}/checkout?step=cart`)}
+          >
+            {t("back")}
+          </Button>
+
+          <Button
+            className="w-full h-[44px]"
+            onClick={onSubmit}
+            disabled={!paymentMethod}
+          >
+            {t("order")}
+          </Button>
+        </div>
+      )}
+
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {t("delivery_notice")}
+      </p>
+    </aside>
+  );
+}
+
+{
+  /* Coupon */
+}
+{
+  /* <div className="flex gap-2">
         <input
           type="text"
           placeholder={t("coupon_placeholder")}
@@ -96,31 +124,9 @@ export default function PaymentSummary({
         <Button variant="secondary" className="h-[44px] px-4">
           {t("check")}
         </Button>
-      </div> */}
+      </div> */
+}
 
-      {/* Actions (desktop only) */}
-      <div className="hidden lg:flex gap-3">
-        <Button
-          variant="outline"
-          className="w-full h-[44px]"
-          onClick={() => router.push(`/${locale}/checkout?step=cart`)}
-        >
-          {t("back")}
-        </Button>
-
-        <Button
-          className="w-full h-[44px]"
-          onClick={onSubmit}
-          disabled={!paymentMethod}
-        >
-          {t("order")}
-        </Button>
-      </div>
-
-      {/* Notice */}
-      <p className="text-sm text-muted-foreground leading-relaxed">
-        {t("delivery_notice")}
-      </p>
-    </aside>
-  );
+{
+  /* Actions (desktop only) */
 }

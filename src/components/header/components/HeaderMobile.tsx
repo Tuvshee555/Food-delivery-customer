@@ -6,6 +6,7 @@ import { Menu, X, Facebook, Instagram, Youtube } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchDialog } from "../SearchDialog";
 import { SheetRight } from "../sheetRight/SheetRight";
+import TranslateButton from "../translate/TranslateButton";
 
 type CategoryNode = {
   id: string;
@@ -16,17 +17,35 @@ type CategoryNode = {
 
 export default function HeaderMobile({
   locale,
+  t,
   tree,
   loading,
   mobileMenuOpen,
   setMobileMenuOpen,
 }: {
   locale: string;
+  t: (k: string, def?: string) => string;
   tree: CategoryNode[];
   loading: boolean;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (v: boolean) => void;
 }) {
+  const helpLinks: [string, string][] = [
+    ["/about", "footer_about_us"],
+    ["/contact", "footer_contact"],
+    ["/faq", "footer_faq"],
+    ["/blog", "footer_posts"],
+    ["/careers", "footer_jobs"],
+    ["/branches", "footer_branches"],
+  ];
+
+  const productLinks: [string, string][] = [
+    ["/category/all", "footer_all_products"],
+    ["/category/featured", "footer_featured"],
+    ["/category/bestseller", "footer_bestseller"],
+    ["/category/discounted", "footer_discounted"],
+  ];
+
   return (
     <>
       <header className="fixed top-0 left-0 w-full h-[64px] z-[59] bg-background border-b md:hidden">
@@ -63,7 +82,7 @@ export default function HeaderMobile({
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed inset-0 z-[80] bg-background/95 backdrop-blur-lg"
           >
-            <div className="h-full max-w-md w-full overflow-auto">
+            <div className="h-full max-w-md w-full overflow-auto flex flex-col">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <div />
                 <Link
@@ -71,6 +90,7 @@ export default function HeaderMobile({
                   className="flex items-center gap-2"
                 >
                   <img src="/order.png" className="w-8 h-8" alt="logo" />
+                  <span className="font-semibold">{t("site_name")}</span>
                 </Link>
                 <button
                   aria-label="close menu"
@@ -81,11 +101,11 @@ export default function HeaderMobile({
                 </button>
               </div>
 
-              <div className="px-4 py-6">
+              <div className="px-4 py-4 overflow-auto">
                 {loading ? (
                   <p className="text-muted-foreground">Loading…</p>
                 ) : (
-                  <nav className="space-y-4">
+                  <nav className="space-y-4 pb-6">
                     {tree.map((root) => (
                       <div key={root.id}>
                         <Link
@@ -115,39 +135,112 @@ export default function HeaderMobile({
                     ))}
                   </nav>
                 )}
+
+                {/* small promo/photo area (replace src if you have a banner) */}
+                <div className="mt-4 rounded-md overflow-hidden border border-border">
+                  <img
+                    src="/order.png"
+                    alt="promo"
+                    className="w-full object-cover"
+                  />
+                </div>
               </div>
 
-              <div className="mt-auto border-t border-border px-4 py-6">
+              {/* bottom footer inside sheet */}
+              <div className="mt-auto border-t border-border px-4 py-6 bg-background">
                 <div className="space-y-2 text-sm">
-                  <div className="font-medium">Contact</div>
-                  <div className="text-muted-foreground">phone: 9912xxxx</div>
-                  <div className="text-muted-foreground">
-                    email: daisyshopmongol@gmail.com
+                  <div className="font-medium">{t("footer_contact")}</div>
+                  <a
+                    href={`tel:${t("footer_phone")}`}
+                    className="flex items-center gap-2 text-sm text-foreground"
+                  >
+                    <span>{t("footer_phone")}</span>
+                  </a>
+                  <a
+                    href={`mailto:${t("footer_email")}`}
+                    className="flex items-center gap-2 text-sm text-foreground"
+                  >
+                    <span>{t("footer_email")}</span>
+                  </a>
+                  <div className="text-muted-foreground text-sm">
+                    {t("footer_address")}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 mt-4">
-                  <a aria-label="facebook" href="#" className="p-2">
+                  <a
+                    aria-label="facebook"
+                    href={t("social_facebook_url") || "#"}
+                    className="p-2"
+                  >
                     <Facebook size={18} />
                   </a>
-                  <a aria-label="instagram" href="#" className="p-2">
+                  <a
+                    aria-label="instagram"
+                    href={t("social_instagram_url") || "#"}
+                    className="p-2"
+                  >
                     <Instagram size={18} />
                   </a>
-                  <a aria-label="youtube" href="#" className="p-2">
+                  <a
+                    aria-label="youtube"
+                    href={t("social_youtube_url") || "#"}
+                    className="p-2"
+                  >
                     <Youtube size={18} />
                   </a>
                 </div>
 
-                <div className="flex items-center gap-3 mt-4">
-                  <Link href={`/${locale}/contact`} className="text-sm">
-                    Contact
-                  </Link>
-                  <Link href={`/${locale}/about`} className="text-sm">
-                    About
-                  </Link>
-                  <Link href={`/${locale}/jobs`} className="text-sm">
-                    Jobs
-                  </Link>
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div>
+                    <h4 className="font-medium text-sm mb-2">
+                      {t("footer_menu_help")}
+                    </h4>
+                    <ul className="text-sm space-y-1">
+                      {helpLinks.map(([p, k]) => (
+                        <li key={p}>
+                          <Link
+                            href={`/${locale}${p}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block"
+                          >
+                            {t(k)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-sm mb-2">
+                      {t("footer_products")}
+                    </h4>
+                    <ul className="text-sm space-y-1">
+                      {productLinks.map(([p, k]) => (
+                        <li key={p}>
+                          <Link
+                            href={`/${locale}${p}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block"
+                          >
+                            {t(k)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <TranslateButton />
+
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() =>
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                    className="text-sm"
+                  >
+                    {t("back_to_top")}
+                  </button>
                 </div>
               </div>
             </div>

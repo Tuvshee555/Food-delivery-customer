@@ -104,6 +104,7 @@ export default function Header({
 
       <HeaderMobile
         locale={locale}
+        t={t}
         tree={tree}
         loading={loading}
         mobileMenuOpen={mobileMenuOpen}

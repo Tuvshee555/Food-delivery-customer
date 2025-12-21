@@ -31,7 +31,7 @@ export default function HeaderDesktop({
   firstLetter,
 }: {
   locale: string;
-  t: (key: string) => string;
+  t: (k: string, def?: string) => string;
   category: CategoryNode[];
   tree: CategoryNode[];
   loading: boolean;
@@ -101,7 +101,7 @@ export default function HeaderDesktop({
               <motion.button
                 onClick={() => onOpenProfile && onOpenProfile()}
                 whileTap={{ scale: 0.98 }}
-                aria-label="user"
+                aria-label={t("user")}
                 className="w-[42px] h-[42px] rounded-full flex items-center justify-center bg-background border border-border text-foreground text-sm font-semibold"
               >
                 {firstLetter}
@@ -128,7 +128,6 @@ export default function HeaderDesktop({
                 className="absolute -top-2 w-4 h-4 rotate-45 bg-card border-l border-t border-border"
                 style={{ left: caretLeft }}
               />
-
               <div className="max-w-7xl mx-auto px-10 py-8">
                 {loading ? (
                   <p className="text-muted-foreground">Loading…</p>

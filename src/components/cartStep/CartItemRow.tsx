@@ -6,8 +6,8 @@ import { Minus, Plus, X } from "lucide-react";
 
 type Props = {
   item: CartItem;
-  onUpdateQty: (item: CartItem, change: number) => void;
-  onRemove: (item: CartItem) => void;
+  onUpdateQty: (change: number) => void;
+  onRemove: () => void;
 };
 
 export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
@@ -36,7 +36,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
       {/* RIGHT */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onUpdateQty(item, -1)}
+          onClick={() => onUpdateQty(-1)}
           disabled={disableMinus}
           className="
             h-[36px] w-[36px]
@@ -56,7 +56,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
         </span>
 
         <button
-          onClick={() => onUpdateQty(item, 1)}
+          onClick={() => onUpdateQty(1)}
           className="
             h-[36px] w-[36px]
             flex items-center justify-center
@@ -69,7 +69,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
         </button>
 
         <button
-          onClick={() => onRemove(item)}
+          onClick={onRemove}
           className="
             h-[36px] w-[36px]
             flex items-center justify-center

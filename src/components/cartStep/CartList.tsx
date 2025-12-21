@@ -1,4 +1,3 @@
-// components/cartStep/CartList.tsx
 "use client";
 
 import React from "react";

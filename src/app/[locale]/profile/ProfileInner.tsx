@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, User, Package, Ticket, LayoutDashboard } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Header } from "@/components/header/Header";
 import { ProfileInfo } from "./profile/ProfileInfo";
 import { OrdersList } from "./profile/OrdersList";
 import { TicketsList } from "./profile/TicketsList";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import Header from "@/components/header/Header";
 
 /* ---------------- types ---------------- */
 type Tab = "dashboard" | "profile" | "orders" | "tickets";

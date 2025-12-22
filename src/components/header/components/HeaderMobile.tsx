@@ -34,7 +34,8 @@ export default function HeaderMobile({
     <>
       {/* MOBILE TOP BAR */}
       <header className="fixed top-0 left-0 w-full h-[64px] z-[59] bg-background border-b md:hidden">
-        <div className="h-full px-4 flex items-center justify-between">
+        <div className="relative h-full px-4 flex items-center">
+          {/* LEFT — MENU */}
           <button
             aria-label="open menu"
             onClick={() => setMobileMenuOpen(true)}
@@ -43,14 +44,21 @@ export default function HeaderMobile({
             <Menu size={20} />
           </button>
 
+          {/* CENTER — LOGO (TRUE CENTER, NOT FLEX CENTER) */}
           <Link
             href={`/${locale}/home-page`}
-            className="flex items-center gap-2"
+            aria-label="home"
+            className="absolute left-1/2 -translate-x-1/2 flex items-center"
           >
-            <img src="/order.png" className="w-8 h-8" alt="logo" />
+            <img
+              src="/order.png"
+              className="w-8 h-8 object-contain"
+              alt="logo"
+            />
           </Link>
 
-          <div className="flex items-center gap-2">
+          {/* RIGHT — ACTIONS */}
+          <div className="ml-auto flex items-center gap-2">
             <SearchDialog />
             <SheetRight />
           </div>
@@ -69,13 +77,12 @@ export default function HeaderMobile({
             role="dialog"
             aria-modal="true"
           >
-            {/* overlay: clicking outside closes menu */}
+            {/* overlay */}
             <div
               className="absolute inset-0"
               onClick={() => setMobileMenuOpen(false)}
             />
 
-            {/* the actual sheet is positioned to the left (HeaderMobileSheet is absolute-left) */}
             <HeaderMobileSheet
               locale={locale}
               t={t}

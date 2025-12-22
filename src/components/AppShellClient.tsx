@@ -17,7 +17,7 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
     <>
       <HeaderClient onOpenProfile={openProfile} />
       {/* main content area is passed as children from layout */}
-      <main className="min-h-screen pt-24 pb-28">{children}</main>
+      <main className="min-h-screen pt-[64px] md:pt-24 pb-28">{children}</main>
 
       <Footer />
 

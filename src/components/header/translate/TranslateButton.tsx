@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe } from "lucide-react";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 const languages = [
-  { code: "mn", name: "Монгол", flag: "🇲🇳" },
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "ko", name: "한국어", flag: "🇰🇷" },
+  { code: "mn", label: "Монгол", flag: "🇲🇳" },
+  { code: "en", label: "English", flag: "🇺🇸" },
+  { code: "ko", label: "한국어", flag: "🇰🇷" },
 ];
 
 export default function TranslateButton() {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -19,8 +21,7 @@ export default function TranslateButton() {
 
   const changeLang = (code: string) => {
     const withoutLocale = pathname.replace(/^\/(mn|en|ko)/, "");
-    const newPath = `/${code}${withoutLocale}`;
-    router.push(newPath);
+    router.push(`/${code}${withoutLocale}`);
     setOpen(false);
   };
 
@@ -29,51 +30,87 @@ export default function TranslateButton() {
 
   return (
     <>
+      {/* Trigger */}
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 bg-black/60 border border-gray-500
-        rounded-md px-3 py-1.5 text-white hover:border-gray-200 transition text-sm"
+        className="
+          flex items-center gap-2
+          h-[44px] px-3
+          rounded-md
+          border border-border
+          bg-card text-foreground
+          text-sm font-medium
+          transition
+          hover:bg-muted
+        "
       >
         <Globe size={16} />
-        <span className="text-sm">{currentFlag}</span>
+        <span>{currentFlag}</span>
       </button>
 
+      {/* Overlay */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999]
-          flex justify-center items-center"
+          className="
+            fixed inset-0 z-[9999]
+            flex items-center justify-center
+            bg-background/80 backdrop-blur-sm
+          "
           onClick={() => setOpen(false)}
         >
+          {/* Modal */}
           <div
-            className="bg-[#111] text-white rounded-xl p-5 w-[90%] max-w-[400px]
-            shadow-xl border border-gray-700"
+            className="
+              w-[90%] max-w-[360px]
+              rounded-xl
+              bg-card text-foreground
+              border border-border
+              p-5
+              shadow-lg
+            "
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4 text-center">
-              Хэлээ сонгоно уу
+            <h3 className="text-base font-semibold text-center">
+              {t("language.select")}
             </h3>
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="mt-4 space-y-2">
               {languages.map((l) => (
                 <button
                   key={l.code}
+                  type="button"
                   onClick={() => changeLang(l.code)}
-                  className="flex items-center gap-3 bg-black/40 border
-                  border-gray-700 hover:border-amber-400 rounded-md px-4 py-3
-                  transition text-base justify-center"
+                  className="
+                    flex items-center justify-center gap-3
+                    w-full h-[44px]
+                    rounded-md
+                    border border-border
+                    bg-background
+                    text-sm font-medium
+                    transition
+                    hover:bg-muted
+                  "
                 >
-                  <span className="text-xl">{l.flag}</span>
-                  {l.name}
+                  <span className="text-lg">{l.flag}</span>
+                  <span>{l.label}</span>
                 </button>
               ))}
             </div>
 
             <button
-              className="w-full mt-6 py-2 border border-gray-600 rounded-md
-              hover:border-gray-300 transition"
+              type="button"
               onClick={() => setOpen(false)}
+              className="
+                mt-5 w-full h-[44px]
+                rounded-md
+                border border-border
+                text-sm
+                transition
+                hover:bg-muted
+              "
             >
-              Болих
+              {t("common.cancel")}
             </button>
           </div>
         </div>

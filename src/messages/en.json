@@ -257,5 +257,15 @@
   "searching": "Searching…",
   "no_food_found": "No food found",
   "cart": "Cart",
-  "product_sections": "Product sections"
+  "product_sections": "Product sections",
+  "language": {
+    "select": "Select language"
+  },
+  "lang": {
+    "mn": "Mongolian",
+    "en": "English"
+  },
+  "common": {
+    "cancel": "Cancel"
+  }
 }

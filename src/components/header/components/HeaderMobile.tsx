@@ -65,16 +65,17 @@ export default function HeaderMobile({
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed inset-0 z-[80] bg-background/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
           >
-            {/* overlay */}
+            {/* overlay: clicking outside closes menu */}
             <div
               className="absolute inset-0"
               onClick={() => setMobileMenuOpen(false)}
             />
 
+            {/* the actual sheet is positioned to the left (HeaderMobileSheet is absolute-left) */}
             <HeaderMobileSheet
               locale={locale}
               t={t}

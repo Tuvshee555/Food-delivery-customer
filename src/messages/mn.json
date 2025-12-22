@@ -253,6 +253,16 @@
   "searching": "Хайж байна…",
   "no_food_found": "Хоол олдсонгүй",
   "cart": "Сагс",
-  "product_sections": "Бүтээгдэхүүний хэсгүүд"
+  "product_sections": "Бүтээгдэхүүний хэсгүүд",
+  "language": {
+    "select": "Хэл сонгох"
+  },
+  "lang": {
+    "mn": "Монгол",
+    "en": "Англи"
+  },
+  "common": {
+    "cancel": "Болих"
+  }
   
 }

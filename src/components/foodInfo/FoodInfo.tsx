@@ -9,7 +9,7 @@ import { FoodTitle } from "./FoodTitle";
 import { FoodSizes } from "./FoodSizes";
 import { FoodQuantity } from "./FoodQuantity";
 import { FoodActions } from "./FoodActions";
-import { FoodAddress } from "./FoodAddress";
+// import { FoodAddress } from "./FoodAddress";
 
 import { addToCartLocal } from "./utils/addToCartLocal";
 import { addToCartServer } from "./utils/addToCartServer";
@@ -100,7 +100,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex flex-col gap-5 text-foreground"
+      className="flex flex-col gap-8 text-foreground"
     >
       <FoodTitle
         name={food.foodName}
@@ -160,7 +160,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
         "
       />
 
-      <FoodAddress foodName={food.foodName} />
+      {/* <FoodAddress foodName={food.foodName} /> */}
     </motion.div>
   );
 };

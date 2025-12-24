@@ -267,5 +267,7 @@
   },
   "common": {
     "cancel": "Cancel"
-  }
+  },
+  "filter": "Filter",
+  "sort": "Sort"
 }

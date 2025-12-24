@@ -155,9 +155,45 @@ export default function CategoryPage({
 
   return (
     <main className="min-h-screen w-full bg-background text-foreground px-4 sm:px-6 md:px-10 py-6">
+      {/* MOBILE HEADER ACTIONS */}
+      <div className="md:hidden sticky top-0 z-20 bg-background border-b border-border">
+        <div className="flex gap-3 px-4 py-3">
+          <button
+            className="
+        flex-1 h-[44px]
+        rounded-md
+        border border-border
+        bg-card
+        text-sm font-medium
+        text-foreground
+        flex items-center justify-center gap-2
+        active:scale-[0.98]
+      "
+          >
+            {/* icon optional */}
+            {t("filter")}
+          </button>
+
+          <button
+            className="
+        flex-1 h-[44px]
+        rounded-md
+        border border-border
+        bg-card
+        text-sm font-medium
+        text-foreground
+        flex items-center justify-center gap-2
+        active:scale-[0.98]
+      "
+          >
+            {t("sort")}
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-8">
-        {/* SIDEBAR */}
-        <div className="w-full md:w-[260px] shrink-0">
+        {/* SIDEBAR — hidden on mobile */}
+        <div className="hidden md:block w-[260px] shrink-0">
           <CategorySidebar
             filters={filters}
             onFilterToggle={handleFilterToggle}
@@ -166,13 +202,16 @@ export default function CategoryPage({
 
         {/* CONTENT */}
         <div className="flex-1">
-          <CategoryHeader
-            title={categoryName}
-            count={filteredFoods.length}
-            onSortChange={(v) =>
-              setSortType(v as "newest" | "oldest" | "low" | "high")
-            }
-          />
+          {/* HEADER — hidden on mobile */}
+          <div className="hidden md:block">
+            <CategoryHeader
+              title={categoryName}
+              count={filteredFoods.length}
+              onSortChange={(v) =>
+                setSortType(v as "newest" | "oldest" | "low" | "high")
+              }
+            />
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
             {pagedFoods.length > 0 ? (

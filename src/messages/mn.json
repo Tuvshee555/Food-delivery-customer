@@ -265,6 +265,10 @@
     "cancel": "Болих"
   },
   "filter": "Шүүх",
-  "sort": "Эрэмбэлэх"
+  "sort": "Эрэмбэлэх",
+  "sort_discounted_first": "Хямдралтай эхэнд",
+  "filter_title": "Шүүх",
+  "reset": "Арилгах",
+  "close": "Хаах"
   
 }

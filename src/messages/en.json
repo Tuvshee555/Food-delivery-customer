@@ -269,5 +269,9 @@
     "cancel": "Cancel"
   },
   "filter": "Filter",
-  "sort": "Sort"
+  "sort": "Sort",
+  "sort_discounted_first": "Discounted first",
+  "filter_title": "Filter",
+  "reset": "Reset",
+  "close": "Close"
 }

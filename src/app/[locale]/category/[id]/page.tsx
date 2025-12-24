@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { FoodCard } from "@/components/FoodCard";
 import { CategorySidebar } from "@/components/category/CategorySidebar";
 import { CategoryHeader } from "@/components/category/CategoryHeader";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategoryLogic } from "@/components/category/components/useCategoryFoods";
+import { CategoryFilterSheet } from "@/components/category/components/CategoryFilterSheet";
+import { CategorySortDrawer } from "@/components/category/components/CategorySortDrawer";
 
 export default function CategoryPage({
   params,
@@ -27,18 +30,27 @@ export default function CategoryPage({
     setSortType,
     toggleFilter,
   } = useCategoryLogic(id);
+  const [mobileSort, setMobileSort] = useState<
+    "newest" | "oldest" | "low" | "high" | "discounted"
+  >("newest");
 
   return (
     <main className="min-h-screen w-full bg-background text-foreground px-4 sm:px-6 md:px-10 py-6">
       {/* MOBILE ACTIONS */}
       <div className="md:hidden sticky top-0 z-20 bg-background border-b border-border">
         <div className="flex gap-3 px-4 py-3">
-          <button className="flex-1 h-[44px] rounded-md border border-border bg-card text-sm font-medium">
-            {t("filter")}
-          </button>
-          <button className="flex-1 h-[44px] rounded-md border border-border bg-card text-sm font-medium">
-            {t("sort")}
-          </button>
+          <CategoryFilterSheet
+            filters={filters}
+            onFilterToggle={toggleFilter}
+          />
+
+          <CategorySortDrawer
+            value={mobileSort}
+            onChange={(v) => {
+              setMobileSort(v);
+              setSortType(v as any);
+            }}
+          />
         </div>
       </div>
 

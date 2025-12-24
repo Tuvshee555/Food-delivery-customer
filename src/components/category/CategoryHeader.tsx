@@ -69,31 +69,39 @@ export const CategoryHeader = ({
 
           <SelectContent
             className="
-              bg-popover
-              border border-border
-              rounded-lg
-              shadow-lg
-              backdrop-blur
-            "
+    bg-popover
+    border border-border
+    rounded-lg
+    shadow-lg
+    backdrop-blur
+  "
           >
-            <SelectItem value="newest" className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              {t("sort_newest")}
+            <SelectItem value="newest">
+              <div className="flex items-center gap-2 leading-none">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span>{t("sort_newest")}</span>
+              </div>
             </SelectItem>
 
-            <SelectItem value="oldest" className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              {t("sort_oldest")}
+            <SelectItem value="oldest">
+              <div className="flex items-center gap-2 leading-none">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span>{t("sort_oldest")}</span>
+              </div>
             </SelectItem>
 
-            <SelectItem value="low" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-500" />
-              {t("sort_price_low")}
+            <SelectItem value="low">
+              <div className="flex items-center gap-2 leading-none">
+                <DollarSign className="w-4 h-4 text-muted-foreground" />
+                <span>{t("sort_price_low")}</span>
+              </div>
             </SelectItem>
 
-            <SelectItem value="high" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-red-500" />
-              {t("sort_price_high")}
+            <SelectItem value="high">
+              <div className="flex items-center gap-2 leading-none">
+                <DollarSign className="w-4 h-4 text-muted-foreground" />
+                <span>{t("sort_price_high")}</span>
+              </div>
             </SelectItem>
           </SelectContent>
         </Select>

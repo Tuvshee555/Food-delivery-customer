@@ -97,57 +97,38 @@ export const FoodInfo = ({ food }: { food: any }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="
-        flex-1 flex flex-col gap-6
-        bg-card text-card-foreground
-        border border-border
-        rounded-xl
-        p-5 sm:p-6 md:p-8
-        shadow-[0_10px_32px_-18px_rgba(0,0,0,0.35)]
-      "
+      transition={{ duration: 0.2 }}
+      className="flex flex-col gap-5 text-foreground"
     >
-      {/* TITLE */}
       <FoodTitle
         name={food.foodName}
         price={food.price}
         oldPrice={food.oldPrice}
       />
 
-      {/* INGREDIENTS */}
       {food.ingredients && (
-        <div className="space-y-1.5">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            {t("ingredients")}
-          </h3>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {food.ingredients}
-          </p>
-        </div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {food.ingredients}
+        </p>
       )}
 
-      {/* SIZE */}
       <FoodSizes
         sizes={food.sizes || []}
         selectedSize={selectedSize}
         setSelectedSize={setSelectedSize}
       />
 
-      {/* QUANTITY – clean & usable */}
       <FoodQuantity
         quantity={quantity}
         setQuantity={setQuantity}
         buttonClass="
           w-8 h-8
           flex items-center justify-center
-          border border-border
           rounded-md
-          bg-background
+          bg-muted
           text-foreground
-          hover:bg-muted
-          transition
         "
         valueClass="
           min-w-[28px]
@@ -157,7 +138,6 @@ export const FoodInfo = ({ food }: { food: any }) => {
         "
       />
 
-      {/* ACTION BUTTONS */}
       <FoodActions
         onAddToCart={handleAddToCart}
         onOrderNow={handleOrderNow}
@@ -167,24 +147,19 @@ export const FoodInfo = ({ food }: { food: any }) => {
         primaryClass="
           h-[44px]
           rounded-md
-          bg-blue-600 hover:bg-blue-700
-          text-white
+          bg-foreground
+          text-background
           text-sm font-medium
-          transition
         "
         secondaryClass="
           h-[44px]
           rounded-md
-          bg-background
-          border border-border
+          bg-muted
           text-foreground
           text-sm font-medium
-          hover:bg-muted
-          transition
         "
       />
 
-      {/* ADDRESS */}
       <FoodAddress foodName={food.foodName} />
     </motion.div>
   );

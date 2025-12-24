@@ -13,6 +13,7 @@ import {
   Mail,
   MapPin,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import TranslateButton from "../translate/TranslateButton";
 
 type CategoryNode = {
@@ -35,11 +36,22 @@ export default function HeaderMobileSheet({
   loading: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const toggle = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
 
   const isExpanded = (id: string) => !!expanded[id];
+
+  const handleArrowClick = (node: CategoryNode, hasChildren: boolean) => {
+    if (hasChildren) {
+      toggle(node.id);
+      return;
+    }
+    // no children: navigate to category and close sheet
+    router.push(`/${locale}/category/${node.id}`);
+    onClose();
+  };
 
   const renderNode = (node: CategoryNode, depth = 0) => {
     const hasChildren = !!(node.children && node.children.length);
@@ -74,17 +86,28 @@ export default function HeaderMobileSheet({
             </Link>
           )}
 
+          {/* Arrow: unified click behavior (toggle or navigate) */}
           <div className="w-10 h-10 flex items-center justify-center">
             {hasChildren ? (
               <motion.div
+                onClick={() => handleArrowClick(node, true)}
+                role="button"
+                aria-label={expandedState ? "collapse" : "expand"}
                 animate={{ rotate: expandedState ? 90 : 0 }}
                 transition={{ duration: 0.18 }}
-                style={{ display: "flex" }}
+                style={{ display: "flex", cursor: "pointer" }}
               >
                 <ChevronRight size={20} />
               </motion.div>
             ) : (
-              <ChevronRight size={18} />
+              <div
+                onClick={() => handleArrowClick(node, false)}
+                role="button"
+                aria-label="open category"
+                className="cursor-pointer"
+              >
+                <ChevronRight size={18} />
+              </div>
             )}
           </div>
         </div>
@@ -121,28 +144,13 @@ export default function HeaderMobileSheet({
     );
   };
 
-  const helpLinks: [string, string][] = [
-    ["/about", "footer_about_us"],
-    ["/contact", "footer_contact"],
-    ["/faq", "footer_faq"],
-    ["/blog", "footer_posts"],
-    ["/careers", "footer_jobs"],
-    ["/branches", "footer_branches"],
-  ];
-
-  const productLinks: [string, string][] = [
-    ["/category/all", "footer_all_products"],
-    ["/category/featured", "footer_featured"],
-    ["/category/bestseller", "footer_bestseller"],
-    ["/category/discounted", "footer_discounted"],
-  ];
-
   return (
     // positioned absolutely to left so it's anchored to the left side of the overlay
     <div className="absolute left-0 top-0 h-full w-[80vw] max-w-[380px] bg-background shadow-xl z-[81] overflow-hidden">
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div />
+          <div className="font-semibold text-lg">{t("site_name")}</div>
           <button
             aria-label="close menu"
             onClick={onClose}
@@ -189,7 +197,14 @@ export default function HeaderMobileSheet({
                     {t("footer_menu_help")}
                   </div>
                   <div className="flex flex-col gap-2 text-muted-foreground text-sm">
-                    {helpLinks.map(([p, k]) => (
+                    {[
+                      ["/about", "footer_about_us"],
+                      ["/contact", "footer_contact"],
+                      ["/faq", "footer_faq"],
+                      ["/blog", "footer_posts"],
+                      ["/careers", "footer_jobs"],
+                      ["/branches", "footer_branches"],
+                    ].map(([p, k]) => (
                       <Link
                         key={p}
                         href={`/${locale}${p}`}
@@ -208,7 +223,12 @@ export default function HeaderMobileSheet({
                     {t("footer_products")}
                   </div>
                   <div className="flex flex-col gap-2 text-muted-foreground text-sm">
-                    {productLinks.map(([p, k]) => (
+                    {[
+                      ["/category/all", "footer_all_products"],
+                      ["/category/featured", "footer_featured"],
+                      ["/category/bestseller", "footer_bestseller"],
+                      ["/category/discounted", "footer_discounted"],
+                    ].map(([p, k]) => (
                       <Link
                         key={p}
                         href={`/${locale}${p}`}
@@ -220,37 +240,38 @@ export default function HeaderMobileSheet({
                     ))}
                   </div>
                 </div>
-                <div className="font-medium text-base">
-                  {t("footer_contact")}
-                </div>
-
-                <div className="flex flex-col gap-2 text-muted-foreground text-sm items-start">
-                  <a
-                    href={`tel:${t("footer_phone")}`}
-                    className="flex items-center gap-3 py-1"
-                  >
-                    <Phone size={18} />
-                    <span>{t("footer_phone")}</span>
-                  </a>
-
-                  <a
-                    href={`mailto:${t("footer_email")}`}
-                    className="flex items-center gap-3 py-1"
-                  >
-                    <Mail size={18} />
-                    <span className="truncate">{t("footer_email")}</span>
-                  </a>
-
-                  <div className="flex items-start gap-3 py-1">
-                    <MapPin size={18} />
-                    <span className="text-sm text-muted-foreground">
-                      {t("footer_address")}
-                    </span>
-                  </div>
-                </div>
 
                 {/* Contact + centered social & translate */}
                 <div className="flex flex-col gap-3 items-center text-center">
+                  <div className="font-medium text-base">
+                    {t("footer_contact")}
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-muted-foreground text-sm items-center">
+                    <a
+                      href={`tel:${t("footer_phone")}`}
+                      className="flex items-center gap-3 py-1"
+                    >
+                      <Phone size={18} />
+                      <span>{t("footer_phone")}</span>
+                    </a>
+
+                    <a
+                      href={`mailto:${t("footer_email")}`}
+                      className="flex items-center gap-3 py-1"
+                    >
+                      <Mail size={18} />
+                      <span className="truncate">{t("footer_email")}</span>
+                    </a>
+
+                    <div className="flex items-start gap-3 py-1">
+                      <MapPin size={18} />
+                      <span className="text-sm text-muted-foreground">
+                        {t("footer_address")}
+                      </span>
+                    </div>
+                  </div>
+
                   {/* social icons centered */}
                   <div className="flex items-center gap-6 mt-2">
                     <a
@@ -285,11 +306,6 @@ export default function HeaderMobileSheet({
                   {/* Translate button centered under icons */}
                   <div className="mt-3">
                     <TranslateButton />
-                  </div>
-
-                  {/* small centered copyright/brand line */}
-                  <div className="mt-4 text-xs text-muted-foreground">
-                    © {new Date().getFullYear()} {t("footer_small_text") || ""}
                   </div>
                 </div>
               </div>

@@ -29,6 +29,7 @@ export default function HeaderDesktop({
   closeMegaWithDelay,
   onOpenProfile,
   firstLetter,
+  cartCount,
 }: {
   locale: string;
   t: (k: string, def?: string) => string;
@@ -44,6 +45,7 @@ export default function HeaderDesktop({
   closeMegaWithDelay: () => void;
   onOpenProfile?: () => void;
   firstLetter: string;
+  cartCount: number;
 }) {
   return (
     <>
@@ -97,7 +99,7 @@ export default function HeaderDesktop({
 
             <div className="flex items-center gap-3">
               <SearchDialog />
-              <SheetRight />
+              <SheetRight cartCount={cartCount} />
               <motion.button
                 onClick={() => onOpenProfile && onOpenProfile()}
                 whileTap={{ scale: 0.98 }}

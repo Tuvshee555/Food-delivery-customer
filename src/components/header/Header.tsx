@@ -96,7 +96,7 @@ export default function Header({
         closeMegaWithDelay={closeMegaWithDelay}
         onOpenProfile={onOpenProfile}
         firstLetter={firstLetter}
-        // cartCount={cartCount} // ✅ ADD
+        cartCount={cartCount}
       />
 
       <HeaderMobile

@@ -273,5 +273,14 @@
   "sort_discounted_first": "Discounted first",
   "filter_title": "Filter",
   "reset": "Reset",
-  "close": "Close"
+  "close": "Close",
+  "auth": {
+    "sign_in": "Sign in",
+    "sign_in_subtitle": "Please sign in to continue",
+    "sign_in_email": "Sign in with email",
+    "or": "or",
+    "sign_in_facebook": "Continue with Facebook",
+    "sign_in_guest": "Continue as guest",
+    "terms_notice": "By signing in, you agree to our Terms of Service and Privacy Policy."
+  }
 }

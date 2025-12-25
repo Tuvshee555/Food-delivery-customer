@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// src/components/i18n/ClientI18nProvider.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
 
-type Messages = Record<string, string>;
+type Messages = Record<string, any>;
 
 type I18nContextType = {
   locale: string;
@@ -23,10 +23,15 @@ export default function ClientI18nProvider({
   messages: Messages;
   children: React.ReactNode;
 }) {
-  // simple translator function
   const t = (key: string, fallback?: string) => {
-    const v = messages?.[key];
-    return v ?? fallback ?? key;
+    const value = key
+      .split(".")
+      .reduce<any>(
+        (acc, k) => (acc && typeof acc === "object" ? acc[k] : undefined),
+        messages
+      );
+
+    return value ?? fallback ?? key;
   };
 
   const value = useMemo(() => ({ locale, messages, t }), [locale, messages]);
@@ -40,10 +45,10 @@ export function useI18n() {
   return ctx;
 }
 
-/** convenience hooks */
 export function useLocale() {
   return useI18n().locale;
 }
+
 export function useTranslations() {
   const { t } = useI18n();
   return (key: string, fallback?: string) => t(key, fallback);

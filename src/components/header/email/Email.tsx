@@ -28,26 +28,27 @@ export const Email = ({ open, onOpenChange }: EmailProps) => {
       <SheetContent
         side="right"
         className="
-          fixed inset-y-0 right-0
-          w-full sm:max-w-[538px]
-          bg-card text-card-foreground
-          border-l border-border
-          p-0
-          z-[9999]
-          shadow-2xl
-        "
+    fixed inset-y-0 right-0
+    w-[85vw] sm:w-full sm:max-w-[538px]
+    bg-card text-card-foreground
+    border-l border-border
+    p-0
+    z-[9999]
+    shadow-2xl
+  "
       >
         <VisuallyHidden>
           <SheetTitle>{t("user_menu")}</SheetTitle>
         </VisuallyHidden>
 
         {!token ? (
-          <EmailLoggedOut />
+          <EmailLoggedOut closeSheet={() => onOpenChange(false)} />
         ) : (
           <EmailLoggedIn
             email={email ?? ""}
             firstLetter={firstLetter}
             clearToken={() => setAuthToken(null)}
+            closeSheet={() => onOpenChange(false)}
           />
         )}
       </SheetContent>

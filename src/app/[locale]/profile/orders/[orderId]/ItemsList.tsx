@@ -1,15 +1,42 @@
 import { OrderItem } from "./types";
+import { Utensils } from "lucide-react";
 
-export const ItemsList = ({ items }: { items: OrderItem[] }) => (
-  <div className="bg-[#111] p-5 rounded-xl border border-gray-800 mb-6">
-    <h3 className="text-gray-300 font-medium mb-3">Захиалсан хоолнууд</h3>
-    <div className="space-y-2">
-      {items.map((item) => (
-        <div key={item.id} className="flex justify-between text-gray-400">
-          <span>🍽 {item.food.foodName}</span>
-          <span>× {item.quantity}</span>
-        </div>
-      ))}
+export const ItemsList = ({ items }: { items: OrderItem[] }) => {
+  return (
+    <div
+      className="
+        bg-card
+        border border-border
+        rounded-xl
+        p-4 sm:p-5
+        mb-6
+        space-y-4
+      "
+    >
+      {/* Title */}
+      <div className="flex items-center gap-2">
+        <Utensils className="w-4 h-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold">Захиалсан хоолнууд</h3>
+      </div>
+
+      {/* Items */}
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="
+              flex items-center justify-between
+              text-sm
+              border-b border-border/50
+              pb-2 last:border-0 last:pb-0
+            "
+          >
+            <span className="truncate">{item.food.foodName}</span>
+
+            <span className="text-muted-foreground">× {item.quantity}</span>
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};

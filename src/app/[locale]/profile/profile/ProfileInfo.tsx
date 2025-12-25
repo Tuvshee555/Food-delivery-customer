@@ -179,7 +179,11 @@ export const ProfileInfo = () => {
       {/* Save */}
       <div className="flex justify-end">
         <Button
-          className="h-[44px] px-6"
+          className="
+      h-[44px]
+      w-full sm:w-auto
+      px-6
+    "
           onClick={handleSave}
           disabled={loading}
         >

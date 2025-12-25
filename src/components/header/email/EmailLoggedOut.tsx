@@ -12,7 +12,11 @@ import { toast } from "sonner";
 import AuthDrawer from "@/components/AuthDrawer";
 import { useLocale, useI18n } from "@/components/i18n/ClientI18nProvider";
 
-export const EmailLoggedOut = () => {
+interface EmailLoggedOutProps {
+  closeSheet: () => void;
+}
+
+export const EmailLoggedOut = ({ closeSheet }: EmailLoggedOutProps) => {
   const router = useRouter();
   const { t } = useI18n();
   const locale = useLocale();
@@ -25,7 +29,10 @@ export const EmailLoggedOut = () => {
     <div className="px-6 py-10 flex flex-col gap-6">
       {/* EMAIL LOGIN */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          closeSheet(); // ✅ close sheet
+          setOpen(true); // ✅ open auth drawer
+        }}
         className="w-full py-3 border border-border rounded-xl
                    text-foreground hover:bg-muted transition"
       >
@@ -44,16 +51,20 @@ export const EmailLoggedOut = () => {
       {/* GOOGLE */}
       <div className="flex justify-center">
         <GoogleLogin
-          onSuccess={(cred) =>
-            handleGoogleLogin(cred, redirect, router, locale)
-          }
+          onSuccess={(cred) => {
+            closeSheet(); // ✅ close sheet
+            handleGoogleLogin(cred, redirect, router, locale);
+          }}
           onError={() => toast.error(t("google_login_error"))}
         />
       </div>
 
       {/* FACEBOOK */}
       <button
-        onClick={() => handleFacebookLogin(redirect, router, locale)}
+        onClick={() => {
+          closeSheet(); // ✅ close sheet
+          handleFacebookLogin(redirect, router, locale);
+        }}
         className="
           w-full bg-[#1877F2] text-white py-3 rounded-xl font-semibold
           hover:bg-[#145dbf] transition
@@ -64,7 +75,10 @@ export const EmailLoggedOut = () => {
 
       {/* GUEST */}
       <button
-        onClick={() => handleGuestLogin(redirect, router, locale)}
+        onClick={() => {
+          closeSheet(); // ✅ close sheet
+          handleGuestLogin(redirect, router, locale);
+        }}
         className="
           w-full border border-border py-3 rounded-xl font-semibold
           text-foreground hover:bg-muted transition

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import axios from "axios";
@@ -35,25 +36,29 @@ export const Summary = ({
   };
 
   return (
-    <div className="bg-[#111] p-5 rounded-xl border border-gray-800">
-      <div className="flex justify-between text-lg text-gray-300 mb-3">
+    <div className="bg-card p-5 rounded-xl border border-border">
+      <div className="flex justify-between text-sm text-muted-foreground mb-3">
         <span>{t("order_food_total")}</span>
         <span>{order.totalPrice.toLocaleString()}₮</span>
       </div>
 
-      <div className="border-t border-gray-700 my-4" />
+      <div className="border-t border-border my-4" />
 
-      <div className="flex justify-between items-center text-xl font-bold">
+      <div className="flex justify-between items-center text-lg font-semibold">
         <span>{t("order_total")}</span>
-        <span className="text-[#facc15]">
-          {order.totalPrice.toLocaleString()}₮
-        </span>
+        <span>{order.totalPrice.toLocaleString()}₮</span>
       </div>
 
       <div className="mt-5 flex gap-3">
         <button
-          onClick={handleReorder}
-          className="w-full py-3 rounded-xl bg-[#222] border border-[#facc15] text-[#facc15]"
+          // onClick={handleReorder}
+          className="
+            flex-1 h-[44px]
+            rounded-md
+            border border-border
+            bg-background
+            text-sm font-medium
+          "
         >
           {t("reorder")}
         </button>
@@ -61,7 +66,13 @@ export const Summary = ({
         {canCancel && (
           <button
             onClick={handleCancel}
-            className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700"
+            className="
+              flex-1 h-[44px]
+              rounded-md
+              bg-destructive
+              text-destructive-foreground
+              text-sm font-medium
+            "
           >
             {t("cancel")}
           </button>

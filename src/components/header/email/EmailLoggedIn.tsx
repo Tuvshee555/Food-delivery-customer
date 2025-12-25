@@ -9,12 +9,14 @@ interface EmailLoggedInProps {
   email: string;
   firstLetter: string;
   clearToken: () => void;
+  closeSheet: () => void;
 }
 
 export const EmailLoggedIn = ({
   email,
   firstLetter,
   clearToken,
+  closeSheet,
 }: EmailLoggedInProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,7 +35,10 @@ export const EmailLoggedIn = ({
 
     return (
       <button
-        onClick={() => router.push(href)}
+        onClick={() => {
+          closeSheet(); // ✅ CLOSE SHEET
+          router.push(href); // ✅ NAVIGATE
+        }}
         className={`flex items-center gap-4 h-[56px] px-4 rounded-lg border transition
           ${
             active
@@ -99,7 +104,10 @@ export const EmailLoggedIn = ({
       {/* Logout */}
       <div className="border-t border-border px-5 py-4">
         <button
-          onClick={() => handleLogout(router, clearToken, locale)}
+          onClick={() => {
+            closeSheet(); // ✅ CLOSE SHEET
+            handleLogout(router, clearToken, locale);
+          }}
           className="w-full h-[44px] rounded-md border border-destructive text-destructive text-sm font-medium flex items-center justify-center gap-2 hover:bg-destructive/5 transition"
         >
           <LogOut className="w-4 h-4" />

@@ -46,9 +46,15 @@ export const OrdersList = () => {
   } = useQuery({
     queryKey: ["orders", userId],
     queryFn: fetchOrders,
-    refetchInterval: 10000,
     enabled: !!token,
+    refetchInterval: 10000,
   });
+
+  const statusStyle: Record<OrderStatus, string> = {
+    PENDING: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+    DELIVERED: "bg-green-500/10 text-green-600 border-green-500/20",
+    CANCELLED: "bg-red-500/10 text-red-600 border-red-500/20",
+  };
 
   const statusLabel: Record<OrderStatus, string> = {
     PENDING: t("order_status_pending"),
@@ -56,88 +62,121 @@ export const OrdersList = () => {
     CANCELLED: t("order_status_cancelled"),
   };
 
-  if (isLoading)
+  /* ---------- Loading ---------- */
+  if (isLoading) {
     return (
-      <div className="space-y-3 mt-6">
+      <div className="space-y-4 mt-6">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="h-24 rounded-lg border border-border bg-card animate-pulse"
+            className="h-28 rounded-xl bg-card border border-border animate-pulse"
           />
         ))}
       </div>
     );
+  }
 
-  if (!orders.length)
-    return <p className="text-center text-sm mt-8">{t("orders_empty")}</p>;
+  /* ---------- Empty ---------- */
+  if (!orders.length) {
+    return (
+      <div className="text-center mt-16 space-y-2">
+        <Receipt className="mx-auto w-6 h-6 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">{t("orders_empty")}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-base font-semibold flex items-center gap-2">
-        <Receipt size={16} />
-        {t("my_orders")}
-      </h1>
+    <div
+      className="
+      space-y-6
+      mt-5 sm:mt-0
+      px-4 sm:px-0
+    "
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <Receipt className="w-5 h-5" />
+        <h1 className="text-lg font-semibold">{t("my_orders")}</h1>
+      </div>
 
-      {orders.map((order, i) => (
-        <motion.div
-          key={order.id}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, delay: i * 0.04 }}
-          className="bg-card border border-border rounded-lg p-4"
-        >
-          {/* Top */}
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <p className="text-xs">{t("order_id")}</p>
-              <p className="text-sm font-medium">{order.id}</p>
+      {/* Orders */}
+      <div className="space-y-4">
+        {orders.map((order, i) => (
+          <motion.div
+            key={order.id}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: i * 0.03 }}
+            className="
+              bg-card border border-border rounded-xl
+              p-4 sm:p-5
+              space-y-4
+            "
+          >
+            {/* Top row */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{t("order_id")}</p>
+                <p className="text-sm font-medium truncate">{order.id}</p>
+              </div>
+
+              <span
+                className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${
+                  statusStyle[order.status]
+                }`}
+              >
+                {statusLabel[order.status]}
+              </span>
             </div>
 
-            <span className="text-xs px-2 py-1 border border-border rounded-md">
-              {statusLabel[order.status]}
-            </span>
-          </div>
+            {/* Meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock size={14} />
+                {new Date(order.createdAt).toLocaleDateString()}
+              </div>
 
-          {/* Meta */}
-          <div className="space-y-1 text-sm mb-3">
-            <p className="flex items-center gap-2">
-              <Clock size={14} />
-              {new Date(order.createdAt).toLocaleDateString()}
-            </p>
+              <div className="flex items-center gap-2 text-muted-foreground truncate">
+                <MapPin size={14} />
+                <span className="truncate">{order.location}</span>
+              </div>
+            </div>
 
-            <p className="flex items-center gap-2">
-              <MapPin size={14} />
-              {order.location}
-            </p>
-
+            {/* Items */}
             {order.foodOrderItems?.length > 0 && (
-              <p className="text-xs leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {order.foodOrderItems
                   .map((item) => `${item.quantity}× ${item.food.foodName}`)
                   .join(" · ")}
               </p>
             )}
-          </div>
 
-          {/* Bottom */}
-          <div className="flex justify-between items-center">
-            <p className="text-sm font-semibold">
-              {order.totalPrice.toLocaleString()}₮
-            </p>
+            {/* Bottom */}
+            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+              <p className="text-base font-semibold">
+                {order.totalPrice.toLocaleString()}₮
+              </p>
 
-            <button
-              onClick={() =>
-                router.push(`/${locale}/profile/orders/${order.id}`)
-              }
-              className="text-sm underline"
-            >
-              {t("view_details")}
-            </button>
-          </div>
-        </motion.div>
-      ))}
+              <button
+                onClick={() =>
+                  router.push(`/${locale}/profile/orders/${order.id}`)
+                }
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                {t("view_details")}
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
-      {isFetching && <p className="text-xs text-center">{t("refreshing")}</p>}
+      {/* Background refresh indicator */}
+      {isFetching && (
+        <p className="text-xs text-center text-muted-foreground">
+          {t("refreshing")}
+        </p>
+      )}
     </div>
   );
 };

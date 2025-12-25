@@ -13,7 +13,7 @@ export const classes = {
   /* LAYOUT */
   wrapper: `
     max-w-7xl mx-auto
-    px-4 sm:px-6 md:px-10
+    sm:px-6 md:px-10
     grid grid-cols-1
     lg:grid-cols-[1fr_360px]
     gap-8

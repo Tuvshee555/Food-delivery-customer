@@ -5,8 +5,6 @@ import { notFound } from "next/navigation";
 import ClientI18nProvider from "@/components/i18n/ClientI18nProvider";
 import QueryProvider from "./QueryProvider";
 import { AuthProvider } from "./provider/AuthProvider";
-import { FoodDataProvider } from "./provider/FoodDataProvider";
-import { CategoryProvider } from "./provider/CategoryProvider";
 
 import Providers from "@/components/Providers"; // client wrapper for next-themes
 import AppShellClient from "@/components/AppShellClient";
@@ -36,14 +34,10 @@ export default async function LocaleLayout({ children, params }: Props) {
     <QueryProvider>
       <ClientI18nProvider locale={locale} messages={messages}>
         <AuthProvider>
-          <FoodDataProvider>
-            <CategoryProvider>
-              <Providers>
-                {/* AppShellClient handles header, footer, bottom nav, and the email sheet */}
-                <AppShellClient>{children}</AppShellClient>
-              </Providers>
-            </CategoryProvider>
-          </FoodDataProvider>
+          <Providers>
+            {/* AppShellClient handles header, footer, bottom nav, and the email sheet */}
+            <AppShellClient>{children}</AppShellClient>
+          </Providers>
         </AuthProvider>
       </ClientI18nProvider>
     </QueryProvider>

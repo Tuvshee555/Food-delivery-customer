@@ -3,17 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import TopBar from "./translate/TopBar";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
-import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
+import { useCategory } from "@/hooks/useCategory";
+import { useCategoryTree } from "@/hooks/useCategoryTree";
 import { useEmailSync } from "./email/hooks/useEmailSync";
 import HeaderDesktop from "./components/HeaderDesktop";
 import HeaderMobile from "./components/HeaderMobile";
-
-type CategoryNode = {
-  id: string;
-  categoryName: string;
-  parentId: string | null;
-  children?: CategoryNode[];
-};
 
 export default function Header({
   compact = false,
@@ -23,7 +17,13 @@ export default function Header({
   onOpenProfile?: () => void;
 }) {
   const { locale, t } = useI18n();
-  const { category = [] } = useCategory();
+
+  // ✅ React Query hooks (cached, non-blocking)
+  const { data: categoryData } = useCategory();
+  const { data: treeData, isLoading: treeLoading } = useCategoryTree();
+
+  const category = categoryData ?? [];
+  const tree = treeData ?? [];
 
   const [showTopBar, setShowTopBar] = useState(true);
   const [scrolled, setScrolled] = useState(compact);
@@ -34,35 +34,29 @@ export default function Header({
   const allProductsRef = useRef<HTMLAnchorElement | null>(null);
   const [caretLeft, setCaretLeft] = useState(0);
 
-  const [tree, setTree] = useState<CategoryNode[]>([]);
-  const [loading, setLoading] = useState(false);
-
   const email = useEmailSync();
   const firstLetter = email ? email[0].toUpperCase() : "?";
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/category/tree`)
-      .then((r) => r.json())
-      .then((d) => Array.isArray(d) && setTree(d))
-      .finally(() => setLoading(false));
-  }, []);
-
+  // ✅ scroll logic untouched (cheap)
   useEffect(() => {
     if (compact) return;
+
     const handler = () => {
       const y = window.scrollY;
       setShowTopBar(y === 0);
       setScrolled(y > 0);
     };
+
     window.addEventListener("scroll", handler, { passive: true });
     handler();
+
     return () => window.removeEventListener("scroll", handler);
   }, [compact]);
 
   const openMega = () => {
     if (hideTimeoutRef.current) window.clearTimeout(hideTimeoutRef.current);
     setMegaVisible(true);
+
     if (allProductsRef.current) {
       const rect = allProductsRef.current.getBoundingClientRect();
       setCaretLeft(rect.left + rect.width / 2);
@@ -90,7 +84,7 @@ export default function Header({
         t={t}
         category={category}
         tree={tree}
-        loading={loading}
+        loading={treeLoading}
         scrolled={scrolled}
         showTopBar={showTopBar}
         megaVisible={megaVisible}
@@ -106,7 +100,7 @@ export default function Header({
         locale={locale}
         t={t}
         tree={tree}
-        loading={loading}
+        loading={treeLoading}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />

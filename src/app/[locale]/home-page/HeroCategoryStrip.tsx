@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -6,42 +7,54 @@ import { useMemo, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { useCategory } from "@/app/[locale]/provider/CategoryProvider";
-import { useFood } from "@/app/[locale]/provider/FoodDataProvider";
+import { useCategory } from "@/hooks/useCategory";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import type { FoodType, Datas } from "@/type/type";
+import { useFood } from "@/hooks/useFood";
 
 export const HeroCategoryStrip = () => {
-  const { category } = useCategory();
-  const { foodData } = useFood();
   const { locale } = useI18n();
   const pathname = usePathname();
+
+  // ✅ React Query hooks
+  const { data: categories } = useCategory();
+  const { data: foods } = useFood();
+
+  // normalize (NO implicit any)
+  const safeCategories: Datas[] = categories ?? [];
+  const safeFoods: FoodType[] = foods ?? [];
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const activeId = pathname?.split("/category/")[1];
 
+  /**
+   * Build preview image map
+   * NOTE: we intentionally only accept string URLs here
+   * to avoid object URL memory leaks
+   */
   const previewImages = useMemo(() => {
     const map = new Map<string, string>();
 
-    category.forEach((cat) => {
-      const f = foodData.find(
+    for (const cat of safeCategories) {
+      const food = safeFoods.find(
         (item) => item.category === cat.id || item.categoryId === cat.id
       );
-      if (f?.image) {
-        map.set(
-          cat.id,
-          typeof f.image === "string" ? f.image : URL.createObjectURL(f.image)
-        );
+
+      if (food && typeof food.image === "string") {
+        map.set(cat.id, food.image);
       }
-    });
+    }
 
     return map;
-  }, [category, foodData]);
+  }, [safeCategories, safeFoods]);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
-    const amount = dir === "left" ? -300 : 300;
-    scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+    scrollRef.current.scrollBy({
+      left: dir === "left" ? -300 : 300,
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -90,7 +103,7 @@ export const HeroCategoryStrip = () => {
             ref={scrollRef}
             className="flex gap-4 overflow-x-auto no-scrollbar"
           >
-            {category
+            {safeCategories
               .filter((c) => c.parentId === null)
               .map((cat) => {
                 const isActive = activeId === cat.id;
@@ -155,3 +168,5 @@ export const HeroCategoryStrip = () => {
     </section>
   );
 };
+
+export default HeroCategoryStrip;

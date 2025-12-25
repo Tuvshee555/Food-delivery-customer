@@ -96,7 +96,7 @@ export const ProfileInfo = () => {
   /* ---------------- render ---------------- */
 
   return (
-    <section className="max-w-3xl space-y-10">
+    <section className="max-w-3xl space-y-10 p-7">
       <h1 className="text-base font-semibold">{t("my_profile")}</h1>
 
       {/* Personal info */}

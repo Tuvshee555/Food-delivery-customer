@@ -2,7 +2,8 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Category, CategoryNode } from "./categoryTree";
 
 type Props = {
@@ -63,14 +64,13 @@ export const CategorySidebarBody = ({
 
   const handleCategoryClick = (node: CategoryNode) => {
     const hasChildren = node.children.length > 0;
-    const isExpanded = !!expanded[node.id];
+    const isOpen = !!expanded[node.id];
 
-    if (hasChildren && !isExpanded) {
-      toggle(node.id); // FIRST CLICK → expand
+    if (hasChildren && !isOpen) {
+      toggle(node.id);
       return;
     }
 
-    // SECOND CLICK or LEAF → navigate
     router.push(`/${locale}/category/${node.id}`);
     onNavigate?.();
   };
@@ -82,42 +82,68 @@ export const CategorySidebarBody = ({
 
     return (
       <li key={node.id}>
+        {/* ROW — match CategoryTree sizing */}
         <div
-          className={`
-            flex items-center justify-between
-            py-2 rounded-md
-            ${depth > 0 ? "pl-4" : "pl-2"}
-            ${isActive ? "bg-card/70" : "hover:bg-muted/40"}
-          `}
+          className={`flex items-center justify-between select-none ${
+            depth > 0 ? "pl-5" : ""
+          }`}
         >
-          {/* CATEGORY TEXT */}
+          {/* TEXT */}
           <button
             onClick={() => handleCategoryClick(node)}
-            className={`
-              flex-1 text-left text-sm truncate
-              ${isActive ? "text-primary font-medium" : "text-foreground/90"}
-            `}
+            className={`flex-1 text-left py-4 px-1 text-base md:text-lg truncate ${
+              isActive ? "text-primary font-medium" : "text-foreground/90"
+            }`}
           >
             {node.categoryName}
           </button>
 
-          {/* CHEVRON */}
+          {/* CHEVRON — CSS rotation (avoids initial Framer mismatch) */}
           {node.children.length > 0 && (
-            <button
+            <div
               onClick={() => toggle(node.id)}
-              className="p-1 text-muted-foreground"
-              aria-label="Toggle category"
+              role="button"
+              aria-label={isOpen ? "collapse" : "expand"}
+              className={`w-10 h-10 flex items-center justify-center text-muted-foreground cursor-pointer transition-transform duration-150 ${
+                isOpen ? "rotate-90" : "rotate-0"
+              }`}
             >
-              {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </button>
+              <ChevronRight size={20} />
+            </div>
           )}
         </div>
 
-        {isOpen && node.children.length > 0 && (
-          <ul className="ml-2 border-l border-border/60">
-            {node.children.map((c) => renderNode(c, depth + 1))}
-          </ul>
-        )}
+        {/* CHILDREN — Framer handles expand/collapse height & opacity */}
+        <AnimatePresence initial={false}>
+          {isOpen && node.children.length > 0 && (
+            <motion.ul
+              key={`${node.id}-children`}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="overflow-hidden"
+            >
+              <div className="ml-4">
+                {node.children.map((c) => (
+                  <motion.div
+                    key={c.id}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="pl-2"
+                  >
+                    {renderNode(c, depth + 1)}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.ul>
+          )}
+        </AnimatePresence>
+
+        {/* separator to match CategoryTree */}
+        <div className="h-px bg-border/60" />
       </li>
     );
   };
@@ -171,13 +197,13 @@ export const CategorySidebarBody = ({
       {/* FILTERS */}
       <div className="flex flex-col gap-3 text-sm">
         {(["discount", "featured", "bestseller"] as const).map((k) => (
-          <label key={k} className="flex gap-2">
+          <label key={k} className="flex gap-2 items-center">
             <input
               type="checkbox"
               checked={filters[k]}
               onChange={() => onFilterToggle(k)}
             />
-            {t(k)}
+            <span>{t(k)}</span>
           </label>
         ))}
       </div>

@@ -41,10 +41,19 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-background text-foreground border-t border-border">
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
-        {/* Brand */}
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
+      <div
+        className="
+          max-w-7xl mx-auto
+          px-4 sm:px-6
+          py-8 sm:py-12
+          grid grid-cols-1
+          md:grid-cols-4
+          gap-8 md:gap-10
+        "
+      >
+        {/* BRAND — CENTER ON MOBILE */}
+        <div className="space-y-4 text-center md:text-left md:col-span-1">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-3">
             <div className="w-12 h-12 relative rounded-md overflow-hidden bg-muted">
               <Image
                 src="/order.png"
@@ -53,22 +62,21 @@ export default function Footer() {
                 className="object-contain"
               />
             </div>
+
             <div>
-              <h4 className="text-base font-semibold text-foreground">
-                {t("site_name")}
-              </h4>
-              <p className="text-sm text-foreground">
+              <h4 className="text-base font-semibold">{t("site_name")}</h4>
+              <p className="text-sm text-muted-foreground">
                 {t("footer_followers", "56963")}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          {/* Socials — centered on mobile */}
+          <div className="flex justify-center md:justify-start gap-2">
             <a
               href={t("social_facebook_url") || "https://facebook.com"}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={t("social_facebook")}
               className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
             >
               <Facebook size={18} />
@@ -78,7 +86,6 @@ export default function Footer() {
               href={t("social_instagram_url") || "https://instagram.com"}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={t("social_instagram")}
               className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
             >
               <Instagram size={18} />
@@ -88,7 +95,6 @@ export default function Footer() {
               href={t("social_youtube_url") || "https://youtube.com"}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={t("social_youtube")}
               className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
             >
               <Youtube size={18} />
@@ -96,71 +102,72 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Help */}
-        <div>
-          <h3 className="text-base font-semibold mb-3 text-foreground">
-            {t("footer_menu_help")}
-          </h3>
-          <ul className="space-y-1">
-            {helpLinks.map(([path, key]) => (
-              <li key={path}>
-                <button
-                  onClick={() => go(path)}
-                  className="min-h-[44px] flex items-center w-full text-sm text-foreground hover:underline text-left"
-                >
-                  {t(key)}
-                </button>
-              </li>
-            ))}
-          </ul>
+        {/* LINKS — 2 COLUMNS ON MOBILE */}
+        <div className="grid grid-cols-2 gap-6 md:contents">
+          {/* Help */}
+          <div>
+            <h3 className="text-sm font-semibold mb-2">
+              {t("footer_menu_help")}
+            </h3>
+            <ul className="space-y-1">
+              {helpLinks.map(([path, key]) => (
+                <li key={path}>
+                  <button
+                    onClick={() => go(path)}
+                    className="min-h-[40px] text-sm hover:underline text-left"
+                  >
+                    {t(key)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Products */}
+          <div>
+            <h3 className="text-sm font-semibold mb-2">
+              {t("footer_products")}
+            </h3>
+            <ul className="space-y-1">
+              {productLinks.map(([path, key]) => (
+                <li key={path}>
+                  <button
+                    onClick={() => go(path)}
+                    className="min-h-[40px] text-sm hover:underline text-left"
+                  >
+                    {t(key)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Products */}
-        <div>
-          <h3 className="text-base font-semibold mb-3 text-foreground">
-            {t("footer_products")}
-          </h3>
-          <ul className="space-y-1">
-            {productLinks.map(([path, key]) => (
-              <li key={path}>
-                <button
-                  onClick={() => go(path)}
-                  className="min-h-[44px] flex items-center w-full text-sm text-foreground hover:underline text-left"
-                >
-                  {t(key)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Contact */}
-        <div>
-          <h3 className="text-base font-semibold mb-3 text-foreground">
-            {t("footer_contact")}
-          </h3>
-          <ul className="space-y-2">
+        {/* CONTACT — FULL WIDTH ON MOBILE */}
+        <div className="md:col-span-1 pb-[90px] md:pb-0">
+          <h3 className="text-sm font-semibold mb-2">{t("footer_contact")}</h3>
+          <ul className="space-y-2 text-sm">
             <li>
               <a
                 href={`tel:${t("footer_phone")}`}
-                className="min-h-[44px] flex items-center gap-2 text-sm text-foreground"
+                className="flex items-center gap-2 min-h-[40px]"
               >
                 <Phone size={16} />
-                <span>{t("footer_phone")}</span>
+                {t("footer_phone")}
               </a>
             </li>
 
             <li>
               <a
                 href={`mailto:${t("footer_email")}`}
-                className="min-h-[44px] flex items-center gap-2 text-sm text-foreground"
+                className="flex items-center gap-2 min-h-[40px]"
               >
                 <Mail size={16} />
-                <span>{t("footer_email")}</span>
+                {t("footer_email")}
               </a>
             </li>
 
-            <li className="min-h-[44px] flex items-start gap-2 text-sm text-foreground">
+            <li className="flex items-start gap-2">
               <MapPin size={16} className="mt-0.5" />
               <span>{t("footer_address")}</span>
             </li>
@@ -171,10 +178,18 @@ export default function Footer() {
       {/* Back to top */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted"
+        className="
+          fixed bottom-4 right-4
+          sm:bottom-6 sm:right-6
+          h-10 w-10 sm:h-12 sm:w-12
+          rounded-lg
+          bg-card border border-border
+          flex items-center justify-center
+          hover:bg-muted
+        "
         aria-label={t("back_to_top")}
       >
-        <ArrowUp size={18} />
+        <ArrowUp size={16} />
       </button>
     </footer>
   );

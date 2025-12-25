@@ -46,7 +46,14 @@ export const SimilarFoods = ({
   });
 
   return (
-    <section className="max-w-7xl mx-auto mt-20 px-6 md:px-10">
+    <section
+      className="
+  max-w-7xl mx-auto
+  mt-20
+  px-6 md:px-10
+  pb-[15px] sm:pb-0
+"
+    >
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl md:text-2xl font-semibold text-white">
           {t("similar_products")}

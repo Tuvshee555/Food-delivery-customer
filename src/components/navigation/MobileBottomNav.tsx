@@ -3,6 +3,7 @@
 import { Home, Grid, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import Link from "next/link";
 
 interface MobileBottomNavProps {
   onOpenProfile: () => void;
@@ -39,7 +40,7 @@ export default function MobileBottomNav({
             pathname === it.href || pathname.startsWith(it.href + "/");
 
           return (
-            <a
+            <Link
               key={it.href}
               href={it.href}
               className={`flex-1 flex flex-col items-center justify-center gap-1 text-xs h-[56px] rounded-md
@@ -53,7 +54,7 @@ export default function MobileBottomNav({
             >
               {it.icon}
               <span>{it.label}</span>
-            </a>
+            </Link>
           );
         })}
 

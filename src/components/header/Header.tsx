@@ -12,9 +12,11 @@ import HeaderMobile from "./components/HeaderMobile";
 export default function Header({
   compact = false,
   onOpenProfile,
+  cartCount, // ✅ ADD
 }: {
   compact?: boolean;
   onOpenProfile?: () => void;
+  cartCount: number; // ✅ ADD
 }) {
   const { locale, t } = useI18n();
 
@@ -94,6 +96,7 @@ export default function Header({
         closeMegaWithDelay={closeMegaWithDelay}
         onOpenProfile={onOpenProfile}
         firstLetter={firstLetter}
+        // cartCount={cartCount} // ✅ ADD
       />
 
       <HeaderMobile
@@ -103,6 +106,7 @@ export default function Header({
         loading={treeLoading}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
+        cartCount={cartCount} // ✅ ADD
       />
     </>
   );

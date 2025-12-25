@@ -22,6 +22,7 @@ export default function HeaderMobile({
   loading,
   mobileMenuOpen,
   setMobileMenuOpen,
+  cartCount, // ✅ ADD
 }: {
   locale: string;
   t: (k: string, def?: string) => string;
@@ -29,6 +30,7 @@ export default function HeaderMobile({
   loading: boolean;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (v: boolean) => void;
+  cartCount: number; // ✅ ADD
 }) {
   return (
     <>
@@ -60,7 +62,7 @@ export default function HeaderMobile({
           {/* RIGHT — ACTIONS */}
           <div className="ml-auto flex items-center gap-2">
             <SearchDialog />
-            <SheetRight />
+            <SheetRight cartCount={cartCount} />
           </div>
         </div>
       </header>

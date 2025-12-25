@@ -8,13 +8,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useCartSync } from "./components/useCartSync";
 import { CartButton } from "./components/CartButton";
 import { PayFood } from "./payfood/PayFood";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
-export const SheetRight = () => {
-  const cartCount = useCartSync();
+export const SheetRight = ({ cartCount }: { cartCount: number }) => {
   const { t } = useI18n();
 
   return (
@@ -25,15 +23,15 @@ export const SheetRight = () => {
 
       <SheetContent
         className="
-    sm:max-w-[538px]
-    p-8
-    bg-card
-    text-card-foreground
-    border-l border-border
-    flex flex-col gap-6
-    shadow-2xl
-    z-[9999]
-  "
+          sm:max-w-[538px]
+          p-8
+          bg-card
+          text-card-foreground
+          border-l border-border
+          flex flex-col gap-6
+          shadow-2xl
+          z-[9999]
+        "
       >
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-lg font-semibold text-primary">

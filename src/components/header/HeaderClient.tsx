@@ -8,8 +8,10 @@ const Header = dynamic(() => import("./Header").then((m) => m.default), {
 
 export default function HeaderClient({
   onOpenProfile,
+  cartCount,
 }: {
   onOpenProfile?: () => void;
+  cartCount: number;
 }) {
-  return <Header onOpenProfile={onOpenProfile} />;
+  return <Header onOpenProfile={onOpenProfile} cartCount={cartCount} />;
 }

@@ -9,7 +9,6 @@ import { ProfileInfo } from "./profile/ProfileInfo";
 import { OrdersList } from "./profile/OrdersList";
 import { TicketsList } from "./profile/TicketsList";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
-import Header from "@/components/header/Header";
 
 /* ---------------- types ---------------- */
 type Tab = "dashboard" | "profile" | "orders" | "tickets";
@@ -52,8 +51,6 @@ export default function ProfileInner() {
 
   return (
     <>
-      <Header />
-
       <main className="min-h-screen bg-background text-foreground pt-[120px] pb-20">
         <div className="max-w-6xl mx-auto px-4 lg:px-6 flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* SIDEBAR */}

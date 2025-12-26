@@ -11,20 +11,21 @@ type Props = {
 };
 
 export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
-  const disableMinus = item.quantity <= 1;
+  const qty = Number(item.quantity) || 1;
+  const disableMinus = qty <= 1;
 
   return (
     <div className="flex justify-between items-center border-b border-border py-4">
       {/* LEFT */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         <img
           src={item.food.image}
           alt={item.food.foodName}
-          className="w-[72px] h-[72px] rounded-lg object-cover"
+          className="w-[72px] h-[72px] rounded-lg object-cover shrink-0"
         />
 
-        <div className="space-y-0.5">
-          <p className="text-sm font-medium text-foreground">
+        <div className="space-y-0.5 min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">
             {item.food.foodName}
           </p>
           <p className="text-sm text-foreground">
@@ -34,7 +35,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
       </div>
 
       {/* RIGHT */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={() => onUpdateQty(-1)}
           disabled={disableMinus}
@@ -52,7 +53,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
         </button>
 
         <span className="min-w-[28px] text-center text-sm font-medium">
-          {item.quantity}
+          {qty}
         </span>
 
         <button

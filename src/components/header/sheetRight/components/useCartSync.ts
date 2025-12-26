@@ -5,7 +5,6 @@ import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 import { useState, useEffect, useCallback, useRef } from "react";
 
 type CartItem = {
-  // allow flexible shape, but quantity can be number or string from some sources
   id?: string;
   foodId?: string;
   quantity?: number | string | unknown;
@@ -18,7 +17,6 @@ const normalizeQuantity = (val: unknown): number => {
     const n = Number(val);
     if (!Number.isNaN(n) && Number.isFinite(n)) return n;
   }
-  // default fallback if quantity missing or invalid
   return 1;
 };
 
@@ -27,34 +25,34 @@ export const useCartSync = (): number => {
   const [cartCount, setCartCount] = useState<number>(0);
   const alreadySynced = useRef(false);
 
+  /* ---------------- local cart ---------------- */
+
   const loadLocalCartCount = useCallback(() => {
     const raw = localStorage.getItem("cart") || "[]";
-    let parsed: unknown;
-
     try {
-      parsed = JSON.parse(raw);
-    } catch (err) {
-      console.error("Failed to parse local cart:", err);
-      setCartCount(0);
-      return;
-    }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        setCartCount(0);
+        return;
+      }
 
-    if (!Array.isArray(parsed)) {
+      const qty = parsed.reduce(
+        (sum: number, item: CartItem) =>
+          sum + normalizeQuantity(item?.quantity),
+        0
+      );
+      setCartCount(qty);
+    } catch {
       setCartCount(0);
-      return;
     }
-
-    const items = parsed as CartItem[];
-    const qty = items.reduce(
-      (sum, item) => sum + normalizeQuantity(item?.quantity),
-      0
-    );
-    setCartCount(qty);
   }, []);
+
+  /* ---------------- guest ---------------- */
 
   const ensureGuestExists = useCallback(async () => {
     if (!token?.startsWith("guest-token-")) return;
     if (!userId?.startsWith("guest-")) return;
+    if (!process.env.NEXT_PUBLIC_BACKEND_URL) return;
 
     try {
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`, {
@@ -62,14 +60,16 @@ export const useCartSync = (): number => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ guestId: userId }),
       });
-    } catch (err) {
-      console.error("Failed to ensure guest exists:", err);
+    } catch {
+      // silent by design
     }
   }, [userId, token]);
 
+  /* ---------------- server cart ---------------- */
+
   const loadServerCartCount = useCallback(
     async (fallbackToLocal = true) => {
-      if (!userId || !token) {
+      if (!userId || !token || !process.env.NEXT_PUBLIC_BACKEND_URL) {
         if (fallbackToLocal) loadLocalCartCount();
         return;
       }
@@ -88,25 +88,27 @@ export const useCartSync = (): number => {
         }
 
         const data = await res.json();
-        const items = Array.isArray(data?.items)
-          ? (data.items as CartItem[])
-          : [];
+        const items = Array.isArray(data?.items) ? data.items : [];
         const qty = items.reduce(
-          (sum, item) => sum + normalizeQuantity(item?.quantity),
+          (sum: number, item: CartItem) =>
+            sum + normalizeQuantity(item?.quantity),
           0
         );
         setCartCount(qty);
-      } catch (err) {
-        console.error("Cart load error:", err);
+      } catch {
         if (fallbackToLocal) loadLocalCartCount();
       }
     },
     [userId, token, loadLocalCartCount]
   );
 
+  /* ---------------- sync ---------------- */
+
   const syncLocalToServer = useCallback(
     async (force = false) => {
       if (!userId || !token) return;
+      if (!process.env.NEXT_PUBLIC_BACKEND_URL) return;
+      if (!navigator.onLine) return;
       if (alreadySynced.current && !force) return;
 
       const raw = localStorage.getItem("cart");
@@ -118,13 +120,12 @@ export const useCartSync = (): number => {
       let local: unknown;
       try {
         local = JSON.parse(raw);
-      } catch (err) {
-        console.error("Failed to parse local cart for sync:", err);
+      } catch {
         await loadServerCartCount();
         return;
       }
 
-      if (!Array.isArray(local) || !local.length) {
+      if (!Array.isArray(local) || local.length === 0) {
         await loadServerCartCount();
         return;
       }
@@ -145,7 +146,10 @@ export const useCartSync = (): number => {
           }
         );
 
-        if (!res.ok) throw new Error("Sync failed");
+        if (!res.ok) {
+          await loadServerCartCount();
+          return;
+        }
 
         localStorage.removeItem("cart");
         localStorage.removeItem("cart-backup");
@@ -153,8 +157,7 @@ export const useCartSync = (): number => {
 
         window.dispatchEvent(new Event("cart-updated"));
         await loadServerCartCount();
-      } catch (err) {
-        console.error("Cart sync error:", err);
+      } catch {
         const backup = localStorage.getItem("cart-backup");
         if (backup) localStorage.setItem("cart", backup);
         await loadServerCartCount();
@@ -163,6 +166,8 @@ export const useCartSync = (): number => {
     [userId, token, loadServerCartCount]
   );
 
+  /* ---------------- lifecycle ---------------- */
+
   useEffect(() => {
     if (!token || !userId) {
       loadLocalCartCount();
@@ -170,13 +175,16 @@ export const useCartSync = (): number => {
     }
 
     const run = async () => {
-      await ensureGuestExists();
-      await syncLocalToServer();
-      await loadServerCartCount();
+      try {
+        await ensureGuestExists();
+        await syncLocalToServer();
+        await loadServerCartCount();
+      } catch {
+        loadLocalCartCount();
+      }
     };
 
     run();
-    // note: dependencies intentionally include callbacks used above
   }, [
     userId,
     token,

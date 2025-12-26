@@ -37,7 +37,7 @@ export const SheetRight = ({ cartCount }: { cartCount: number }) => {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
             <ShoppingCart className="w-5 h-5" />
-            {t("cart")}
+            {t("cart.title")}
           </SheetTitle>
         </SheetHeader>
 

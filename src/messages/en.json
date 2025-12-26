@@ -256,7 +256,6 @@
   "search_food_placeholder": "Search by food name…",
   "searching": "Searching…",
   "no_food_found": "No food found",
-  "cart": "Cart",
   "product_sections": "Product sections",
   "language": {
     "select": "Select language"
@@ -286,5 +285,24 @@
   "cart2": {
     "yourCart": "Your cart",
     "clear": "Clear"
+  },
+  "footer": {
+    "delivery": {
+      "title": "Delivery Policy",
+      "desc": "Paid orders will be delivered within 36 hours depending on your location. The minimum order amount must be at least 15,000₮."
+    },
+    "payment": {
+      "title": "Payment Policy",
+      "desc": "Payment must be transferred 100% to Khan Bank account 540005214 to confirm the order. Orders cannot be cancelled after payment."
+    },
+    "service": {
+      "title": "Service Policy",
+      "desc": "Ordered items can be returned within 12 hours. Delivery fees are non-refundable for returned items."
+    }
+  },
+   "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty."
   }
+
 }

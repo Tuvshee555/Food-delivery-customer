@@ -16,6 +16,8 @@ import {
   removeServerHelper,
   clearLocalHelper,
   clearServerHelper,
+  updateServerQtyHelper,
+  updateLocalQtyHelper,
 } from "./helpers";
 
 export const PayFood = () => {
@@ -24,10 +26,13 @@ export const PayFood = () => {
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   /* ---------------- LOAD CART ---------------- */
 
   const loadCart = useCallback(async () => {
+    setLoading(true);
+
     let items: CartItem[] = [];
 
     if (!userId || !token) {
@@ -38,6 +43,7 @@ export const PayFood = () => {
 
     setCartItems(items);
     setTotalPrice(calculateTotal(items));
+    setLoading(false);
   }, [userId, token]);
 
   useEffect(() => {
@@ -47,21 +53,28 @@ export const PayFood = () => {
   /* ---------------- PERSIST LOCAL CART ---------------- */
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-    setTotalPrice(calculateTotal(cartItems));
-  }, [cartItems]);
+    if (!loading) {
+      localStorage.setItem("cart", JSON.stringify(cartItems));
+      setTotalPrice(calculateTotal(cartItems));
+    }
+  }, [cartItems, loading]);
 
   /* ---------------- FAST QUANTITY UPDATE ---------------- */
 
-  const updateQuantity = (item: CartItem, change: number) => {
-    setCartItems((prev) =>
-      prev.map((i) => {
-        if (i.id !== item.id) return i;
+  const updateQuantity = async (item: CartItem, change: number) => {
+    const nextQty = Math.max(1, item.quantity + change);
 
-        const nextQty = Math.max(1, i.quantity + change);
-        return { ...i, quantity: nextQty };
-      })
+    setCartItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, quantity: nextQty } : i))
     );
+
+    if (!userId || !token) {
+      updateLocalQtyHelper(item, nextQty);
+    } else {
+      await updateServerQtyHelper(item.id, nextQty, token);
+    }
+
+    window.dispatchEvent(new Event("cart-updated"));
   };
 
   /* ---------------- REMOVE ITEM ---------------- */
@@ -99,7 +112,7 @@ export const PayFood = () => {
             {t("your_cart")}
           </h1>
 
-          {cartItems.length > 0 && (
+          {!loading && cartItems.length > 0 && (
             <button
               onClick={clearAll}
               className="text-sm text-muted-foreground hover:text-destructive"
@@ -111,7 +124,11 @@ export const PayFood = () => {
 
         {/* ITEMS */}
         <div className="space-y-5 max-h-[360px] overflow-y-auto pr-1">
-          {cartItems.length > 0 ? (
+          {loading ? (
+            <p className="text-center py-10 text-muted-foreground">
+              {t("loading")}
+            </p>
+          ) : cartItems.length > 0 ? (
             cartItems.map((item) => (
               <CartItemRow
                 key={item.id || `${item.foodId}-${item.selectedSize ?? "d"}`}
@@ -128,7 +145,7 @@ export const PayFood = () => {
         </div>
 
         {/* SUMMARY */}
-        {cartItems.length > 0 && <CartSummary total={totalPrice} />}
+        {!loading && cartItems.length > 0 && <CartSummary total={totalPrice} />}
       </div>
 
       <SheetFooter />

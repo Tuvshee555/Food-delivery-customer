@@ -70,49 +70,50 @@ export function useCartLogic() {
     };
   }, [token, userId, loadLocalCart, loadServerCart]);
 
-  const updateQuantity = async (index: number, change: number) => {
-    const target = items[index];
-    const newQty = target.quantity + change;
-    if (newQty < 1) return;
+  const updateQuantity = async (item: CartItem, change: number) => {
+    const nextQty = Math.max(1, item.quantity + change);
 
-    const updated = [...items];
-    updated[index] = { ...target, quantity: newQty };
-    setItems(updated);
+    setItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, quantity: nextQty } : i))
+    );
 
     if (!userId || !token) {
-      updateLocalQtyHelper(target, newQty);
+      updateLocalQtyHelper(item, nextQty);
       return;
     }
 
-    if (!target.id) {
+    if (!item.id) {
       toast.error(t("cart.itemIdError"));
       await loadServerCart();
       return;
     }
 
-    const ok = await updateQtyHelper(target.id, newQty);
+    const ok = await updateQtyHelper(item.id, nextQty);
     if (!ok) await loadServerCart();
+
+    window.dispatchEvent(new Event("cart-updated"));
   };
 
-  const removeItem = async (index: number) => {
-    const target = items[index];
-    setItems((prev) => prev.filter((_, i) => i !== index));
+  const removeItem = async (item: CartItem) => {
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
 
     if (!userId || !token) {
-      removeLocalHelper(target);
+      removeLocalHelper(item);
       toast.success(t("cart.itemRemoved"));
       return;
     }
 
-    if (!target.id) {
+    if (!item.id) {
       toast.error(t("cart.itemIdError"));
       await loadServerCart();
       return;
     }
 
-    const ok = await removeItemHelper(target.id);
+    const ok = await removeItemHelper(item.id);
     if (!ok) await loadServerCart();
     else toast.success(t("cart.itemRemoved"));
+
+    window.dispatchEvent(new Event("cart-updated"));
   };
 
   const clearCart = async () => {

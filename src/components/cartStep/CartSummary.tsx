@@ -21,8 +21,20 @@ export const CartSummary: React.FC<Props> = ({
   const grandTotal = total + delivery;
 
   return (
-    <div className="bg-card rounded-xl space-y-4">
-      <h2 className="text-base font-semibold border-b border-border pb-3">
+    <div
+      className="
+        bg-card rounded-xl space-y-4
+        sm:border sm:border-border
+        sm:p-6
+      "
+    >
+      {/* TITLE — hidden border on mobile */}
+      <h2
+        className="
+          text-base font-semibold
+          sm:border-b sm:border-border sm:pb-3
+        "
+      >
         {t("payment_info")}
       </h2>
 
@@ -36,7 +48,13 @@ export const CartSummary: React.FC<Props> = ({
         <span>{delivery.toLocaleString()}₮</span>
       </div>
 
-      <div className="border-t border-border pt-4 flex justify-between items-center">
+      {/* GRAND TOTAL — border only on desktop */}
+      <div
+        className="
+          pt-4 flex justify-between items-center
+          sm:border-t sm:border-border
+        "
+      >
         <span className="text-base font-semibold">{t("grand_total")}</span>
         <span className="text-xl font-semibold">
           {grandTotal.toLocaleString()}₮
@@ -45,15 +63,25 @@ export const CartSummary: React.FC<Props> = ({
 
       <button
         onClick={onCheckout}
-        className="w-full h-[44px] rounded-md bg-primary text-primary-foreground text-sm font-medium"
+        className="
+          w-full h-[44px]
+          rounded-md
+          bg-primary text-primary-foreground
+          text-sm font-medium
+        "
       >
         {t("continue")}
       </button>
 
+      {/* ❌ CLEAR CART — desktop only */}
       {onClear && (
         <button
           onClick={onClear}
-          className="w-full h-[44px] text-sm text-destructive"
+          className="
+            hidden sm:block
+            w-full h-[44px]
+            text-sm text-destructive
+          "
         >
           {t("clear_cart")}
         </button>

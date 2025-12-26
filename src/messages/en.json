@@ -303,6 +303,15 @@
    "cart": {
     "title": "Cart",
     "empty": "Your cart is empty."
+  },
+  "nav": {
+    "home": "Home",
+    "menu": "Open menu",
+    "back": "Go back",
+    "products": "Products",
+    "profile": "Profile",
+    "orders": "Orders",
+    "tickets": "Tickets"
   }
 
 }

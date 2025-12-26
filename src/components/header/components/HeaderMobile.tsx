@@ -42,36 +42,29 @@ export default function HeaderMobile({
 
   const isFoodDetail = pathAfterLocale.startsWith("/food/");
 
-  // decide variant
   const isHome =
     pathAfterLocale === "/" ||
     pathAfterLocale === "/home-page" ||
-    pathAfterLocale === "" ||
-    pathAfterLocale === "/mn"; /* defensive */
+    pathAfterLocale === "";
+
   const isCategory = pathAfterLocale.startsWith("/category");
   const isProfile = pathAfterLocale.startsWith("/profile");
 
   const title = (() => {
     if (isHome) return null;
-    if (isCategory) return t("products", "Бүтээгдэхүүнүүд");
-    if (isFoodDetail) return t("products", "Бүтээгдэхүүнүүд");
+    if (isCategory || isFoodDetail) return t("nav.products");
 
     if (isProfile) {
-      if (tab === "profile") return t("profile", "Профайл");
-      if (tab === "orders") return t("orders", "Захиалгууд");
-      if (tab === "tickets") return t("tickets", "Тасалбар");
-      return t("profile", "Профайл");
+      if (tab === "orders") return t("nav.orders");
+      if (tab === "tickets") return t("nav.tickets");
+      return t("nav.profile");
     }
 
-    // fallback ONLY for readable routes
-    const seg = pathAfterLocale.split("/").filter(Boolean).pop();
-    if (!seg || /^[a-f0-9-]{8,}$/i.test(seg)) return null;
-
-    return seg.replace(/[-_]/g, " ").toUpperCase();
+    return null;
   })();
 
   const showBack = !!title;
-  const showSearch = !showBack; // search only on home/browse
+  const showSearch = !showBack;
   const centerIsLogo = !showBack;
 
   return (
@@ -81,7 +74,7 @@ export default function HeaderMobile({
           {/* LEFT */}
           {showBack ? (
             <button
-              aria-label="back"
+              aria-label={t("nav.back")}
               onClick={() => router.back()}
               className="w-10 h-10 flex items-center justify-center"
             >
@@ -89,7 +82,7 @@ export default function HeaderMobile({
             </button>
           ) : (
             <button
-              aria-label="open menu"
+              aria-label={t("nav.menu")}
               onClick={() => setMobileMenuOpen(true)}
               className="w-10 h-10 flex items-center justify-center"
             >
@@ -101,7 +94,7 @@ export default function HeaderMobile({
           {centerIsLogo ? (
             <Link
               href={`/${locale}/home-page`}
-              aria-label="home"
+              aria-label={t("nav.home")}
               className="absolute left-1/2 -translate-x-1/2 flex items-center"
             >
               <img

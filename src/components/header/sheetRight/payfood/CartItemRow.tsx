@@ -14,72 +14,85 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
   const disableMinus = item.quantity <= 1;
 
   return (
-    <div className="border-b border-border py-4">
-      <div className="flex items-start gap-4">
-        {/* IMAGE */}
-        <img
-          src={item.food.image}
-          alt={item.food.foodName}
-          className="w-14 h-14 rounded-lg object-cover shrink-0"
-        />
+    <div className="relative flex items-center gap-4 py-4 border-b border-border">
+      {/* REMOVE */}
+      <button
+        onClick={() => onRemove(item)}
+        className="
+          absolute -top-2 -left-2
+          h-6 w-6
+          rounded-full
+          bg-background
+          border border-border
+          flex items-center justify-center
+        "
+        aria-label="Remove item"
+      >
+        <X size={12} />
+      </button>
 
-        {/* CONTENT */}
-        <div className="flex-1 min-w-0">
-          {/* NAME */}
-          <p className="text-sm font-medium text-foreground leading-tight line-clamp-2">
-            {item.food.foodName}
-          </p>
+      {/* IMAGE */}
+      <img
+        src={item.food.image}
+        alt={item.food.foodName}
+        className="w-16 h-16 rounded-md object-cover shrink-0"
+      />
 
-          {/* PRICE */}
-          <p className="mt-1 text-sm text-muted-foreground">
-            ₮ {item.food.price.toLocaleString()}
-          </p>
+      {/* INFO */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{item.food.foodName}</p>
+      </div>
 
-          {/* CONTROLS */}
-          <div className="mt-3 flex items-center justify-between">
-            {/* QTY */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onUpdateQty(item, -1)}
-                disabled={disableMinus}
-                className="
-                  h-8 w-8
-                  flex items-center justify-center
-                  rounded-md
-                  border border-border
-                  disabled:opacity-40
-                  disabled:cursor-not-allowed
-                "
-              >
-                <Minus size={14} />
-              </button>
+      {/* RIGHT SIDE */}
+      <div className="flex flex-col items-end gap-2">
+        <p className="text-sm font-semibold">
+          ₮ {item.food.price.toLocaleString()}
+        </p>
 
-              <span className="min-w-[24px] text-center text-sm font-medium">
-                {item.quantity}
-              </span>
+        {/* QTY PILL */}
+        {/* QTY PILL */}
+        <div
+          className="
+    flex items-center
+    rounded-md
+    border border-border
+    bg-card
+  "
+        >
+          <button
+            onClick={() => onUpdateQty(item, -1)}
+            disabled={disableMinus}
+            className="
+      h-9 w-9
+      flex items-center justify-center
+      text-muted-foreground
+      disabled:opacity-40
+    "
+          >
+            <Minus size={14} />
+          </button>
 
-              <button
-                onClick={() => onUpdateQty(item, 1)}
-                className="
-                  h-8 w-8
-                  flex items-center justify-center
-                  rounded-md
-                  border border-border
-                "
-              >
-                <Plus size={14} />
-              </button>
-            </div>
+          <span
+            className="
+      h-9 min-w-[36px]
+      flex items-center justify-center
+      text-sm font-medium
+      text-foreground
+    "
+          >
+            {item.quantity}
+          </span>
 
-            {/* REMOVE */}
-            <button
-              onClick={() => onRemove(item)}
-              className="p-2 text-destructive"
-              aria-label="Remove item"
-            >
-              <X size={16} />
-            </button>
-          </div>
+          <button
+            onClick={() => onUpdateQty(item, 1)}
+            className="
+      h-9 w-9
+      flex items-center justify-center
+      text-muted-foreground
+    "
+          >
+            <Plus size={14} />
+          </button>
         </div>
       </div>
     </div>

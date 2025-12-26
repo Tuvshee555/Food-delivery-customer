@@ -282,5 +282,9 @@
     "sign_in_facebook": "Continue with Facebook",
     "sign_in_guest": "Continue as guest",
     "terms_notice": "By signing in, you agree to our Terms of Service and Privacy Policy."
+  },
+  "cart2": {
+    "yourCart": "Your cart",
+    "clear": "Clear"
   }
 }

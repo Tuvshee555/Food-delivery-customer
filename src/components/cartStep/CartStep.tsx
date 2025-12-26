@@ -154,7 +154,7 @@ export default function CartStep() {
           {/* HEADER */}
           <div className="flex justify-between items-center mb-6 border-b border-border pb-3">
             <h1 className="text-xl sm:text-2xl font-semibold">
-              {t("cart.yourCart")}
+              {t("cart2.yourCart")}
             </h1>
 
             {items.length > 0 && (
@@ -163,7 +163,7 @@ export default function CartStep() {
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition"
               >
                 <Trash2 className="w-4 h-4" />
-                {t("cart.clear")}
+                {t("cart2.clear")}
               </button>
             )}
           </div>

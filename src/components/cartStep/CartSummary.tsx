@@ -21,7 +21,7 @@ export const CartSummary: React.FC<Props> = ({
   const grandTotal = total + delivery;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+    <div className="bg-card rounded-xl space-y-4">
       <h2 className="text-base font-semibold border-b border-border pb-3">
         {t("payment_info")}
       </h2>
@@ -37,9 +37,7 @@ export const CartSummary: React.FC<Props> = ({
       </div>
 
       <div className="border-t border-border pt-4 flex justify-between items-center">
-        <span className="text-base font-semibold">
-          {t("grand_total")}
-        </span>
+        <span className="text-base font-semibold">{t("grand_total")}</span>
         <span className="text-xl font-semibold">
           {grandTotal.toLocaleString()}₮
         </span>

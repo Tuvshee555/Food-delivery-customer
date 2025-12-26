@@ -10,6 +10,7 @@ import {
   MapPin,
 } from "lucide-react";
 import TranslateButton from "../../translate/TranslateButton";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 export default function SheetFooter({
   locale,
@@ -128,9 +129,10 @@ export default function SheetFooter({
           </a>
         </div>
 
-        {/* Translate button centered under icons */}
-        <div className="mt-3">
+        {/* Translate + Theme */}
+        <div className="mt-3 flex items-center gap-4">
           <TranslateButton />
+          <ThemeToggle />
         </div>
       </div>
     </div>

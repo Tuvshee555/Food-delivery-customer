@@ -23,15 +23,16 @@ export const SheetRight = ({ cartCount }: { cartCount: number }) => {
 
       <SheetContent
         className="
-          sm:max-w-[538px]
-          p-8
-          bg-card
-          text-card-foreground
-          border-l border-border
-          flex flex-col gap-6
-          shadow-2xl
-          z-[9999]
-        "
+    w-[85vw] max-w-none
+    sm:max-w-[538px]
+    p-8
+    bg-card
+    text-card-foreground
+    border-l border-border
+    flex flex-col gap-6
+    shadow-2xl
+    z-[9999]
+  "
       >
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-lg font-semibold text-primary">

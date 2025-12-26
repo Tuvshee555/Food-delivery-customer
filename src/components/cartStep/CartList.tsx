@@ -3,7 +3,6 @@
 import React from "react";
 import { CartItem } from "@/type/type";
 import { CartItemRow } from "./CartItemRow";
-import { classes } from "./styles";
 
 type Props = {
   items: CartItem[];
@@ -13,7 +12,11 @@ type Props = {
 
 export const CartList: React.FC<Props> = ({ items, onUpdateQty, onRemove }) => {
   if (!items.length) {
-    return <p className={classes.empty}>🛍 Сагс хоосон байна.</p>;
+    return (
+      <p className="text-muted-foreground text-center py-16 text-sm">
+        🛍 Сагс хоосон байна.
+      </p>
+    );
   }
 
   return (

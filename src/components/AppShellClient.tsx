@@ -6,6 +6,7 @@ import MobileBottomNav from "@/components/navigation/MobileBottomNav";
 import Email from "@/components/header/email/Email";
 import HeaderClient from "./header/HeaderClient";
 import { useCartSync } from "./header/sheetRight/components/useCartSync";
+import TopLoader from "./header/TopLoader";
 
 export default function AppShellClient({ children }: { children: ReactNode }) {
   const [emailOpen, setEmailOpen] = useState(false);
@@ -18,16 +19,15 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
 
   return (
     <>
+      {/* 🔥 GLOBAL TOP LOADER */}
+      <TopLoader />
+
       <HeaderClient onOpenProfile={openProfile} cartCount={cartCount} />
 
       <main className="min-h-screen pt-[64px] md:pt-24">{children}</main>
 
-      {/* <div className="hidden sm:block"> */}
       <Footer />
-      {/* </div> */}
-
       <MobileBottomNav onOpenProfile={openProfile} />
-
       <Email open={emailOpen} onOpenChange={onOpenChange} />
     </>
   );

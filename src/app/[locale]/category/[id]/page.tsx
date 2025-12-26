@@ -9,6 +9,7 @@ import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategoryLogic } from "@/components/category/components/useCategoryFoods";
 import { CategoryFilterSheet } from "@/components/category/components/CategoryFilterSheet";
 import { CategorySortDrawer } from "@/components/category/components/CategorySortDrawer";
+import { FoodCardSkeleton } from "@/components/skeletons/FoodCardSkeleton";
 
 export default function CategoryPage({
   params,
@@ -29,7 +30,9 @@ export default function CategoryPage({
     setPage,
     setSortType,
     toggleFilter,
+    isLoading,
   } = useCategoryLogic(id);
+
   const [mobileSort, setMobileSort] = useState<
     "newest" | "oldest" | "low" | "high" | "discounted"
   >("newest");
@@ -72,22 +75,24 @@ export default function CategoryPage({
             />
           </div>
 
+          {/* GRID */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-            {pagedFoods.length ? (
-              pagedFoods.map((item) => <FoodCard key={item.id} food={item} />)
-            ) : (
-              <div className="col-span-full flex flex-col items-center py-20 text-muted-foreground">
-                <span className="text-5xl mb-4">📦</span>
-                <p className="text-sm">{t("empty")}</p>
-              </div>
-            )}
+            {isLoading || !pagedFoods.length
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <FoodCardSkeleton key={i} />
+                ))
+              : pagedFoods.map((item) => (
+                  <FoodCard key={item.id} food={item} />
+                ))}
           </div>
 
-          {foods.length > 8 && (
+          {/* PAGINATION */}
+          {!isLoading && foods.length > 8 && (
             <div className="flex justify-center items-center mt-10 gap-4 text-muted-foreground text-sm">
               <button onClick={() => setPage(1)} disabled={page === 1}>
                 {t("first")}
               </button>
+
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
@@ -105,6 +110,7 @@ export default function CategoryPage({
               >
                 {t("next")}
               </button>
+
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={page === totalPages}

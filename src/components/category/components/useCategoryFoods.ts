@@ -31,6 +31,8 @@ export function useCategoryLogic(id: string) {
   const [page, setPage] = useState(1);
   const [sortType, setSortType] = useState<SortType>("newest");
 
+  const [isLoading, setIsLoading] = useState(true); // ✅ ADD
+
   const [filters, setFilters] = useState<Filters>({
     discount: false,
     featured: false,
@@ -42,6 +44,7 @@ export function useCategoryLogic(id: string) {
 
   useEffect(() => {
     const controller = new AbortController();
+    setIsLoading(true); // ✅ START LOADING
 
     async function fetchAll() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`, {
@@ -90,7 +93,8 @@ export function useCategoryLogic(id: string) {
           };
 
           map[id as keyof typeof map]?.();
-          setFoods(await fetchAll());
+          const allFoods = await fetchAll();
+          setFoods(allFoods);
           return;
         }
 
@@ -105,6 +109,8 @@ export function useCategoryLogic(id: string) {
       } catch {
         setFoods([]);
         setCategoryName(t("category"));
+      } finally {
+        setIsLoading(false); // ✅ END LOADING
       }
     }
 
@@ -112,7 +118,9 @@ export function useCategoryLogic(id: string) {
     return () => controller.abort();
   }, [id, t]);
 
-  useEffect(() => setPage(1), [id, sortType, filters]);
+  useEffect(() => {
+    setPage(1);
+  }, [id, sortType, filters]);
 
   const filteredFoods = useMemo(() => {
     return foods.filter((f) => {
@@ -151,5 +159,6 @@ export function useCategoryLogic(id: string) {
     setPage,
     setSortType,
     toggleFilter,
+    isLoading, // ✅ EXPOSE
   };
 }

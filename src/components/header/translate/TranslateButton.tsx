@@ -35,15 +35,17 @@ export default function TranslateButton() {
         type="button"
         onClick={() => setOpen(true)}
         className="
-          flex items-center gap-2
-          h-[44px] px-3
-          rounded-md
-          border border-border
-          bg-card text-foreground
-          text-sm font-medium
-          transition
-          hover:bg-muted
-        "
+    flex items-center gap-2
+    h-[44px] md:h-[33px]
+ px-3
+    rounded-md
+    border border-border md:border-0
+    bg-card md:bg-transparent
+    text-foreground
+    text-sm font-medium
+    transition
+    hover:bg-muted
+  "
       >
         <Globe size={16} />
         <span>{currentFlag}</span>

@@ -16,11 +16,9 @@ import { useI18n } from "@/components/i18n/ClientI18nProvider";
 type PaymentMethod = "qpay" | "card" | "cod" | null;
 
 type CartItem = {
-  id?: string;
   foodId?: string;
   quantity: number;
   selectedSize?: string | null;
-  price?: number;
   food?: {
     id?: string;
     price?: number;
@@ -36,13 +34,9 @@ type DeliveryFormData = {
   address?: string;
 };
 
-export default function InfoStep({
-  cart,
-  refreshCart,
-}: {
-  cart: CartItem[];
-  refreshCart: () => void;
-}) {
+const CART_KEY = "cart";
+
+export default function InfoStep({ cart }: { cart: CartItem[] }) {
   const router = useRouter();
   const { userId, token } = useAuth();
   const { locale, t } = useI18n();
@@ -54,21 +48,17 @@ export default function InfoStep({
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qpay");
 
-  /* ---------------- totals (single source) ---------------- */
+  /* ---------------- totals ---------------- */
 
   const productTotal = useMemo(
-    () =>
-      cart.reduce(
-        (sum, i) => sum + (i.food?.price ?? i.price ?? 0) * i.quantity,
-        0
-      ),
+    () => cart.reduce((sum, i) => sum + (i.food?.price ?? 0) * i.quantity, 0),
     [cart]
   );
 
   const deliveryFee = 100;
   const totalPrice = productTotal + deliveryFee;
 
-  /* ---------------- load user ---------------- */
+  /* ---------------- preload user info ---------------- */
 
   useEffect(() => {
     if (!userId || !token) return;
@@ -88,7 +78,7 @@ export default function InfoStep({
       .catch(() => toast.error(t("err_user_info")));
   }, [userId, token, t]);
 
-  /* ---------------- submit step ---------------- */
+  /* ---------------- submit ---------------- */
 
   const handleSubmit = (newErrors: Record<string, boolean>) => {
     if (Object.keys(newErrors).length) {
@@ -117,7 +107,7 @@ export default function InfoStep({
       }
 
       const items = cart.map((i) => ({
-        foodId: i.food?.id ?? i.foodId ?? i.id,
+        foodId: i.food?.id ?? i.foodId,
         quantity: i.quantity,
         selectedSize: i.selectedSize ?? null,
       }));
@@ -148,7 +138,10 @@ export default function InfoStep({
         return;
       }
 
-      await refreshCart();
+      // ✅ CLEAR LOCAL CART
+      localStorage.removeItem(CART_KEY);
+      window.dispatchEvent(new Event("cart-updated"));
+
       setOrderId(createdOrder.id);
       localStorage.setItem("lastOrderId", createdOrder.id);
 
@@ -187,7 +180,6 @@ export default function InfoStep({
     <>
       <main className="min-h-screen bg-background text-foreground pt-[120px] pb-28">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col lg:flex-row gap-10">
-          {/* LEFT */}
           <motion.section
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
@@ -210,7 +202,6 @@ export default function InfoStep({
             />
           </motion.section>
 
-          {/* RIGHT */}
           <motion.section
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
@@ -234,6 +225,7 @@ export default function InfoStep({
         amount={totalPrice}
         orderId={orderId ?? ""}
       />
+
       {/* Mobile sticky actions */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border px-4 py-3">
         <div className="flex gap-3">

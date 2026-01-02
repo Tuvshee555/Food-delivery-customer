@@ -2,104 +2,100 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { SheetFooter } from "@/components/ui/sheet";
-import { CartItem } from "@/type/type";
 import { CartItemRow } from "./CartItemRow";
 import { CartSummary } from "./CartSummary";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
-import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
-import {
-  calculateTotal,
-  loadLocalCartHelper,
-  loadServerCartHelper,
-  removeLocalHelper,
-  removeServerHelper,
-  clearLocalHelper,
-  clearServerHelper,
-  updateServerQtyHelper,
-  updateLocalQtyHelper,
-} from "./helpers";
+type CartItem = {
+  foodId: string;
+  quantity: number;
+  selectedSize?: string | null;
+  food: {
+    id: string;
+    foodName: string;
+    price: number;
+    image: string;
+  };
+};
+
+const CART_KEY = "cart";
 
 export const PayFood = () => {
-  const { userId, token } = useAuth();
   const { t } = useI18n();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(true);
 
   /* ---------------- LOAD CART ---------------- */
 
-  const loadCart = useCallback(async () => {
-    setLoading(true);
-
-    let items: CartItem[] = [];
-
-    if (!userId || !token) {
-      items = loadLocalCartHelper();
-    } else {
-      items = await loadServerCartHelper(userId, token);
+  const loadCart = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(CART_KEY) || "[]";
+      const parsed = JSON.parse(raw);
+      setCartItems(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setCartItems([]);
+    } finally {
+      setLoading(false);
     }
-
-    setCartItems(items);
-    setTotalPrice(calculateTotal(items));
-    setLoading(false);
-  }, [userId, token]);
+  }, []);
 
   useEffect(() => {
     loadCart();
+
+    const handler = () => loadCart();
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
   }, [loadCart]);
 
-  /* ---------------- PERSIST LOCAL CART ---------------- */
+  /* ---------------- PERSIST ---------------- */
 
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("cart", JSON.stringify(cartItems));
-      setTotalPrice(calculateTotal(cartItems));
-    }
-  }, [cartItems, loading]);
-
-  /* ---------------- FAST QUANTITY UPDATE ---------------- */
-
-  const updateQuantity = async (item: CartItem, change: number) => {
-    const nextQty = Math.max(1, item.quantity + change);
-
-    setCartItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, quantity: nextQty } : i))
-    );
-
-    if (!userId || !token) {
-      updateLocalQtyHelper(item, nextQty);
-    } else {
-      await updateServerQtyHelper(item.id, nextQty, token);
-    }
-
+  const persist = (next: CartItem[]) => {
+    setCartItems(next);
+    localStorage.setItem(CART_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event("cart-updated"));
   };
 
-  /* ---------------- REMOVE ITEM ---------------- */
+  /* ---------------- UPDATE QTY ---------------- */
 
-  const removeItem = async (item: CartItem) => {
-    setCartItems((prev) => prev.filter((i) => i.id !== item.id));
+  const updateQuantity = useCallback(
+    (nextQty: number, item: CartItem) => {
+      const qty = Math.max(1, nextQty);
+      const next = cartItems.map((i) =>
+        i.foodId === item.foodId && i.selectedSize === item.selectedSize
+          ? { ...i, quantity: qty }
+          : i
+      );
+      persist(next);
+    },
+    [cartItems]
+  );
 
-    if (!userId || !token) {
-      removeLocalHelper(item);
-    } else {
-      removeServerHelper(item.id, token);
-    }
+  /* ---------------- REMOVE ---------------- */
+
+  const removeItem = useCallback(
+    (item: CartItem) => {
+      const next = cartItems.filter(
+        (i) =>
+          !(i.foodId === item.foodId && i.selectedSize === item.selectedSize)
+      );
+      persist(next);
+    },
+    [cartItems]
+  );
+
+  /* ---------------- CLEAR ---------------- */
+
+  const clearAll = () => {
+    persist([]);
   };
 
-  /* ---------------- CLEAR CART ---------------- */
+  /* ---------------- TOTAL ---------------- */
 
-  const clearAll = async () => {
-    setCartItems([]);
-
-    if (!userId || !token) {
-      clearLocalHelper();
-    } else {
-      clearServerHelper(userId, token);
-    }
-  };
+  const totalPrice = cartItems.reduce(
+    (sum, i) => sum + i.food.price * i.quantity,
+    0
+  );
 
   /* ---------------- RENDER ---------------- */
 
@@ -131,10 +127,10 @@ export const PayFood = () => {
           ) : cartItems.length > 0 ? (
             cartItems.map((item) => (
               <CartItemRow
-                key={item.id || `${item.foodId}-${item.selectedSize ?? "d"}`}
+                key={`${item.foodId}-${item.selectedSize ?? "default"}`}
                 item={item}
-                onUpdateQty={updateQuantity}
-                onRemove={removeItem}
+                onUpdateQty={(qty) => updateQuantity(qty, item)}
+                onRemove={() => removeItem(item)}
               />
             ))
           ) : (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Trash2 } from "lucide-react";
@@ -7,14 +8,67 @@ import { Trash2 } from "lucide-react";
 import { CartList } from "./CartList";
 import { CartSummary } from "./CartSummary";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
-import { useCartLogic } from "./components/useCartLogic";
 
-export default function CartStep() {
+type CartItem = {
+  foodId: string;
+  quantity: number;
+  selectedSize?: string | null;
+  food: {
+    id: string;
+    foodName: string;
+    price: number;
+    image: string;
+  };
+};
+
+const CART_KEY = "cart";
+
+export default function CartStep({ cart }: { cart: CartItem[] }) {
   const router = useRouter();
   const { locale, t } = useI18n();
 
-  const { items, loading, total, updateQuantity, removeItem, clearCart } =
-    useCartLogic();
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // load initial cart
+  useEffect(() => {
+    setItems(cart);
+    setLoading(false);
+  }, [cart]);
+
+  const persist = (next: CartItem[]) => {
+    setItems(next);
+    localStorage.setItem(CART_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("cart-updated"));
+  };
+
+  const updateQuantity = useCallback(
+    (foodId: string, qty: number, selectedSize?: string | null) => {
+      const next = items.map((i) =>
+        i.foodId === foodId && i.selectedSize === selectedSize
+          ? { ...i, quantity: Math.max(1, qty) }
+          : i
+      );
+      persist(next);
+    },
+    [items]
+  );
+
+  const removeItem = useCallback(
+    (foodId: string, selectedSize?: string | null) => {
+      const next = items.filter(
+        (i) => !(i.foodId === foodId && i.selectedSize === selectedSize)
+      );
+      persist(next);
+    },
+    [items]
+  );
+
+  const clearCart = useCallback(() => {
+    persist([]);
+  }, []);
+
+  const total = items.reduce((sum, i) => sum + i.food.price * i.quantity, 0);
 
   if (loading) {
     return <p className="p-10 text-muted-foreground">{t("loading")}</p>;

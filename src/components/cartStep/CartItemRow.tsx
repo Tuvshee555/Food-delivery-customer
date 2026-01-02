@@ -1,17 +1,28 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { CartItem } from "@/type/type";
 import { Minus, Plus, X } from "lucide-react";
+
+type CartItem = {
+  foodId: string;
+  quantity: number;
+  selectedSize?: string | null;
+  food: {
+    id: string;
+    foodName: string;
+    price: number;
+    image: string;
+  };
+};
 
 type Props = {
   item: CartItem;
-  onUpdateQty: (change: number) => void;
+  onUpdateQty: (nextQty: number) => void;
   onRemove: () => void;
 };
 
 export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
-  const qty = Number(item.quantity) || 1;
+  const qty = Math.max(1, Number(item.quantity) || 1);
   const disableMinus = qty <= 1;
 
   return (
@@ -37,7 +48,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
       {/* RIGHT */}
       <div className="flex items-center gap-2 shrink-0">
         <button
-          onClick={() => onUpdateQty(-1)}
+          onClick={() => onUpdateQty(qty - 1)}
           disabled={disableMinus}
           className="
             h-[36px] w-[36px]
@@ -57,7 +68,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
         </span>
 
         <button
-          onClick={() => onUpdateQty(1)}
+          onClick={() => onUpdateQty(qty + 1)}
           className="
             h-[36px] w-[36px]
             flex items-center justify-center

@@ -9,84 +9,82 @@ import { FoodTitle } from "./FoodTitle";
 import { FoodSizes } from "./FoodSizes";
 import { FoodQuantity } from "./FoodQuantity";
 import { FoodActions } from "./FoodActions";
-// import { FoodAddress } from "./FoodAddress";
 
-import { addToCartLocal } from "./utils/addToCartLocal";
-import { addToCartServer } from "./utils/addToCartServer";
 import { resolveImageUrl } from "./utils/resolveImageUrl";
-
-import { useAuth } from "@/app/[locale]/provider/AuthProvider";
-import { useCart } from "@/app/[locale]/store/cartStore";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+
+type LocalCartItem = {
+  foodId: string;
+  quantity: number;
+  selectedSize?: string | null;
+  food: {
+    id: string;
+    foodName: string;
+    price: number;
+    image: string;
+  };
+};
+
+const CART_KEY = "cart";
+
+const addToCartLocal = (item: LocalCartItem): boolean => {
+  try {
+    const raw = localStorage.getItem(CART_KEY) || "[]";
+    const cart: LocalCartItem[] = JSON.parse(raw);
+
+    const index = cart.findIndex(
+      (c) => c.foodId === item.foodId && c.selectedSize === item.selectedSize
+    );
+
+    if (index >= 0) {
+      cart[index].quantity += item.quantity;
+    } else {
+      cart.push(item);
+    }
+
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    window.dispatchEvent(new Event("cart-updated"));
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export const FoodInfo = ({ food }: { food: any }) => {
   const router = useRouter();
   const { locale, t } = useI18n();
-  const { userId, token } = useAuth();
-  const { add } = useCart();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleAddToCart = async () => {
+  const buildCartItem = (): LocalCartItem => ({
+    foodId: food.id,
+    quantity,
+    selectedSize,
+    food: {
+      id: food.id,
+      foodName: food.foodName,
+      price: food.price,
+      image: resolveImageUrl(food.image),
+    },
+  });
+
+  const handleAddToCart = () => {
     if (isProcessing) return;
     setIsProcessing(true);
 
-    if (userId && token) {
-      const ok = await addToCartServer({
-        foodId: food.id,
-        userId,
-        token,
-        quantity,
-        selectedSize,
-      });
-
-      if (ok) {
-        add({
-          foodId: food.id,
-          quantity,
-          selectedSize,
-          food: {
-            id: food.id,
-            foodName: food.foodName,
-            price: food.price,
-            image: resolveImageUrl(food.image),
-          },
-        });
-      }
-    } else {
-      addToCartLocal({ food, quantity, selectedSize });
-    }
+    addToCartLocal(buildCartItem());
 
     setIsProcessing(false);
   };
 
-  const handleOrderNow = async () => {
+  const handleOrderNow = () => {
     if (isProcessing) return;
     setIsProcessing(true);
 
-    let ok = true;
-
-    if (userId && token) {
-      ok = await addToCartServer({
-        foodId: food.id,
-        userId,
-        token,
-        quantity,
-        selectedSize,
-      });
-    } else {
-      ok = addToCartLocal({ food, quantity, selectedSize });
-    }
-
+    const ok = addToCartLocal(buildCartItem());
     if (!ok) {
-      setIsProcessing(false);
-      return;
-    }
-
-    if (!userId || !token) {
-      router.push(`/${locale}/sign-in?redirect=/${locale}/checkout`);
       setIsProcessing(false);
       return;
     }
@@ -159,8 +157,6 @@ export const FoodInfo = ({ food }: { food: any }) => {
           text-sm font-medium
         "
       />
-
-      {/* <FoodAddress foodName={food.foodName} /> */}
     </motion.div>
   );
 };

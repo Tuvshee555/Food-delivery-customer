@@ -12,15 +12,14 @@ import HeaderMobile from "./components/HeaderMobile";
 export default function Header({
   compact = false,
   onOpenProfile,
-  cartCount, // ✅ ADD
+  cartCount,
 }: {
   compact?: boolean;
   onOpenProfile?: () => void;
-  cartCount: number; // ✅ ADD
+  cartCount: number;
 }) {
   const { locale, t } = useI18n();
 
-  // ✅ React Query hooks (cached, non-blocking)
   const { data: categoryData } = useCategory();
   const { data: treeData, isLoading: treeLoading } = useCategoryTree();
 
@@ -39,7 +38,6 @@ export default function Header({
   const email = useEmailSync();
   const firstLetter = email ? email[0].toUpperCase() : "?";
 
-  // ✅ scroll logic untouched (cheap)
   useEffect(() => {
     if (compact) return;
 
@@ -106,7 +104,7 @@ export default function Header({
         loading={treeLoading}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        cartCount={cartCount} // ✅ ADD
+        cartCount={cartCount}
       />
     </>
   );

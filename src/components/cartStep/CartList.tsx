@@ -1,14 +1,29 @@
 "use client";
 
 import React from "react";
-import { CartItem } from "@/type/type";
 import { CartItemRow } from "./CartItemRow";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
+type CartItem = {
+  foodId: string;
+  quantity: number;
+  selectedSize?: string | null;
+  food: {
+    id: string;
+    foodName: string;
+    price: number;
+    image: string;
+  };
+};
+
 type Props = {
   items: CartItem[];
-  onUpdateQty: (item: CartItem, change: number) => void | Promise<void>;
-  onRemove: (item: CartItem) => void | Promise<void>;
+  onUpdateQty: (
+    foodId: string,
+    qty: number,
+    selectedSize?: string | null
+  ) => void;
+  onRemove: (foodId: string, selectedSize?: string | null) => void;
 };
 
 export const CartList: React.FC<Props> = ({ items, onUpdateQty, onRemove }) => {
@@ -26,10 +41,12 @@ export const CartList: React.FC<Props> = ({ items, onUpdateQty, onRemove }) => {
     <div className="space-y-6">
       {items.map((item) => (
         <CartItemRow
-          key={item.id ?? `${item.foodId}-${item.selectedSize ?? "def"}`}
+          key={`${item.foodId}-${item.selectedSize ?? "default"}`}
           item={item}
-          onUpdateQty={(change) => onUpdateQty(item, change)}
-          onRemove={() => onRemove(item)}
+          onUpdateQty={(nextQty) =>
+            onUpdateQty(item.foodId, nextQty, item.selectedSize)
+          }
+          onRemove={() => onRemove(item.foodId, item.selectedSize)}
         />
       ))}
     </div>

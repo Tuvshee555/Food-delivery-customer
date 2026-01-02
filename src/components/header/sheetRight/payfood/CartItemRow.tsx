@@ -1,23 +1,35 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { CartItem } from "@/type/type";
 import { Minus, Plus, X } from "lucide-react";
+
+type CartItem = {
+  foodId: string;
+  quantity: number;
+  selectedSize?: string | null;
+  food: {
+    id: string;
+    foodName: string;
+    price: number;
+    image: string;
+  };
+};
 
 type Props = {
   item: CartItem;
-  onUpdateQty: (item: CartItem, change: number) => void;
-  onRemove: (item: CartItem) => void;
+  onUpdateQty: (nextQty: number) => void;
+  onRemove: () => void;
 };
 
 export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
-  const disableMinus = item.quantity <= 1;
+  const qty = Math.max(1, Number(item.quantity) || 1);
+  const disableMinus = qty <= 1;
 
   return (
     <div className="relative flex items-center gap-4 py-4 border-b border-border">
       {/* REMOVE */}
       <button
-        onClick={() => onRemove(item)}
+        onClick={onRemove}
         className="
           absolute -top-2 -left-2
           h-6 w-6
@@ -50,46 +62,45 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
         </p>
 
         {/* QTY PILL */}
-        {/* QTY PILL */}
         <div
           className="
-    flex items-center
-    rounded-md
-    border border-border
-    bg-card
-  "
+            flex items-center
+            rounded-md
+            border border-border
+            bg-card
+          "
         >
           <button
-            onClick={() => onUpdateQty(item, -1)}
+            onClick={() => onUpdateQty(qty - 1)}
             disabled={disableMinus}
             className="
-      h-9 w-9
-      flex items-center justify-center
-      text-muted-foreground
-      disabled:opacity-40
-    "
+              h-9 w-9
+              flex items-center justify-center
+              text-muted-foreground
+              disabled:opacity-40
+            "
           >
             <Minus size={14} />
           </button>
 
           <span
             className="
-      h-9 min-w-[36px]
-      flex items-center justify-center
-      text-sm font-medium
-      text-foreground
-    "
+              h-9 min-w-[36px]
+              flex items-center justify-center
+              text-sm font-medium
+              text-foreground
+            "
           >
-            {item.quantity}
+            {qty}
           </span>
 
           <button
-            onClick={() => onUpdateQty(item, 1)}
+            onClick={() => onUpdateQty(qty + 1)}
             className="
-      h-9 w-9
-      flex items-center justify-center
-      text-muted-foreground
-    "
+              h-9 w-9
+              flex items-center justify-center
+              text-muted-foreground
+            "
           >
             <Plus size={14} />
           </button>

@@ -9,8 +9,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { CartButton } from "./components/CartButton";
-import { PayFood } from "./payfood/PayFood";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { PayFood } from "./payfood/PayFood";
 
 export const SheetRight = ({ cartCount }: { cartCount: number }) => {
   const { t } = useI18n();

@@ -20,8 +20,6 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
   const openProfile = useCallback(() => setEmailOpen(true), []);
   const onOpenChange = useCallback((v: boolean) => setEmailOpen(v), []);
 
-  // ✅ footer logic
-  // route checks
   const isCatalogPage =
     pathname?.includes("/food/") || pathname?.includes("/category/");
 
@@ -35,14 +33,12 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* 🔥 GLOBAL TOP LOADER */}
       <TopLoader />
 
       <HeaderClient onOpenProfile={openProfile} cartCount={cartCount} />
 
       <main className="min-h-screen pt-[64px] md:pt-24">{children}</main>
 
-      {/* ✅ ROUTE-BASED FOOTER */}
       {isCatalogPage && <FooterPolicies />}
       {isHome && <Footer />}
 

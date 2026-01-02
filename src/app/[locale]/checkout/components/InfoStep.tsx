@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -48,8 +49,6 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qpay");
 
-  /* ---------------- totals ---------------- */
-
   const productTotal = useMemo(
     () => cart.reduce((sum, i) => sum + (i.food?.price ?? 0) * i.quantity, 0),
     [cart]
@@ -57,8 +56,6 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
 
   const deliveryFee = 100;
   const totalPrice = productTotal + deliveryFee;
-
-  /* ---------------- preload user info ---------------- */
 
   useEffect(() => {
     if (!userId || !token) return;
@@ -78,8 +75,6 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
       .catch(() => toast.error(t("err_user_info")));
   }, [userId, token, t]);
 
-  /* ---------------- submit ---------------- */
-
   const handleSubmit = (newErrors: Record<string, boolean>) => {
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -95,8 +90,6 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
     setOpenTerms(true);
   };
 
-  /* ---------------- payment flow ---------------- */
-
   const handlePaymentStart = async () => {
     try {
       setOpenTerms(false);
@@ -106,22 +99,30 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
         return;
       }
 
-      const items = cart.map((i) => ({
-        foodId: i.food?.id ?? i.foodId,
-        quantity: i.quantity,
-        selectedSize: i.selectedSize ?? null,
-      }));
+      if (!token) {
+        toast.error(t("unauthorized"));
+        router.push(`/${locale}/log-in`);
+        return;
+      }
 
-      if (items.some((i) => !i.foodId)) {
+      // normalize and validate items
+      const normalizedItems = cart
+        .map((i) => ({
+          foodId: i.food?.id ?? i.foodId ?? null,
+          quantity: Number(i.quantity) || 0,
+        }))
+        .filter((it) => it.foodId && it.quantity > 0);
+
+      if (normalizedItems.length === 0) {
         toast.error(t("err_invalid_cart_items"));
         return;
       }
 
+      // send payload (note: userId removed, backend uses JWT)
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
         {
-          userId,
-          items,
+          items: normalizedItems,
           productTotal,
           deliveryFee,
           totalPrice,
@@ -129,7 +130,12 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
           phone: form.phonenumber,
           paymentMethod,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       const createdOrder = res.data?.order ?? res.data;
@@ -138,7 +144,7 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
         return;
       }
 
-      // ✅ CLEAR LOCAL CART
+      // CLEAR LOCAL CART
       localStorage.removeItem(CART_KEY);
       window.dispatchEvent(new Event("cart-updated"));
 
@@ -148,7 +154,13 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
       if (paymentMethod === "card") {
         const stripeRes = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/stripe/create-session`,
-          { orderId: createdOrder.id, totalPrice }
+          { orderId: createdOrder.id, totalPrice },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
         );
 
         if (stripeRes.data?.url) {
@@ -168,13 +180,38 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
         toast.success(t("order_success"));
         router.push(`/${locale}/orders/${createdOrder.id}`);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("ORDER CREATE ERROR (client):", err);
+
+      // handle known backend validation (cart stale / missing items)
+      if (err?.response?.status === 400) {
+        const serverMessage = err?.response?.data?.message;
+        const missingIds = err?.response?.data?.missingIds;
+
+        // clear stale cart and notify user
+        localStorage.removeItem(CART_KEY);
+        window.dispatchEvent(new Event("cart-updated"));
+
+        if (missingIds && Array.isArray(missingIds) && missingIds.length > 0) {
+          toast.error(
+            serverMessage ||
+              "Some items were removed from the cart. Cart cleared."
+          );
+        } else {
+          toast.error(serverMessage || t("cart_updated"));
+        }
+        return;
+      }
+
+      if (err?.response?.status === 401) {
+        toast.error(t("unauthorized"));
+        router.push(`/${locale}/log-in`);
+        return;
+      }
+
       toast.error(t("err_create_order"));
     }
   };
-
-  /* ---------------- render ---------------- */
 
   return (
     <>
@@ -226,7 +263,6 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
         orderId={orderId ?? ""}
       />
 
-      {/* Mobile sticky actions */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border px-4 py-3">
         <div className="flex gap-3">
           <button

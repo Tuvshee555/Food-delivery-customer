@@ -20,6 +20,8 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
   const openProfile = useCallback(() => setEmailOpen(true), []);
   const onOpenChange = useCallback((v: boolean) => setEmailOpen(v), []);
 
+  const isCheckoutPage = pathname?.includes("/checkout");
+
   const isCatalogPage =
     pathname?.includes("/food/") || pathname?.includes("/category/");
 
@@ -42,7 +44,8 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
       {isCatalogPage && <FooterPolicies />}
       {isHome && <Footer />}
 
-      <MobileBottomNav onOpenProfile={openProfile} />
+      {!isCheckoutPage && <MobileBottomNav onOpenProfile={openProfile} />}
+
       <Email open={emailOpen} onOpenChange={onOpenChange} />
     </>
   );

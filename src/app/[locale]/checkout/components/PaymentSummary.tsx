@@ -41,7 +41,7 @@ export default function PaymentSummary({
   const grandTotal = total + delivery;
 
   return (
-    <aside className="w-full lg:w-[400px] bg-card border border-border rounded-2xl p-6 space-y-6 h-fit">
+    <aside className="w-full lg:w-[400px] bg-card rounded-2xl p-6 space-y-6 h-fit">
       <h2 className="text-base font-semibold border-b border-border pb-3">
         {t("payment_info")}
       </h2>
@@ -85,7 +85,7 @@ export default function PaymentSummary({
       </div>
 
       {!hideActions && (
-        <div className="lg:flex gap-3">
+        <div className="hidden lg:flex gap-3">
           <Button
             variant="outline"
             className="w-full h-[44px]"
@@ -109,24 +109,4 @@ export default function PaymentSummary({
       </p>
     </aside>
   );
-}
-
-{
-  /* Coupon */
-}
-{
-  /* <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder={t("coupon_placeholder")}
-          className="flex-1 h-[44px] rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-1 focus:ring-border"
-        />
-        <Button variant="secondary" className="h-[44px] px-4">
-          {t("check")}
-        </Button>
-      </div> */
-}
-
-{
-  /* Actions (desktop only) */
 }

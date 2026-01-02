@@ -1,4 +1,3 @@
-// components/cartStep/CartSummary.tsx
 "use client";
 
 import React from "react";
@@ -21,71 +20,85 @@ export const CartSummary: React.FC<Props> = ({
   const grandTotal = total + delivery;
 
   return (
-    <div
-      className="
-        bg-card rounded-xl space-y-4
-        sm:border sm:border-border
-        sm:p-6
-      "
-    >
-      {/* TITLE — hidden border on mobile */}
-      <h2
-        className="
-          text-base font-semibold
-          sm:border-b sm:border-border sm:pb-3
-        "
-      >
-        {t("payment_info")}
-      </h2>
-
-      <div className="flex justify-between text-sm">
-        <span>{t("product_total")}</span>
-        <span>{total.toLocaleString()}₮</span>
-      </div>
-
-      <div className="flex justify-between text-sm">
-        <span>{t("delivery_fee")}</span>
-        <span>{delivery.toLocaleString()}₮</span>
-      </div>
-
-      {/* GRAND TOTAL — border only on desktop */}
+    <>
+      {/* CARD */}
       <div
         className="
-          pt-4 flex justify-between items-center
-          sm:border-t sm:border-border
+          bg-card rounded-xl space-y-4
+          border border-border p-4
+          sm:p-6
         "
       >
-        <span className="text-base font-semibold">{t("grand_total")}</span>
-        <span className="text-xl font-semibold">
-          {grandTotal.toLocaleString()}₮
-        </span>
-      </div>
+        <h2 className="text-base font-semibold sm:border-b sm:border-border sm:pb-3">
+          {t("payment_info")}
+        </h2>
 
-      <button
-        onClick={onCheckout}
-        className="
-          w-full h-[44px]
-          rounded-md
-          bg-primary text-primary-foreground
-          text-sm font-medium
-        "
-      >
-        {t("continue")}
-      </button>
+        <div className="flex justify-between text-sm">
+          <span>{t("product_total")}</span>
+          <span>{total.toLocaleString()}₮</span>
+        </div>
 
-      {/* ❌ CLEAR CART — desktop only */}
-      {onClear && (
+        <div className="flex justify-between text-sm">
+          <span>{t("delivery_fee")}</span>
+          <span>{delivery.toLocaleString()}₮</span>
+        </div>
+
+        <div className="pt-4 flex justify-between items-center sm:border-t sm:border-border">
+          <span className="text-base font-semibold">{t("grand_total")}</span>
+          <span className="text-xl font-semibold">
+            {grandTotal.toLocaleString()}₮
+          </span>
+        </div>
+
+        {/* DESKTOP BUTTON */}
         <button
-          onClick={onClear}
+          onClick={onCheckout}
           className="
-            hidden sm:block
+            hidden sm:flex
             w-full h-[44px]
-            text-sm text-destructive
+            rounded-md
+            bg-primary text-primary-foreground
+            text-sm font-medium
           "
         >
-          {t("clear_cart")}
+          {t("continue")}
         </button>
-      )}
-    </div>
+
+        {onClear && (
+          <button
+            onClick={onClear}
+            className="
+              hidden sm:block
+              w-full h-[44px]
+              text-sm text-destructive
+            "
+          >
+            {t("clear_cart")}
+          </button>
+        )}
+      </div>
+
+      {/* ✅ MOBILE STICKY ACTION */}
+      <div
+        className="
+          sm:hidden
+          fixed bottom-0 left-0 right-0
+          bg-background border-t border-border
+          p-4
+        "
+      >
+        <button
+          onClick={onCheckout}
+          className="
+            w-full h-[44px]
+            rounded-md
+            bg-primary text-primary-foreground
+            text-sm font-medium
+          "
+        >
+          {t("continue")}
+        </button>
+      </div>
+    </>
   );
 };

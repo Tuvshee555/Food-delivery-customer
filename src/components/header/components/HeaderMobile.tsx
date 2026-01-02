@@ -49,8 +49,11 @@ export default function HeaderMobile({
 
   const isCategory = pathAfterLocale.startsWith("/category");
   const isProfile = pathAfterLocale.startsWith("/profile");
+  const isCheckout = pathAfterLocale.startsWith("/checkout");
 
   const title = (() => {
+    if (isCheckout) return t("nav.checkout", "Захиалга");
+
     if (isHome) return null;
     if (isCategory || isFoodDetail) return t("nav.products");
 

@@ -232,10 +232,10 @@ export default function PaymentPendingInner() {
 
   /* ---------------- render ---------------- */
   return (
-    <main className="min-h-screen bg-background text-foreground pt-[120px] pb-24">
+    <main className="min-h-screen bg-background text-foreground pt-[80px] pb-24">
       <div className="max-w-6xl mx-auto px-4 flex flex-col lg:flex-row gap-8">
         {/* QR SECTION */}
-        <section className="flex-1 bg-card border border-border rounded-2xl p-6 text-center space-y-6">
+        <section className="flex-1 bg-card rounded-2xl text-center space-y-6">
           <h2 className="text-lg font-semibold">
             {paid ? t("payment_success_title") : t("payment_waiting_title")}
           </h2>

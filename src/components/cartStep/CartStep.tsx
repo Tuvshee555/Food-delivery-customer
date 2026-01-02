@@ -77,17 +77,16 @@ export default function CartStep({ cart }: { cart: CartItem[] }) {
   return (
     <main
       className="
-        min-h-screen
-        bg-background
-        text-foreground
-        pt-[110px]
-        pb-20
-      "
+    min-h-screen
+    bg-background
+    text-foreground
+    pt-0 lg:pt-[110px]
+    pb-20
+  "
     >
       <div
         className="
           max-w-7xl mx-auto
-          sm:px-6 md:px-10
           grid grid-cols-1
           lg:grid-cols-[1fr_360px]
           gap-8
@@ -100,12 +99,11 @@ export default function CartStep({ cart }: { cart: CartItem[] }) {
           animate={{ opacity: 1, x: 0 }}
           className="
             bg-background
-            border border-border
             rounded-lg
             p-4 sm:p-6
           "
         >
-          <div className="flex justify-between items-center mb-6 border-b border-border pb-3">
+          <div className="flex justify-between items-center mb-6 pb-3">
             <h1 className="text-xl sm:text-2xl font-semibold">
               {t("cart2.yourCart")}
             </h1>
@@ -139,9 +137,7 @@ export default function CartStep({ cart }: { cart: CartItem[] }) {
           animate={{ opacity: 1, x: 0 }}
           className="
             bg-background
-            border border-border
             rounded-lg
-            p-4 sm:p-6
             h-fit
             sticky top-[120px]
           "

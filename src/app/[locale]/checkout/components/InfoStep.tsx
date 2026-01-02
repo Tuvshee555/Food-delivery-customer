@@ -1,293 +1,63 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import axios from "axios";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-import PaymentSummary from "./PaymentSummary";
-import DeliveryForm from "./DeliveryForm";
 import TermsDialog from "./TermsDialog";
 import { QPayDialog } from "../../qpay/QPayDialog";
-import { useAuth } from "../../provider/AuthProvider";
-import { useI18n } from "@/components/i18n/ClientI18nProvider";
-
-type PaymentMethod = "qpay" | "card" | "cod" | null;
-
-type CartItem = {
-  foodId?: string;
-  quantity: number;
-  selectedSize?: string | null;
-  food?: {
-    id?: string;
-    price?: number;
-  };
-};
-
-type DeliveryFormData = {
-  lastName?: string;
-  phonenumber?: string;
-  city?: string;
-  district?: string;
-  khoroo?: string;
-  address?: string;
-};
-
-const CART_KEY = "cart";
+import { CartItem } from "@/type/type";
+import { useCheckout } from "./components/useCheckout";
+import CheckoutLayout from "./components/CheckoutLayout";
 
 export default function InfoStep({ cart }: { cart: CartItem[] }) {
-  const router = useRouter();
-  const { userId, token } = useAuth();
-  const { locale, t } = useI18n();
+  const checkout = useCheckout(cart);
 
-  const [form, setForm] = useState<DeliveryFormData>({});
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [openTerms, setOpenTerms] = useState(false);
-  const [openQPay, setOpenQPay] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qpay");
-
-  const productTotal = useMemo(
-    () => cart.reduce((sum, i) => sum + (i.food?.price ?? 0) * i.quantity, 0),
-    [cart]
-  );
-
-  const deliveryFee = 100;
-  const totalPrice = productTotal + deliveryFee;
-
-  useEffect(() => {
-    if (!userId || !token) return;
-
-    axios
-      .get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        if (res.data?.user) {
-          setForm({
-            ...res.data.user,
-            city: res.data.user.city || t("ulaanbaatar"),
-          });
-        }
-      })
-      .catch(() => toast.error(t("err_user_info")));
-  }, [userId, token, t]);
-
-  const handleSubmit = (newErrors: Record<string, boolean>) => {
-    if (Object.keys(newErrors).length) {
-      setErrors(newErrors);
-      toast.error(t("err_fill_required"));
-      return;
-    }
-
-    if (!paymentMethod) {
-      toast.error(t("choose_payment_method"));
-      return;
-    }
-
-    setOpenTerms(true);
-  };
-
-  const handlePaymentStart = async () => {
-    try {
-      setOpenTerms(false);
-
-      if (!cart.length) {
-        toast.error(t("cart_empty"));
-        return;
-      }
-
-      if (!token) {
-        toast.error(t("unauthorized"));
-        router.push(`/${locale}/log-in`);
-        return;
-      }
-
-      // normalize and validate items
-      const normalizedItems = cart
-        .map((i) => ({
-          foodId: i.food?.id ?? i.foodId ?? null,
-          quantity: Number(i.quantity) || 0,
-        }))
-        .filter((it) => it.foodId && it.quantity > 0);
-
-      if (normalizedItems.length === 0) {
-        toast.error(t("err_invalid_cart_items"));
-        return;
-      }
-
-      // send payload (note: userId removed, backend uses JWT)
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
-        {
-          items: normalizedItems,
-          productTotal,
-          deliveryFee,
-          totalPrice,
-          location: form.address,
-          phone: form.phonenumber,
-          paymentMethod,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const createdOrder = res.data?.order ?? res.data;
-      if (!createdOrder?.id) {
-        toast.error(t("err_create_order"));
-        return;
-      }
-
-      // CLEAR LOCAL CART
-      localStorage.removeItem(CART_KEY);
-      window.dispatchEvent(new Event("cart-updated"));
-
-      setOrderId(createdOrder.id);
-      localStorage.setItem("lastOrderId", createdOrder.id);
-
-      if (paymentMethod === "card") {
-        const stripeRes = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/stripe/create-session`,
-          { orderId: createdOrder.id, totalPrice },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (stripeRes.data?.url) {
-          window.location.href = stripeRes.data.url;
-          return;
-        }
-      }
-
-      if (paymentMethod === "qpay") {
-        router.push(
-          `/${locale}/checkout/payment-pending?orderId=${createdOrder.id}`
-        );
-        return;
-      }
-
-      if (paymentMethod === "cod") {
-        toast.success(t("order_success"));
-        router.push(`/${locale}/orders/${createdOrder.id}`);
-      }
-    } catch (err: any) {
-      console.error("ORDER CREATE ERROR (client):", err);
-
-      // handle known backend validation (cart stale / missing items)
-      if (err?.response?.status === 400) {
-        const serverMessage = err?.response?.data?.message;
-        const missingIds = err?.response?.data?.missingIds;
-
-        // clear stale cart and notify user
-        localStorage.removeItem(CART_KEY);
-        window.dispatchEvent(new Event("cart-updated"));
-
-        if (missingIds && Array.isArray(missingIds) && missingIds.length > 0) {
-          toast.error(
-            serverMessage ||
-              "Some items were removed from the cart. Cart cleared."
-          );
-        } else {
-          toast.error(serverMessage || t("cart_updated"));
-        }
-        return;
-      }
-
-      if (err?.response?.status === 401) {
-        toast.error(t("unauthorized"));
-        router.push(`/${locale}/log-in`);
-        return;
-      }
-
-      toast.error(t("err_create_order"));
-    }
+  const validateAndSubmit = () => {
+    const e: Record<string, boolean> = {};
+    if (!checkout.form.lastName) e.lastName = true;
+    if (!checkout.form.phonenumber) e.phonenumber = true;
+    if (!checkout.form.city) e.city = true;
+    if (!checkout.form.district) e.district = true;
+    if (!checkout.form.khoroo) e.khoroo = true;
+    if (!checkout.form.address) e.address = true;
+    checkout.handleSubmit(e);
   };
 
   return (
     <>
-      <main className="min-h-screen bg-background text-foreground pt-[120px] pb-28">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col lg:flex-row gap-10">
-          <motion.section
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <PaymentSummary
-              cart={cart}
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              onSubmit={() => {
-                const e: Record<string, boolean> = {};
-                if (!form.lastName) e.lastName = true;
-                if (!form.phonenumber) e.phonenumber = true;
-                if (!form.city) e.city = true;
-                if (!form.district) e.district = true;
-                if (!form.khoroo) e.khoroo = true;
-                if (!form.address) e.address = true;
-                handleSubmit(e);
-              }}
-            />
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex-1"
-          >
-            <DeliveryForm form={form} setForm={setForm} errors={errors} />
-          </motion.section>
-        </div>
-      </main>
+      <CheckoutLayout
+        cart={cart}
+        form={checkout.form}
+        errors={checkout.errors}
+        paymentMethod={checkout.paymentMethod}
+        setPaymentMethod={checkout.setPaymentMethod}
+        setForm={checkout.setForm}
+        onSubmit={validateAndSubmit}
+      />
 
       <TermsDialog
-        open={openTerms}
-        onOpenChange={setOpenTerms}
-        onConfirm={handlePaymentStart}
+        open={checkout.openTerms}
+        onOpenChange={checkout.setOpenTerms}
+        onConfirm={checkout.handlePaymentStart}
       />
 
       <QPayDialog
-        open={openQPay}
-        onOpenChange={setOpenQPay}
-        amount={totalPrice}
-        orderId={orderId ?? ""}
+        open={checkout.openQPay}
+        onOpenChange={checkout.setOpenQPay}
+        amount={checkout.totalPrice}
+        orderId={checkout.orderId ?? ""}
       />
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border px-4 py-3">
         <div className="flex gap-3">
           <button
-            type="button"
-            onClick={() => router.back()}
-            className="h-[44px] flex-1 rounded-md border border-border text-sm font-medium"
+            onClick={() => checkout.router.back()}
+            className="h-[44px] flex-1 rounded-md border"
           >
-            {t("back")}
+            {checkout.t("back")}
           </button>
-
           <button
-            type="button"
-            onClick={() => {
-              const e: Record<string, boolean> = {};
-              if (!form.lastName) e.lastName = true;
-              if (!form.phonenumber) e.phonenumber = true;
-              if (!form.city) e.city = true;
-              if (!form.district) e.district = true;
-              if (!form.khoroo) e.khoroo = true;
-              if (!form.address) e.address = true;
-              handleSubmit(e);
-            }}
-            className="h-[44px] flex-1 rounded-md bg-primary text-primary-foreground text-sm font-semibold"
+            onClick={validateAndSubmit}
+            className="h-[44px] flex-1 rounded-md bg-primary text-primary-foreground font-semibold"
           >
-            {t("order")}
+            {checkout.t("order")}
           </button>
         </div>
       </div>

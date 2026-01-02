@@ -26,7 +26,7 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
   const disableMinus = qty <= 1;
 
   return (
-    <div className="flex justify-between items-center border-b border-border py-4">
+    <div className="flex justify-between items-center border px-3 border-border py-4 rounded-md">
       {/* LEFT */}
       <div className="flex items-center gap-3 min-w-0">
         <img

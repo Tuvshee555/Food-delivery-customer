@@ -54,12 +54,13 @@ export const CartSummary: React.FC<Props> = ({
         <button
           onClick={onCheckout}
           className="
-            hidden sm:flex
-            w-full h-[44px]
-            rounded-md
-            bg-primary text-primary-foreground
-            text-sm font-medium
-          "
+    hidden sm:flex
+    w-full h-[44px]
+    items-center justify-center
+    rounded-md
+    bg-primary text-primary-foreground
+    text-sm font-medium
+  "
         >
           {t("continue")}
         </button>

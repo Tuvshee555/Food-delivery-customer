@@ -312,6 +312,7 @@
     "profile": "Profile",
     "orders": "Orders",
     "tickets": "Tickets"
-  }
+  },
+    "generating_qr": "Generating QR code..."
 
 }

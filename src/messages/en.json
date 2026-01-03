@@ -313,6 +313,12 @@
     "orders": "Orders",
     "tickets": "Tickets"
   },
-    "generating_qr": "Generating QR code..."
+    "generating_qr": "Generating QR code...",
+    "choose_payment": "Choose payment method",
+  "payment": {
+    "qpay": "QPay",
+    "card": "Card payment",
+    "cod": "Cash on delivery"
+  }
 
 }

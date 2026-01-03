@@ -21,6 +21,7 @@ export type CartItem = {
 };
 
 export type DeliveryFormData = {
+  firstName?: string;
   lastName?: string;
   phonenumber?: string;
   city?: string;
@@ -51,6 +52,7 @@ export function useCheckout(cart: CartItem[]) {
   const deliveryFee = 100;
   const totalPrice = productTotal + deliveryFee;
 
+  // load user defaults into form (once signed in)
   useEffect(() => {
     if (!userId || !token) return;
 
@@ -60,14 +62,52 @@ export function useCheckout(cart: CartItem[]) {
       })
       .then((res) => {
         if (res.data?.user) {
+          // prefer existing user fields; default city to Ulaanbaatar
           setForm({
-            ...res.data.user,
+            firstName: res.data.user.firstName ?? "",
+            lastName: res.data.user.lastName ?? "",
+            phonenumber: res.data.user.phonenumber ?? "",
             city: res.data.user.city || t("ulaanbaatar"),
+            district: res.data.user.district ?? "",
+            khoroo: res.data.user.khoroo ?? "",
+            address: res.data.user.address ?? "",
           });
         }
       })
       .catch(() => toast.error(t("err_user_info")));
   }, [userId, token, t]);
+
+  // AUTO-SAVE: when delivery form changes and user is signed in -> debounce save to profile
+  // AUTO-SAVE delivery info to user profile (debounced)
+  useEffect(() => {
+    if (!userId || !token) return;
+
+    const hasAny = Object.values(form).some((v) => v && v.trim?.());
+    if (!hasAny) return;
+
+    const handler = setTimeout(async () => {
+      try {
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`,
+          {
+            firstName: form.firstName ?? "",
+            lastName: form.lastName ?? "",
+            phonenumber: form.phonenumber ?? "",
+            city: form.city ?? "",
+            district: form.district ?? "",
+            khoroo: form.khoroo ?? "",
+            address: form.address ?? "",
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch {
+        // do NOT block checkout
+        toast.error(t("profile_save_error"));
+      }
+    }, 1000);
+
+    return () => clearTimeout(handler);
+  }, [form, userId, token, t]);
 
   const handleSubmit = (newErrors: Record<string, boolean>) => {
     if (Object.keys(newErrors).length) {

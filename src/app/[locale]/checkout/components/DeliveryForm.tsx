@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
-type DeliveryFormData = {
+export type DeliveryFormData = {
+  firstName?: string;
   lastName?: string;
   phonenumber?: string;
   city?: string;
@@ -31,13 +33,13 @@ export default function DeliveryForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ⬇️ SAME SIZE, SAME WEIGHT — ONLY COLOR
+  // SAME SIZE/WEIGHT — only color change
   const labelClass = (error?: boolean) =>
     `text-sm ${error ? "text-destructive" : "text-foreground"}`;
 
-  // ⬇️ NO GRAY INPUTS
+  // No grey inputs
   const inputClass = (error?: boolean) =>
-    `mt-1 h-[44px] bg-background border-border text-foreground
+    `mt-1 h-[44px] bg-background border-border text-foreground placeholder:text-muted-foreground
      focus-visible:ring-ring ${
        error ? "border-destructive focus-visible:ring-destructive" : ""
      }`;
@@ -52,13 +54,24 @@ export default function DeliveryForm({
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass(errors.lastName)}>
-              {t("full_name")} *
+            <label className={labelClass(errors.lastName as any)}>
+              {t("first_name")}
+            </label>
+            <Input
+              value={form.firstName ?? ""}
+              onChange={(e) => handleChange("firstName", e.target.value)}
+              className={inputClass(errors.lastName as any)}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass(errors.lastName as any)}>
+              {t("last_name")}
             </label>
             <Input
               value={form.lastName ?? ""}
               onChange={(e) => handleChange("lastName", e.target.value)}
-              className={inputClass(errors.lastName)}
+              className={inputClass(errors.lastName as any)}
             />
           </div>
 
@@ -120,12 +133,11 @@ export default function DeliveryForm({
             <Textarea
               value={form.address ?? ""}
               onChange={(e) => handleChange("address", e.target.value)}
-              className={`mt-1 h-[90px] bg-background border-border text-foreground
-                focus-visible:ring-ring ${
-                  errors.address
-                    ? "border-destructive focus-visible:ring-destructive"
-                    : ""
-                }`}
+              className={`mt-1 h-[90px] bg-background border-border text-foreground focus-visible:ring-ring ${
+                errors.address
+                  ? "border-destructive focus-visible:ring-destructive"
+                  : ""
+              }`}
             />
           </div>
         </div>

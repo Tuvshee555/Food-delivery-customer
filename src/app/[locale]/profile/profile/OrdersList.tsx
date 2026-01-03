@@ -17,6 +17,7 @@ export type OrderItem = {
 };
 
 export type Order = {
+  notes: string;
   id: string;
   totalPrice: number;
   createdAt: string;
@@ -85,6 +86,7 @@ export const OrdersList = () => {
       </div>
     );
   }
+  console.log(orders, "orders");
 
   return (
     <div
@@ -139,7 +141,15 @@ export const OrdersList = () => {
 
               <div className="flex items-center gap-2 text-muted-foreground truncate">
                 <MapPin size={14} />
-                <span className="truncate">{order.location}</span>
+                <div className="text-sm text-muted-foreground whitespace-pre-line space-y-1">
+                  <div>{order.location}</div>
+
+                  {order.notes && (
+                    <div className="italic text-muted-foreground/80">
+                      {t("additional_info")}: {order.notes}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

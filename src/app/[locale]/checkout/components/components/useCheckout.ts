@@ -28,6 +28,7 @@ export type DeliveryFormData = {
   district?: string;
   khoroo?: string;
   address?: string;
+  notes?: string;
 };
 
 const CART_KEY = "cart";
@@ -147,6 +148,17 @@ export function useCheckout(cart: CartItem[]) {
         toast.error(t("err_invalid_cart_items"));
         return;
       }
+      const fullLocation = [
+        form.city && `${t("city")}: ${form.city}`,
+        form.district && `${t("district")}: ${form.district}`,
+        form.khoroo && `${t("khoroo")}: ${form.khoroo}`,
+        form.address && `${t("address")}: ${form.address}`,
+        form.firstName && `${t("first_name")}: ${form.firstName}`,
+        form.lastName && `${t("last_name")}: ${form.lastName}`,
+        form.phonenumber && `${t("phone_number")}: ${form.phonenumber}`,
+      ]
+        .filter(Boolean)
+        .join(" • ");
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
@@ -155,7 +167,8 @@ export function useCheckout(cart: CartItem[]) {
           productTotal,
           deliveryFee,
           totalPrice,
-          location: form.address,
+          location: fullLocation, // ✅ FULL TEXT
+          notes: form.notes ?? "", // ✅ ADD THIS
           phone: form.phonenumber,
           paymentMethod,
         },

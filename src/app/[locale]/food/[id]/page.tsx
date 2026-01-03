@@ -28,6 +28,10 @@ export default function FoodDetailPage({
   const [allFoods, setAllFoods] = useState<FoodType[]>([]);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
     (async () => {
       const data = await getFood(id);
       if (!data) notFound();
@@ -42,35 +46,14 @@ export default function FoodDetailPage({
   if (!food) return null;
 
   return (
-    <main
-      className="
-        min-h-screen w-full
-        bg-background text-foreground
-        relative
-        pt-0 lg:pt-[90px]
-        pb-20
-      "
-    >
-      {/* MAIN PRODUCT */}
-      <section
-        className="
-          max-w-7xl mx-auto
-          grid grid-cols-1 lg:grid-cols-2
-          gap-0 lg:gap-10
-          items-start
-          px-0 lg:px-10
-        "
-      >
-        {/* MOBILE: full-bleed media */}
+    <main className="min-h-screen w-full bg-background text-foreground pt-0 lg:pt-[90px] pb-20">
+      <section className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-10 items-start px-0 lg:px-10">
         <FoodMedia food={food} />
-
-        {/* CONTENT: padded on mobile */}
         <div className="px-4 sm:px-6 lg:px-0">
           <FoodInfo food={food} />
         </div>
       </section>
 
-      {/* SIMILAR PRODUCTS */}
       <SimilarFoods food={food} allFoods={allFoods} />
     </main>
   );

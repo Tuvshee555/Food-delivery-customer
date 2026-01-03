@@ -1,8 +1,7 @@
-/* components/food/FoodMediaLightbox.tsx */
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export type Media = {
   type: "image" | "video";
@@ -22,17 +21,33 @@ export function FoodMediaLightbox({
   index: number;
   setIndex: (i: number) => void;
 }) {
-  // ESC to close
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  // reset zoom when closing or switching image
   useEffect(() => {
+    if (!open) setIsZoomed(false);
+  }, [open, index]);
+
+  // keyboard controls
+  useEffect(() => {
+    if (!open) return;
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight")
-        setIndex(Math.min(media.length - 1, index + 1));
-      if (e.key === "ArrowLeft") setIndex(Math.max(0, index - 1));
+
+      if (!isZoomed) {
+        if (e.key === "ArrowRight" && index < media.length - 1) {
+          setIndex(index + 1);
+        }
+        if (e.key === "ArrowLeft" && index > 0) {
+          setIndex(index - 1);
+        }
+      }
     };
-    if (open) window.addEventListener("keydown", onKey);
+
+    window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, index, media.length, onClose, setIndex]);
+  }, [open, index, media.length, isZoomed, onClose, setIndex]);
 
   if (!open) return null;
 
@@ -50,38 +65,59 @@ export function FoodMediaLightbox({
         <motion.div
           className="relative max-w-full max-h-full"
           onClick={(e) => e.stopPropagation()}
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
+          drag={isZoomed ? true : "x"}
+          dragConstraints={
+            isZoomed
+              ? { top: -400, bottom: 400, left: -400, right: 400 }
+              : { left: 0, right: 0 }
+          }
           onDragEnd={(_, info) => {
-            if (info.offset.x < -80 && index < media.length - 1)
+            if (isZoomed) return;
+
+            if (info.offset.x < -80 && index < media.length - 1) {
               setIndex(index + 1);
-            if (info.offset.x > 80 && index > 0) setIndex(index - 1);
+            }
+            if (info.offset.x > 80 && index > 0) {
+              setIndex(index - 1);
+            }
           }}
         >
           {current.type === "image" ? (
             <motion.img
               src={current.src}
-              className="max-h-screen max-w-screen object-contain cursor-zoom-in"
-              initial={{ scale: 0.96 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200 }}
+              onDoubleClick={() => setIsZoomed((z) => !z)}
+              className="max-h-screen max-w-screen object-contain"
+              animate={{
+                scale: isZoomed ? 2 : 1,
+                cursor: isZoomed ? "zoom-out" : "zoom-in",
+              }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+              draggable={false}
             />
           ) : (
             <video
               src={current.src}
               controls
               autoPlay
-              className="max-h-screen max-w-screen"
+              className="max-h-screen max-w-screen object-contain"
             />
           )}
 
-          {/* CLOSE */}
+          {/* CLOSE BUTTON */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white text-2xl"
+            aria-label="Close"
+            className="absolute top-4 right-4 text-white text-2xl leading-none"
           >
             ✕
           </button>
+
+          {/* COUNTER */}
+          {media.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/80">
+              {index + 1} / {media.length}
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>

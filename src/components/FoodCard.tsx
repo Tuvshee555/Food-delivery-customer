@@ -11,7 +11,6 @@ import type { FoodCardPropsType } from "@/type/type";
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   const { locale, t } = useI18n();
   const [hoverIndex, setHoverIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
 
   const BESTSELLER_THRESHOLD = 20;
 
@@ -61,7 +60,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
 
   const fmt = (v: number) => (Number.isNaN(v) ? "-" : v.toLocaleString());
 
-  const mainImage = displayImages[hoverIndex];
+  const mainImage = displayImages[hoverIndex] ?? "/placeholder.png";
 
   return (
     <Link
@@ -69,15 +68,13 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
       className="block w-full focus:outline-none"
     >
       <div
-        className="relative w-full cursor-pointer transition-transform duration-200 rounded-[10px]"
-        onMouseEnter={() => setIsHovered(true)}
+        className="w-full cursor-pointer transition-transform duration-200"
         onMouseLeave={() => {
-          setIsHovered(false);
           setHoverIndex(0);
         }}
         onMouseMove={handleMouseMove}
       >
-        {/* IMAGE */}
+        {/* MEDIA (isolated relative box) */}
         <div className="relative w-full aspect-[4/3] rounded-[10px] overflow-hidden bg-muted">
           <AnimatePresence mode="wait">
             <motion.img
@@ -95,7 +92,6 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
 
           {/* BADGES */}
           <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
-            {/* 🔴 FEATURED — ALWAYS RED */}
             {isFeatured && (
               <span className="inline-flex text-xs font-semibold px-2 py-1 bg-red-600 text-white rounded-sm -rotate-6 shadow">
                 {t("featured")}
@@ -110,36 +106,52 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
 
             {hasDiscount && (
               <span
-                className={`inline-flex text-xs font-semibold px-2 py-1 rounded-sm -rotate-6 shadow
-                  ${
-                    isDiscountFake
-                      ? "bg-yellow-400 text-black"
-                      : "bg-yellow-500 text-black"
-                  }`}
+                className={`inline-flex text-xs font-semibold px-2 py-1 rounded-sm -rotate-6 shadow ${
+                  isDiscountFake
+                    ? "bg-yellow-400 text-black"
+                    : "bg-yellow-500 text-black"
+                }`}
               >
                 -{discount}%
               </span>
             )}
           </div>
 
-          {/* IMAGE INDICATORS */}
-          {displayImages.length > 1 && (
-            <div
-              className={`absolute bottom-2 left-2 right-2 flex gap-1 transition-opacity ${
-                isHovered ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {displayImages.map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-[4px] flex-1 rounded-full ${
-                    i === hoverIndex ? "bg-foreground" : "bg-foreground/30"
-                  }`}
-                />
-              ))}
+          {/* SOLD OUT (only covers image area) */}
+          {food.stock === 0 && (
+            <div className="absolute inset-0 z-30 bg-black/60 flex items-center justify-center text-white font-semibold rounded-[10px]">
+              {t("sold_out")}
             </div>
           )}
         </div>
+
+        {/* DOTS — under the image, large & obvious */}
+        {displayImages.length > 1 && (
+          <div
+            className="mt-3 flex justify-center gap-3"
+            role="tablist"
+            aria-hidden={false}
+          >
+            {displayImages.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`show image ${i + 1}`}
+                onMouseEnter={() => setHoverIndex(i)}
+                onFocus={() => setHoverIndex(i)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setHoverIndex(i);
+                }}
+                className={`w-4 h-4 rounded-full transition-transform focus:outline-none ${
+                  i === hoverIndex
+                    ? "bg-foreground scale-100"
+                    : "bg-foreground/30 scale-90"
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* INFO */}
         <div className="pt-3 space-y-1">
@@ -165,13 +177,6 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
             )}
           </div>
         </div>
-
-        {/* SOLD OUT */}
-        {food.stock === 0 && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-semibold rounded-[10px]">
-            {t("sold_out")}
-          </div>
-        )}
       </div>
     </Link>
   );

@@ -31,16 +31,19 @@ export default function DeliveryForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // ⬇️ SAME SIZE, SAME WEIGHT — ONLY COLOR
   const labelClass = (error?: boolean) =>
-    `text-sm ${error ? "text-destructive" : "text-muted-foreground"}`;
+    `text-sm ${error ? "text-destructive" : "text-foreground"}`;
 
+  // ⬇️ NO GRAY INPUTS
   const inputClass = (error?: boolean) =>
-    `mt-1 h-[44px] ${
-      error ? "border-destructive focus-visible:ring-destructive" : ""
-    }`;
+    `mt-1 h-[44px] bg-background border-border text-foreground
+     focus-visible:ring-ring ${
+       error ? "border-destructive focus-visible:ring-destructive" : ""
+     }`;
 
   return (
-    <section className="bg-card  rounded-2xl p-6 space-y-8">
+    <section className="bg-card rounded-2xl p-6 space-y-8">
       {/* Customer info */}
       <div className="space-y-4">
         <h2 className="text-base font-semibold border-b border-border pb-2">
@@ -117,11 +120,12 @@ export default function DeliveryForm({
             <Textarea
               value={form.address ?? ""}
               onChange={(e) => handleChange("address", e.target.value)}
-              className={`mt-1 h-[90px] ${
-                errors.address
-                  ? "border-destructive focus-visible:ring-destructive"
-                  : ""
-              }`}
+              className={`mt-1 h-[90px] bg-background border-border text-foreground
+                focus-visible:ring-ring ${
+                  errors.address
+                    ? "border-destructive focus-visible:ring-destructive"
+                    : ""
+                }`}
             />
           </div>
         </div>
@@ -129,13 +133,13 @@ export default function DeliveryForm({
 
       {/* Additional info */}
       <div>
-        <label className="text-sm text-muted-foreground">
+        <label className="text-sm text-foreground">
           {t("additional_info")}
         </label>
         <Textarea
           value={form.notes ?? ""}
           onChange={(e) => handleChange("notes", e.target.value)}
-          className="mt-1 h-[90px]"
+          className="mt-1 h-[90px] bg-background border-border text-foreground focus-visible:ring-ring"
         />
       </div>
     </section>

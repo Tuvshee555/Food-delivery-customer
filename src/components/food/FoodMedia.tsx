@@ -5,6 +5,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FoodType } from "@/type/type";
+import { FoodMediaLightbox } from "./FoodMediaLightbox";
+import type { Media } from "./FoodMediaLightbox";
 
 const getMediaUrl = (media?: string | File): string => {
   if (!media) return "/placeholder.png";
@@ -12,10 +14,12 @@ const getMediaUrl = (media?: string | File): string => {
 };
 
 export const FoodMedia = ({ food }: { food: FoodType }) => {
-  const mediaList = useMemo(() => {
-    const list: { type: "image" | "video"; src: string }[] = [];
+  const mediaList = useMemo<Media[]>(() => {
+    const list: Media[] = [];
 
-    if (food.image) list.push({ type: "image", src: getMediaUrl(food.image) });
+    if (food.image) {
+      list.push({ type: "image", src: getMediaUrl(food.image) });
+    }
 
     if (Array.isArray(food.extraImages)) {
       food.extraImages.forEach((img) =>
@@ -37,22 +41,24 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
   }, [food]);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
   useEffect(() => setActiveIndex(0), [mediaList.length]);
 
-  // container width (slide width)
+  /* slide width */
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [slideWidth, setSlideWidth] = useState(0);
+
   useEffect(() => {
     const update = () => {
-      const w = containerRef.current?.offsetWidth ?? 0;
-      setSlideWidth(w);
+      setSlideWidth(containerRef.current?.offsetWidth ?? 0);
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // detect touch devices (set on client)
+  /* touch detection */
   const [isTouch, setIsTouch] = useState(false);
   useEffect(() => {
     setIsTouch(
@@ -61,7 +67,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
     );
   }, []);
 
-  // revoke blobs on unmount
+  /* cleanup blobs */
   useEffect(() => {
     return () => {
       mediaList.forEach((m) => {
@@ -72,32 +78,28 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
         }
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mediaList]);
 
-  // drag end logic: use offset & velocity to decide new index
+  /* drag logic */
   const onDragEnd = (
     _: any,
     info: { offset: { x: number }; velocity: { x: number } }
   ) => {
-    const dx = info.offset.x; // positive = dragged right
-    const vx = info.velocity.x;
-    if (slideWidth <= 0) return;
+    if (!slideWidth) return;
 
-    let next = activeIndex - Math.round(dx / slideWidth);
+    let next = activeIndex - Math.round(info.offset.x / slideWidth);
 
-    // velocity override: quick flick
-    if (Math.abs(vx) > 600) {
-      next = activeIndex - Math.sign(vx);
+    if (Math.abs(info.velocity.x) > 600) {
+      next = activeIndex - Math.sign(info.velocity.x);
     }
 
-    if (next < 0) next = 0;
-    if (next > mediaList.length - 1) next = mediaList.length - 1;
+    next = Math.max(0, Math.min(mediaList.length - 1, next));
     setActiveIndex(next);
   };
 
   return (
     <div className="w-full">
+      {/* MEDIA */}
       <div
         ref={containerRef}
         className="
@@ -120,7 +122,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
           onDragEnd={onDragEnd}
           animate={{ x: -activeIndex * slideWidth }}
           transition={{ type: "spring", stiffness: 300, damping: 35 }}
-          style={{ x: 0, touchAction: "pan-y" }}
+          style={{ touchAction: "pan-y" }}
         >
           {mediaList.map((m, i) => (
             <div
@@ -134,7 +136,8 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
                     key={m.src}
                     src={m.src}
                     alt={food.foodName}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    onClick={() => setLightboxOpen(true)}
+                    className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
                     initial={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -147,7 +150,8 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
                     src={m.src}
                     controls
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
+                    onClick={() => setLightboxOpen(true)}
+                    className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
                     initial={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -158,42 +162,34 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
             </div>
           ))}
         </motion.div>
-
-        {/* dots - mobile only */}
-        {mediaList.length > 1 && (
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-3 lg:hidden flex gap-2 items-center">
-            {mediaList.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveIndex(i)}
-                aria-label={`Go to media ${i + 1}`}
-                className={`w-2 h-2 rounded-full transition-all duration-150 ${
-                  i === activeIndex
-                    ? "w-2.5 h-2.5 bg-primary"
-                    : "bg-muted-foreground/60"
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* thumbnails - desktop only */}
+      {/* DOTS — mobile */}
       {mediaList.length > 1 && (
-        <div className="hidden lg:flex gap-3 mt-3 overflow-x-auto">
+        <div className="mt-3 flex justify-center gap-1.5 lg:hidden">
+          {mediaList.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIndex(i)}
+              aria-label={`Go to media ${i + 1}`}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                i === activeIndex ? "bg-primary" : "bg-muted-foreground/40"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* THUMBNAILS — desktop */}
+      {mediaList.length > 1 && (
+        <div className="hidden lg:flex gap-3 mt-4 overflow-x-auto">
           {mediaList.map((m, i) => (
             <button
               key={i}
               onClick={() => setActiveIndex(i)}
-              className={`
-                relative
-                w-14 h-14
-                rounded-md
-                overflow-hidden
-                border
-                flex-shrink-0
-                ${i === activeIndex ? "border-primary" : "border-border"}
-              `}
+              className={`relative w-14 h-14 rounded-md overflow-hidden border flex-shrink-0 ${
+                i === activeIndex ? "border-primary" : "border-border"
+              }`}
             >
               {m.type === "image" ? (
                 <img
@@ -204,7 +200,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
               ) : (
                 <>
                   <video src={m.src} className="w-full h-full object-cover" />
-                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-white text-xs bg-black/40">
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xs">
                     ▶
                   </span>
                 </>
@@ -213,6 +209,15 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
           ))}
         </div>
       )}
+
+      {/* LIGHTBOX */}
+      <FoodMediaLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        media={mediaList}
+        index={activeIndex}
+        setIndex={setActiveIndex}
+      />
     </div>
   );
 };

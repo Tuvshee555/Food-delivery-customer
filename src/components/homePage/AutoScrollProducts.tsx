@@ -111,13 +111,13 @@ export const AutoScrollProducts = () => {
                 key={item.id ?? item.foodId}
                 data-auto-item
                 className="
-                  snap-start
-                  min-w-[48vw]
-                  sm:min-w-[32%]
-                  md:min-w-[25%]
-                  lg:min-w-[20%]
-                  max-w-[320px]
-                "
+  snap-start
+  w-[calc(50%-12px)]
+  sm:w-[calc(33.333%-16px)]
+  md:w-[calc(25%-18px)]
+  lg:w-[calc(20%-20px)]
+  shrink-0
+"
               >
                 <FoodCard food={item} />
               </div>

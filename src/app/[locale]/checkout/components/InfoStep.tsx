@@ -1,7 +1,6 @@
 "use client";
 
 import TermsDialog from "./TermsDialog";
-import { QPayDialog } from "../../qpay/QPayDialog";
 import { CartItem } from "@/type/type";
 import { useCheckout } from "./components/useCheckout";
 import CheckoutLayout from "./components/CheckoutLayout";
@@ -34,17 +33,11 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
         onSubmit={validateAndSubmit}
       />
 
+      {/* Terms confirmation */}
       <TermsDialog
         open={checkout.openTerms}
         onOpenChange={checkout.setOpenTerms}
         onConfirm={checkout.handlePaymentStart}
-      />
-
-      <QPayDialog
-        open={checkout.openQPay}
-        onOpenChange={checkout.setOpenQPay}
-        amount={checkout.totalPrice}
-        orderId={checkout.orderId ?? ""}
       />
 
       {/* Mobile sticky actions */}

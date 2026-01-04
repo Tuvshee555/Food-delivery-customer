@@ -1,4 +1,11 @@
-export type OrderStatus = "PENDING" | "DELIVERED" | "CANCELLED";
+export type OrderStatus =
+  | "PENDING"
+  | "WAITING_PAYMENT"
+  | "COD_PENDING"
+  | "PAID"
+  | "DELIVERING"
+  | "DELIVERED"
+  | "CANCELLED";
 
 export type OrderItem = {
   id: string;

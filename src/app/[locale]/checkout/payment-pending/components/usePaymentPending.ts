@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +9,7 @@ import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { OrderData } from "./types";
 
 export function usePaymentPending() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -21,7 +20,6 @@ export function usePaymentPending() {
   const [paid, setPaid] = useState(false);
   const [status, setStatus] = useState<string>(t("payment_creating"));
   const [loadingOrder, setLoadingOrder] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
 
   const hasRequestedInvoice = useRef(false);
   const pollRef = useRef<number | null>(null);
@@ -29,12 +27,9 @@ export function usePaymentPending() {
 
   useEffect(() => {
     mountedRef.current = true;
-    try {
-      const t = localStorage.getItem("token");
-      if (t) setToken(t);
-    } catch {}
     return () => {
       mountedRef.current = false;
+      if (pollRef.current) clearInterval(pollRef.current);
     };
   }, []);
 
@@ -42,119 +37,120 @@ export function usePaymentPending() {
     const fromUrl = searchParams.get("orderId");
     if (fromUrl) {
       setOrderId(fromUrl);
-      try {
-        localStorage.setItem("lastOrderId", fromUrl);
-      } catch {}
+      localStorage.setItem("lastOrderId", fromUrl);
       return;
     }
 
-    try {
-      const fromStorage = localStorage.getItem("lastOrderId");
-      if (fromStorage) setOrderId(fromStorage);
-    } catch {}
+    const stored = localStorage.getItem("lastOrderId");
+    if (stored) setOrderId(stored);
   }, [searchParams]);
 
   const fetchOrder = async (id: string) => {
     setLoadingOrder(true);
     try {
+      const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${id}`,
         { headers }
       );
-      const payload = res.data?.order ?? res.data;
-      if (mountedRef.current) setOrder(payload ?? null);
+
+      if (mountedRef.current) setOrder(res.data ?? null);
     } catch {
-      if (mountedRef.current) {
-        toast.error(t("order_not_found"));
-        setOrder(null);
-      }
+      toast.error(t("order_not_found"));
+      if (mountedRef.current) setOrder(null);
     } finally {
       if (mountedRef.current) setLoadingOrder(false);
     }
   };
 
   useEffect(() => {
-    if (!orderId) return;
-    fetchOrder(orderId);
-  }, [orderId, token]);
+    if (orderId) fetchOrder(orderId);
+  }, [orderId]);
 
+  /** 🔑 CORE LOGIC */
   useEffect(() => {
-    if (!orderId || !order?.totalPrice) return;
-    if (hasRequestedInvoice.current) return;
+    if (!order) return;
 
-    hasRequestedInvoice.current = true;
+    // Already paid → go to order
+    if (order.status === "PAID" || order.status === "DELIVERED") {
+      router.push(`/${locale}/orders/${order.id}`);
+      return;
+    }
 
-    (async () => {
-      try {
-        const headers: any = { "Content-Type": "application/json" };
-        if (token) headers.Authorization = `Bearer ${token}`;
+    // COD / BANK → no online payment
+    if (order.paymentMethod !== "QPAY") {
+      router.push(`/${locale}/orders/${order.id}`);
+      return;
+    }
 
-        const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/create`,
-          { orderId, amount: order.totalPrice },
-          { headers }
-        );
+    // Only QPAY + waiting payment
+    if (
+      order.paymentMethod === "QPAY" &&
+      order.status === "WAITING_PAYMENT" &&
+      !hasRequestedInvoice.current
+    ) {
+      hasRequestedInvoice.current = true;
 
-        const data = res.data ?? {};
-        if (!data.qr_text) {
-          toast.error(t("payment_qr_error"));
-          return;
+      (async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+          const res = await axios.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/create`,
+            { orderId: order.id, amount: order.totalPrice },
+            { headers }
+          );
+
+          if (!res.data?.qr_text) {
+            toast.error(t("payment_qr_error"));
+            return;
+          }
+
+          if (mountedRef.current) {
+            setQrText(res.data.qr_text);
+            setInvoiceId(res.data.invoice_id);
+            setStatus(t("payment_waiting"));
+          }
+        } catch {
+          toast.error(t("payment_create_fail"));
         }
+      })();
+    }
+  }, [order]);
 
-        if (mountedRef.current) {
-          setQrText(data.qr_text);
-          setInvoiceId(data.invoice_id ?? data.invoiceId ?? null);
-          setStatus(t("payment_waiting"));
-        }
-      } catch {
-        toast.error(t("payment_create_fail"));
-      }
-    })();
-  }, [order, orderId, token]);
-
+  /** 🔁 POLLING */
   useEffect(() => {
     if (!invoiceId || paid) return;
 
-    const checkOnce = async () => {
+    const check = async () => {
       try {
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/check`,
-          { invoiceId },
-          { headers: { "Content-Type": "application/json" } }
+          { invoiceId }
         );
-        return res.data ?? {};
+        return res.data;
       } catch {
         return null;
       }
     };
 
-    (async () => {
-      const data = await checkOnce();
+    pollRef.current = window.setInterval(async () => {
+      const data = await check();
       if (data?.paid && mountedRef.current) {
         setPaid(true);
         setStatus(t("payment_success"));
+        clearInterval(pollRef.current!);
         setTimeout(() => {
-          if (orderId) router.push(`/mn/orders/${orderId}`);
+          router.push(`/${locale}/orders/${orderId}`);
         }, 1500);
-        return;
       }
-
-      pollRef.current = window.setInterval(async () => {
-        const data2 = await checkOnce();
-        if (data2?.paid && mountedRef.current) {
-          setPaid(true);
-          setStatus(t("payment_success"));
-          window.clearInterval(pollRef.current!);
-          setTimeout(() => {
-            if (orderId) router.push(`/mn/orders/${orderId}`);
-          }, 1500);
-        }
-      }, 5000);
-    })();
+    }, 5000);
 
     return () => {
-      if (pollRef.current) window.clearInterval(pollRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [invoiceId, paid]);
 

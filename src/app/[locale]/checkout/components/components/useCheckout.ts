@@ -9,12 +9,12 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
-export type PaymentMethod = "qpay" | "card" | "cod" | null;
+/** CANONICAL (match backend) */
+export type PaymentMethod = "QPAY" | "BANK" | "COD" | null;
 
 export type CartItem = {
   foodId?: string;
   quantity: number;
-  selectedSize?: string | null;
   food?: {
     id?: string;
     price?: number;
@@ -42,9 +42,10 @@ export function useCheckout(cart: CartItem[]) {
   const [form, setForm] = useState<DeliveryFormData>({});
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [openTerms, setOpenTerms] = useState(false);
-  const [openQPay, setOpenQPay] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qpay");
+
+  /* use backend enum everywhere */
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
 
   const productTotal = useMemo(
     () => cart.reduce((s, i) => s + (i.food?.price ?? 0) * i.quantity, 0),
@@ -54,12 +55,9 @@ export function useCheckout(cart: CartItem[]) {
   const deliveryFee = 100;
   const totalPrice = productTotal + deliveryFee;
 
-  // ref to skip autosave while initial user load is running
   const initialLoadRef = useRef(true);
-  // ref to store debounce timer id
   const saveTimerRef = useRef<number | null>(null);
 
-  // load user defaults into form (once signed in)
   useEffect(() => {
     if (!userId || !token) return;
 
@@ -75,7 +73,7 @@ export function useCheckout(cart: CartItem[]) {
             firstName: res.data.user.firstName ?? "",
             lastName: res.data.user.lastName ?? "",
             phonenumber: res.data.user.phonenumber ?? "",
-            city: res.data.user.city || t("ulaanbaatar"),
+            city: res.data.user.city ?? t("ulaanbaatar"),
             district: res.data.user.district ?? "",
             khoroo: res.data.user.khoroo ?? "",
             address: res.data.user.address ?? "",
@@ -85,62 +83,45 @@ export function useCheckout(cart: CartItem[]) {
       })
       .catch(() => toast.error(t("err_user_info")))
       .finally(() => {
-        // allow autosave after initial population
         initialLoadRef.current = false;
       });
   }, [userId, token, t]);
 
-  // AUTO-SAVE delivery info to user profile (debounced)
   useEffect(() => {
-    if (!userId || !token) return;
-
-    // skip autosave while initial load is in progress
-    if (initialLoadRef.current) return;
+    if (!userId || !token || initialLoadRef.current) return;
 
     const hasAny = Object.values(form).some(
-      (v) => typeof v === "string" && v.trim() !== ""
+      (v) => typeof v === "string" && v.trim()
     );
     if (!hasAny) return;
 
-    // clear previous timer
-    if (saveTimerRef.current) {
-      window.clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = null;
-    }
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
     saveTimerRef.current = window.setTimeout(async () => {
       try {
-        // only send the delivery/profile fields
-        const payload: Partial<DeliveryFormData> = {
-          firstName: form.firstName ?? "",
-          lastName: form.lastName ?? "",
-          phonenumber: form.phonenumber ?? "",
-          city: form.city ?? "",
-          district: form.district ?? "",
-          khoroo: form.khoroo ?? "",
-          address: form.address ?? "",
-          notes: form.notes ?? "",
-        };
-
         await axios.put(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`,
-          payload,
+          {
+            firstName: form.firstName ?? "",
+            lastName: form.lastName ?? "",
+            phonenumber: form.phonenumber ?? "",
+            city: form.city ?? "",
+            district: form.district ?? "",
+            khoroo: form.khoroo ?? "",
+            address: form.address ?? "",
+            notes: form.notes ?? "",
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        // silent success (optionally: show subtle 'saved' toast)
-      } catch (err) {
-        // don't block checkout, but notify user
+      } catch {
         toast.error(t("profile_save_error"));
       } finally {
         saveTimerRef.current = null;
       }
-    }, 800); // 800ms debounce
+    }, 800);
 
     return () => {
-      if (saveTimerRef.current) {
-        window.clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = null;
-      }
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, [form, userId, token, t]);
 
@@ -150,12 +131,10 @@ export function useCheckout(cart: CartItem[]) {
       toast.error(t("err_fill_required"));
       return;
     }
-
     if (!paymentMethod) {
       toast.error(t("choose_payment_method"));
       return;
     }
-
     setOpenTerms(true);
   };
 
@@ -164,9 +143,7 @@ export function useCheckout(cart: CartItem[]) {
       setOpenTerms(false);
 
       if (!cart.length) return toast.error(t("cart_empty"));
-
       if (!token) {
-        toast.error(t("unauthorized"));
         router.push(`/${locale}/log-in`);
         return;
       }
@@ -183,24 +160,26 @@ export function useCheckout(cart: CartItem[]) {
         return;
       }
 
-      // const fullLocation = [
-      //   form.city && `${t("city")}: ${form.city}`,
-      //   form.district && `${t("district")}: ${form.district}`,
-      //   form.khoroo && `${t("khoroo")}: ${form.khoroo}`,
-      //   form.address && `${t("address")}: ${form.address}`,
-      //   form.firstName && `${t("first_name")}: ${form.firstName}`,
-      //   form.lastName && `${t("last_name")}: ${form.lastName}`,
-      //   form.phonenumber && `${t("phone_number")}: ${form.phonenumber}`,
-      // ]
-      //   .filter(Boolean)
-      //   .join(" • ");
+      // --- VALIDATION: paymentMethod must be one of API values ---
+      if (!paymentMethod) {
+        toast.error(t("choose_payment_method"));
+        return;
+      }
 
+      // Helpful local debug
+      console.log("START PAYMENT", {
+        paymentMethod,
+        normalizedItems,
+        totalPrice,
+      });
+
+      // POST order to backend — send paymentMethod exactly as backend expects
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
         {
           items: normalizedItems,
           totalPrice,
-
+          paymentMethod: paymentMethod, // exact value: "QPAY" | "BANK" | "COD"
           firstName: form.firstName ?? null,
           lastName: form.lastName ?? null,
           phone: form.phonenumber ?? null,
@@ -210,55 +189,54 @@ export function useCheckout(cart: CartItem[]) {
           address: form.address ?? null,
           notes: form.notes ?? "",
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const order = res.data?.order ?? res.data;
-      if (!order?.id) return toast.error(t("err_create_order"));
+      const order = res.data ?? {};
+      // backend shape: use whichever field you return — prefer `id` + `orderNumber`
+      const returnedOrderId = order.id ?? order.orderId ?? null;
+      const returnedOrderNumber =
+        order.orderNumber ?? order.order_number ?? null;
 
+      if (!returnedOrderId) {
+        console.error("Order creation returned unexpected payload:", order);
+        toast.error(t("err_create_order"));
+        return;
+      }
+
+      // clear cart client side
       localStorage.removeItem(CART_KEY);
       window.dispatchEvent(new Event("cart-updated"));
 
-      setOrderId(order.id);
-      localStorage.setItem("lastOrderId", order.id);
+      setOrderId(returnedOrderId);
+      try {
+        localStorage.setItem("lastOrderId", returnedOrderId);
+      } catch {}
 
-      if (paymentMethod === "card") {
-        const stripe = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/stripe/create-session`,
-          { orderId: order.id, totalPrice },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (stripe.data?.url) {
-          window.location.href = stripe.data.url;
-          return;
-        }
-      }
-
-      if (paymentMethod === "qpay") {
+      // ROUTING — use exact paymentMethod
+      if (paymentMethod === "QPAY") {
         router.push(
-          `/${locale}/checkout/payment-pending?orderId=${encodeURIComponent(
-            order.id
-          )}`
+          `/${locale}/checkout/payment-pending?orderId=${returnedOrderId}`
         );
         return;
       }
 
-      if (paymentMethod === "cod") {
-        toast.success(t("order_success"));
-        router.push(`/${locale}/orders/${order.id}`);
+      if (paymentMethod === "BANK") {
+        router.push(
+          `/${locale}/checkout/bank-transfer?orderId=${returnedOrderId}`
+        );
+        return;
       }
+
+      // COD
+      toast.success(t("order_success"));
+      router.push(`/${locale}/orders/${returnedOrderId}`);
     } catch (err: any) {
+      console.error("handlePaymentStart error:", err?.response?.data ?? err);
       if (err?.response?.status === 401) {
-        toast.error(t("unauthorized"));
         router.push(`/${locale}/log-in`);
         return;
       }
-
-      localStorage.removeItem(CART_KEY);
-      window.dispatchEvent(new Event("cart-updated"));
       toast.error(t("err_create_order"));
     }
   };
@@ -269,8 +247,6 @@ export function useCheckout(cart: CartItem[]) {
     errors,
     openTerms,
     setOpenTerms,
-    openQPay,
-    setOpenQPay,
     orderId,
     paymentMethod,
     setPaymentMethod,

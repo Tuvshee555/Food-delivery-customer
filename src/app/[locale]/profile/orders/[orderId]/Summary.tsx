@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import axios from "axios";
@@ -6,6 +5,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { OrderDetails } from "./types";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 export const Summary = ({
   order,
@@ -16,14 +16,23 @@ export const Summary = ({
 }) => {
   const router = useRouter();
   const { locale, t } = useI18n();
-  const canCancel = order.status === "PENDING";
+  const { token } = useAuth();
+
+  const canCancel =
+    order.status === "PENDING" ||
+    order.status === "WAITING_PAYMENT" ||
+    order.status === "COD_PENDING";
 
   const handleCancel = async () => {
     try {
       await axios.patch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
-        { status: "CANCELLED" }
+        { status: "CANCELLED" },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
       toast.success(t("order_cancel_success"));
       onUpdated();
     } catch {
@@ -51,7 +60,7 @@ export const Summary = ({
 
       <div className="mt-5 flex gap-3">
         <button
-          // onClick={handleReorder}
+          onClick={handleReorder}
           className="
             flex-1 h-[44px]
             rounded-md

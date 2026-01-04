@@ -8,6 +8,8 @@ export type OrderItem = {
 };
 
 export type OrderData = {
+  status: string;
+  paymentMethod: string;
   id?: string;
   totalPrice?: number;
   deliveryFee?: number;

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useRouter } from "next/navigation";
 
+/* Cart item */
 type CartItem = {
   quantity: number;
   price?: number;
@@ -12,15 +13,25 @@ type CartItem = {
   };
 };
 
-type PaymentMethod = "qpay" | "card" | "cod" | null;
+/* MUST MATCH BACKEND ENUM EXACTLY */
+export type PaymentMethod = "QPAY" | "BANK" | "COD" | null;
 
 interface PaymentSummaryProps {
   cart: CartItem[];
   onSubmit: () => void;
   paymentMethod: PaymentMethod;
   setPaymentMethod: (p: PaymentMethod) => void;
-  hideActions?: boolean; // set true when using sticky actions
+  hideActions?: boolean;
 }
+
+const PAYMENT_METHODS: {
+  value: Exclude<PaymentMethod, null>;
+  labelKey: string;
+}[] = [
+  { value: "QPAY", labelKey: "payment.qpay" },
+  { value: "BANK", labelKey: "payment.bank" },
+  { value: "COD", labelKey: "payment.cod" },
+];
 
 export default function PaymentSummary({
   cart,
@@ -32,13 +43,13 @@ export default function PaymentSummary({
   const { locale, t } = useI18n();
   const router = useRouter();
 
-  const total = cart.reduce(
+  const productTotal = cart.reduce(
     (sum, i) => sum + (i.food?.price ?? i.price ?? 0) * i.quantity,
     0
   );
 
-  const delivery = 100;
-  const grandTotal = total + delivery;
+  const deliveryFee = 100;
+  const grandTotal = productTotal + deliveryFee;
 
   return (
     <aside className="w-full lg:w-[400px] bg-card rounded-2xl p-6 space-y-6 h-fit">
@@ -49,12 +60,12 @@ export default function PaymentSummary({
       <div className="space-y-2 text-sm">
         <div className="flex justify-between text-muted-foreground">
           <span>{t("product_total")}</span>
-          <span>{total.toLocaleString()}₮</span>
+          <span>{productTotal.toLocaleString()}₮</span>
         </div>
 
         <div className="flex justify-between text-muted-foreground">
           <span>{t("delivery_price")}</span>
-          <span>{delivery.toLocaleString()}₮</span>
+          <span>{deliveryFee.toLocaleString()}₮</span>
         </div>
       </div>
 
@@ -68,18 +79,22 @@ export default function PaymentSummary({
       <div className="space-y-3">
         <p className="text-sm font-medium">{t("choose_payment")}</p>
 
-        {(["qpay", "card", "cod"] as PaymentMethod[]).map((method) => (
+        {PAYMENT_METHODS.map((m) => (
           <label
-            key={method}
-            className="flex items-center gap-3 h-[44px] px-3 rounded-md border border-border cursor-pointer hover:bg-muted transition"
+            key={m.value}
+            className={`flex items-center gap-3 h-[44px] px-3 rounded-md border cursor-pointer transition ${
+              paymentMethod === m.value
+                ? "border-primary bg-primary/5"
+                : "border-border hover:bg-muted"
+            }`}
           >
             <input
               type="radio"
               name="payment"
-              checked={paymentMethod === method}
-              onChange={() => setPaymentMethod(method)}
+              checked={paymentMethod === m.value}
+              onChange={() => setPaymentMethod(m.value)}
             />
-            <span className="text-sm">{t(`payment.${method}`)}</span>
+            <span className="text-sm">{t(m.labelKey)}</span>
           </label>
         ))}
       </div>

@@ -319,6 +319,31 @@
     "qpay": "QPay",
     "card": "Card payment",
     "cod": "Cash on delivery"
-  }
+  },
+  "payment.bank": "Bank transfer",
+  "invalid_payment_method": "Invalid payment method",
+  "copied": "Copied",
+  "copy_failed": "Copy failed",
+  "bank_notify_success": "Thank you! We’ve notified our team.",
+  "bank_notify_error": "Failed to notify. Please try again.",
+  "bank_transfer_title": "Bank transfer payment",
+  "bank_transfer_subtitle": "Please transfer the exact amount using the information below.",
+  "bank_name": "Bank",
+  "account_holder": "Account holder",
+  "account_number": "Account number",
+  "transfer_description": "Transfer description",
+  "total_amount": "Total amount",
+  "bank_transfer_notice": "Use the following code as your transfer description:",
+  "back_home": "Back to home",
+  "view_order": "View order",
+  "copy_all": "Copy all",
+  "sending": "Sending...",
+  "bank_i_transferred": "I have transferred",
+  "order_number": "Order number",
+
+  "order_status_waiting_payment": "Waiting for payment",
+  "order_status_cod_pending": "Cash on delivery",
+  "order_status_paid": "Paid",
+  "order_status_delivering": "Delivering"
 
 }

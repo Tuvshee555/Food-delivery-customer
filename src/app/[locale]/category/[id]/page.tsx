@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -6,7 +5,6 @@ import { use, useMemo, useState } from "react";
 import { FoodCard } from "@/components/FoodCard";
 import { CategorySidebar } from "@/components/category/CategorySidebar";
 import { CategoryHeader } from "@/components/category/CategoryHeader";
-import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategoryLogic } from "@/components/category/components/useCategoryFoods";
 import { CategoryFilterSheet } from "@/components/category/components/CategoryFilterSheet";
 import { CategorySortDrawer } from "@/components/category/components/CategorySortDrawer";
@@ -19,12 +17,10 @@ export default function CategoryPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { t } = useI18n();
   const { id } = use(params);
 
   const {
     filteredFoods,
-    foods,
     filters,
     categoryName,
     setSortType,

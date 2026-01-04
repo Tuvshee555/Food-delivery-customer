@@ -126,7 +126,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
         </div>
 
         {/* DOTS — under the image, large & obvious */}
-        {displayImages.length > 1 && (
+        {/* {displayImages.length > 1 && (
           <div
             className="mt-3 flex justify-center gap-3"
             role="tablist"
@@ -151,7 +151,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
               />
             ))}
           </div>
-        )}
+        )} */}
 
         {/* INFO */}
         <div className="pt-3 space-y-1">

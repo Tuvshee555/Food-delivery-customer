@@ -56,7 +56,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-3">
             <div className="w-12 h-12 relative rounded-md overflow-hidden bg-muted">
               <Image
-                src="/order.png"
+                src="/order1.png"
                 alt={t("site_name")}
                 fill
                 className="object-contain"
@@ -74,7 +74,9 @@ export default function Footer() {
           {/* Socials — centered on mobile */}
           <div className="flex justify-center md:justify-start gap-2">
             <a
-              href={t("social_facebook_url") || "https://facebook.com"}
+              href={
+                t("https://www.facebook.com/talbai") || "https://facebook.com"
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
@@ -83,7 +85,7 @@ export default function Footer() {
             </a>
 
             <a
-              href={t("social_instagram_url") || "https://instagram.com"}
+              href={t("https://www.instagram.com/") || "https://instagram.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
@@ -92,7 +94,7 @@ export default function Footer() {
             </a>
 
             <a
-              href={t("social_youtube_url") || "https://youtube.com"}
+              href={t("https://www.youtube.com/") || "https://youtube.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
@@ -149,27 +151,27 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li>
               <a
-                href={`tel:${t("footer_phone")}`}
+                href={`tel:${t("86185769")}`}
                 className="flex items-center gap-2 min-h-[40px]"
               >
                 <Phone size={16} />
-                {t("footer_phone")}
+                {t("86185769")}
               </a>
             </li>
 
             <li>
               <a
-                href={`mailto:${t("footer_email")}`}
+                href={`mailto:${t("ganturtuvshinsaihan@gmail.com")}`}
                 className="flex items-center gap-2 min-h-[40px]"
               >
                 <Mail size={16} />
-                {t("footer_email")}
+                {t("ganturtuvshinsaihan@gmail.com")}
               </a>
             </li>
 
-            <li className="flex items-start gap-2">
+            <li className="flex items-center gap-2 min-h-[40px]">
               <MapPin size={16} className="mt-0.5" />
-              <span>{t("footer_address")}</span>
+              <span>{t("Байршил")}</span>
             </li>
           </ul>
         </div>

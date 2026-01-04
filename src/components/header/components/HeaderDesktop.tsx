@@ -65,7 +65,7 @@ export default function HeaderDesktop({
               href={`/${locale}/home-page`}
               className="flex items-center gap-2"
             >
-              <img src="/order.png" className="w-8 h-8" alt="logo" />
+              <img src="/order1.png" className="w-8 h-8" alt="logo" />
               <span className="text-foreground text-lg font-semibold">
                 NomNom
               </span>

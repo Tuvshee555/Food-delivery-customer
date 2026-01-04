@@ -22,7 +22,7 @@ export default function SheetFooter({
   onClose: () => void;
 }) {
   return (
-    <div className="border-t border-border pt-6 pb-8 mt-6 space-y-6 text-base">
+    <div className="pb-8  space-y-6 text-base">
       {/* Help links */}
       <div className="flex flex-col gap-3">
         <div className="font-medium text-base">{t("footer_menu_help")}</div>

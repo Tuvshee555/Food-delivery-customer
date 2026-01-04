@@ -30,7 +30,7 @@ export const AutoScrollProducts = () => {
     useAutoScrollProducts(foods);
 
   const firstProductImage =
-    filtered.length > 0 ? getMediaUrl(filtered[0]) : "/order.png";
+    filtered.length > 0 ? getMediaUrl(filtered[0]) : "/order1.png";
 
   const tabButtonsRef = useRef<Array<HTMLButtonElement | null>>([]);
 

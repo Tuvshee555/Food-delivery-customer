@@ -101,7 +101,7 @@ export default function HeaderMobile({
               className="absolute left-1/2 -translate-x-1/2 flex items-center"
             >
               <img
-                src="/order.png"
+                src="/order1.png"
                 className="w-8 h-8 object-contain"
                 alt="logo"
               />

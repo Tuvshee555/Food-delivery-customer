@@ -101,7 +101,7 @@ export const ProfileInfo = () => {
   };
 
   return (
-    <section className="max-w-3xl space-y-10 p-7">
+    <section className="max-w-3xl space-y-10 p-7 pb-[260px] sm:pb-7">
       <h1 className="text-base font-semibold">{t("my_profile")}</h1>
 
       <ProfileFields

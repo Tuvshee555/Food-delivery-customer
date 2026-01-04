@@ -108,7 +108,7 @@ export const OrdersList = () => {
   }
 
   return (
-    <div className="space-y-6 mt-5 sm:mt-0 px-4 sm:px-0">
+    <div className="space-y-6 mt-5 sm:mt-0 px-4 sm:px-0 pb-[260px] sm:pb-0">
       {/* Header */}
       <div className="flex items-center gap-2">
         <Receipt className="w-5 h-5" />

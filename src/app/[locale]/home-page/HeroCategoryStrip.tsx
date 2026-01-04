@@ -127,7 +127,7 @@ export const HeroCategoryStrip = () => {
                   >
                     <div
                       className="
-                        w-[70vw]
+                        w-[40vw]
                         max-w-[240px]
                         sm:w-[220px]
                         md:w-[180px]

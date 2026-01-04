@@ -47,7 +47,7 @@ export const FoodCategoryList = () => {
             const firstFoodImage =
               filteredFood.length > 0
                 ? getMediaUrl(filteredFood[0].image)
-                : "/order.png";
+                : "/order1.png";
 
             return (
               <section key={catId} className="w-full">

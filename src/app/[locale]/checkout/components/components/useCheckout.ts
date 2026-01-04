@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -53,9 +54,16 @@ export function useCheckout(cart: CartItem[]) {
   const deliveryFee = 100;
   const totalPrice = productTotal + deliveryFee;
 
+  // ref to skip autosave while initial user load is running
+  const initialLoadRef = useRef(true);
+  // ref to store debounce timer id
+  const saveTimerRef = useRef<number | null>(null);
+
   // load user defaults into form (once signed in)
   useEffect(() => {
     if (!userId || !token) return;
+
+    initialLoadRef.current = true;
 
     axios
       .get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`, {
@@ -63,7 +71,6 @@ export function useCheckout(cart: CartItem[]) {
       })
       .then((res) => {
         if (res.data?.user) {
-          // prefer existing user fields; default city to Ulaanbaatar
           setForm({
             firstName: res.data.user.firstName ?? "",
             lastName: res.data.user.lastName ?? "",
@@ -72,42 +79,69 @@ export function useCheckout(cart: CartItem[]) {
             district: res.data.user.district ?? "",
             khoroo: res.data.user.khoroo ?? "",
             address: res.data.user.address ?? "",
+            notes: res.data.user.notes ?? "",
           });
         }
       })
-      .catch(() => toast.error(t("err_user_info")));
+      .catch(() => toast.error(t("err_user_info")))
+      .finally(() => {
+        // allow autosave after initial population
+        initialLoadRef.current = false;
+      });
   }, [userId, token, t]);
 
-  // AUTO-SAVE: when delivery form changes and user is signed in -> debounce save to profile
   // AUTO-SAVE delivery info to user profile (debounced)
   useEffect(() => {
     if (!userId || !token) return;
 
-    const hasAny = Object.values(form).some((v) => v && v.trim?.());
+    // skip autosave while initial load is in progress
+    if (initialLoadRef.current) return;
+
+    const hasAny = Object.values(form).some(
+      (v) => typeof v === "string" && v.trim() !== ""
+    );
     if (!hasAny) return;
 
-    const handler = setTimeout(async () => {
+    // clear previous timer
+    if (saveTimerRef.current) {
+      window.clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+
+    saveTimerRef.current = window.setTimeout(async () => {
       try {
+        // only send the delivery/profile fields
+        const payload: Partial<DeliveryFormData> = {
+          firstName: form.firstName ?? "",
+          lastName: form.lastName ?? "",
+          phonenumber: form.phonenumber ?? "",
+          city: form.city ?? "",
+          district: form.district ?? "",
+          khoroo: form.khoroo ?? "",
+          address: form.address ?? "",
+          notes: form.notes ?? "",
+        };
+
         await axios.put(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`,
-          {
-            firstName: form.firstName ?? "",
-            lastName: form.lastName ?? "",
-            phonenumber: form.phonenumber ?? "",
-            city: form.city ?? "",
-            district: form.district ?? "",
-            khoroo: form.khoroo ?? "",
-            address: form.address ?? "",
-          },
+          payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-      } catch {
-        // do NOT block checkout
+        // silent success (optionally: show subtle 'saved' toast)
+      } catch (err) {
+        // don't block checkout, but notify user
         toast.error(t("profile_save_error"));
+      } finally {
+        saveTimerRef.current = null;
       }
-    }, 1000);
+    }, 800); // 800ms debounce
 
-    return () => clearTimeout(handler);
+    return () => {
+      if (saveTimerRef.current) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+    };
   }, [form, userId, token, t]);
 
   const handleSubmit = (newErrors: Record<string, boolean>) => {
@@ -148,31 +182,37 @@ export function useCheckout(cart: CartItem[]) {
         toast.error(t("err_invalid_cart_items"));
         return;
       }
-      const fullLocation = [
-        form.city && `${t("city")}: ${form.city}`,
-        form.district && `${t("district")}: ${form.district}`,
-        form.khoroo && `${t("khoroo")}: ${form.khoroo}`,
-        form.address && `${t("address")}: ${form.address}`,
-        form.firstName && `${t("first_name")}: ${form.firstName}`,
-        form.lastName && `${t("last_name")}: ${form.lastName}`,
-        form.phonenumber && `${t("phone_number")}: ${form.phonenumber}`,
-      ]
-        .filter(Boolean)
-        .join(" • ");
+
+      // const fullLocation = [
+      //   form.city && `${t("city")}: ${form.city}`,
+      //   form.district && `${t("district")}: ${form.district}`,
+      //   form.khoroo && `${t("khoroo")}: ${form.khoroo}`,
+      //   form.address && `${t("address")}: ${form.address}`,
+      //   form.firstName && `${t("first_name")}: ${form.firstName}`,
+      //   form.lastName && `${t("last_name")}: ${form.lastName}`,
+      //   form.phonenumber && `${t("phone_number")}: ${form.phonenumber}`,
+      // ]
+      //   .filter(Boolean)
+      //   .join(" • ");
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
         {
           items: normalizedItems,
-          productTotal,
-          deliveryFee,
           totalPrice,
-          location: fullLocation, // ✅ FULL TEXT
-          notes: form.notes ?? "", // ✅ ADD THIS
-          phone: form.phonenumber,
-          paymentMethod,
+
+          firstName: form.firstName ?? null,
+          lastName: form.lastName ?? null,
+          phone: form.phonenumber ?? null,
+          city: form.city ?? null,
+          district: form.district ?? null,
+          khoroo: form.khoroo ?? null,
+          address: form.address ?? null,
+          notes: form.notes ?? "",
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       const order = res.data?.order ?? res.data;
@@ -198,7 +238,11 @@ export function useCheckout(cart: CartItem[]) {
       }
 
       if (paymentMethod === "qpay") {
-        router.push(`/${locale}/checkout/payment-pending?orderId=${order.id}`);
+        router.push(
+          `/${locale}/checkout/payment-pending?orderId=${encodeURIComponent(
+            order.id
+          )}`
+        );
         return;
       }
 

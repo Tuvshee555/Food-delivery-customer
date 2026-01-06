@@ -335,11 +335,30 @@
   "copy_all": "Бүгдийг хуулах",
   "sending": "Илгээж байна...",
   "bank_i_transferred": "Би шилжүүлсэн",
+  "payment_method_label": "Төлбөрийн арга",
   "order_number": "Захиалгын дугаар",
+  "status": "Төлөв",
+  "payment_method": "Төлбөрийн хэлбэр",
+  "created_at": "Үүсгэсэн огноо",
+
+  "payment_method_cod": "Бэлнээр",
+  "payment_method_qpay": "QPay",
+  "payment_method_bank": "Банкны шилжүүлэг",
   "order_status_waiting_payment": "Төлбөр хүлээж байна",
-  "order_status_cod_pending": "Бэлнээр төлөх",
+  "order_status_cod_pending": "Бэлэн мөнгө",
   "order_status_paid": "Төлөгдсөн",
-  "order_status_delivering": "Хүргэлтэнд гарсан",
-  "payment_method_label": "Төлбөрийн арга"
+  "order_status_delivering": "Хүргэж байна",
+  "payment_summary": "Төлбөрийн хураангуй",
+  "products_total": "Бүтээгдэхүүний нийт",
+  "total": "Нийт төлөх",
+   "complete_payment": "Төлбөрөө гүйцэтгэх",
+  "scan_qpay_qr": "QPay QR кодыг уншуулж төлбөрөө хийнэ үү",
+  "no_qr_available": "QR код байхгүй байна",
+  "amount": "Дүн",
+  "invoice": "Нэхэмжлэл",
+  "open_bank_app": "Банкны апп-аа нээгээд QR код уншуулна уу",
+  "check_payment": "Төлбөр шалгах",
+  "view_order_details": "Захиалгын дэлгэрэнгүй",
+  "payment_waiting_note": "Төлбөрийг тодорхой хугацаанд хийгээгүй тохиолдолд захиалга автоматаар цуцлагдана."
   
 }

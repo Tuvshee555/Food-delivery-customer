@@ -21,7 +21,11 @@ export function OrderMeta({ order }: { order: OrderDetails }) {
 
       <div>
         <p className="text-muted-foreground">{t("payment_method")}</p>
-        <p className="font-medium">{order.paymentMethod}</p>
+        <p className="font-medium">
+          {order.paymentMethod
+            ? t(`payment_method_${String(order.paymentMethod).toLowerCase()}`)
+            : "-"}
+        </p>
       </div>
 
       <div>

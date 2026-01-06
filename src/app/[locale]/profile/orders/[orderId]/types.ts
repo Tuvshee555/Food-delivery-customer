@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ReactNode } from "react";
 
 export type OrderStatus =
   | "PENDING"
@@ -21,15 +20,16 @@ export type OrderItem = {
 };
 
 export type OrderDetails = {
-  qpay: any;
-  deliveryFee: any;
-  delivery: any;
-  orderNumber: ReactNode;
-  paymentMethod: ReactNode;
   id: string;
+  orderNumber: any; // ✅ backend value
+  paymentMethod: any; // ✅ backend enum (QPAY, COD, BANK)
+  status: OrderStatus;
   totalPrice: number;
   createdAt: string;
-  location: string;
-  status: OrderStatus;
+
+  delivery: any;
   items: OrderItem[];
+
+  qpay?: any;
+  deliveryFee?: any;
 };

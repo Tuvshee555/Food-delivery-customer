@@ -63,7 +63,8 @@ export const OrdersList = () => {
     queryKey: ["orders", userId],
     queryFn: fetchOrders,
     enabled: Boolean(userId && token),
-    refetchInterval: 10000,
+    refetchInterval: false,
+    refetchOnWindowFocus: true,
   });
 
   const statusStyle: Record<OrderStatus, string> = {

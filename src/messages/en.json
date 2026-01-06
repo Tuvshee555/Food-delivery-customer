@@ -339,12 +339,30 @@
   "copy_all": "Copy all",
   "sending": "Sending...",
   "bank_i_transferred": "I have transferred",
+  "payment_method_label": "Payment method",
   "order_number": "Order number",
+  "status": "Status",
+  "payment_method": "Payment method",
+  "created_at": "Created at",
 
+  "payment_method_cod": "Cash on delivery",
+  "payment_method_qpay": "QPay",
+  "payment_method_bank": "Bank transfer",
   "order_status_waiting_payment": "Waiting for payment",
   "order_status_cod_pending": "Cash on delivery",
   "order_status_paid": "Paid",
   "order_status_delivering": "Delivering",
-  "payment_method_label": "Payment method"
+  "payment_summary": "Payment summary",
+  "products_total": "Products total",
+  "total": "Total",
+  "complete_payment": "Complete your payment",
+  "scan_qpay_qr": "Scan the QPay QR code to complete the payment",
+  "no_qr_available": "QR code not available",
+  "amount": "Amount",
+  "invoice": "Invoice",
+  "open_bank_app": "Open your bank app and scan the QR code",
+  "check_payment": "Check payment",
+  "view_order_details": "View order details",
+  "payment_waiting_note": "This order will be automatically cancelled if payment is not completed within a short time."
 
 }

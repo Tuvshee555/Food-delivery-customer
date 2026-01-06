@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -63,6 +64,23 @@ export default function OrderDetailPage() {
     fetchOrder();
   }, [fetchOrder, token, userId, orderId, locale, t, router]);
 
+  // Poll while waiting payment so frontend updates when webhook flips order to PAID
+  useEffect(() => {
+    if (!order) return;
+    let id: ReturnType<typeof setInterval> | null = null;
+
+    if (order.status === "WAITING_PAYMENT") {
+      // poll every 10 seconds
+      id = setInterval(() => {
+        fetchOrder();
+      }, 300000);
+    }
+
+    return () => {
+      if (id) clearInterval(id);
+    };
+  }, [order?.status, fetchOrder]);
+
   if (loading) {
     return (
       <p className="text-center mt-16 text-sm text-muted-foreground">
@@ -86,7 +104,8 @@ export default function OrderDetailPage() {
 
         <DeliveryInfo order={order} />
 
-        <QPayPaymentBlock order={order} />
+        {/* pass fetchOrder so the QPay block can manually request a status check */}
+        <QPayPaymentBlock order={order} onRefresh={fetchOrder} />
 
         <ItemsList items={order.items} />
 

@@ -344,6 +344,7 @@
   "order_status_waiting_payment": "Waiting for payment",
   "order_status_cod_pending": "Cash on delivery",
   "order_status_paid": "Paid",
-  "order_status_delivering": "Delivering"
+  "order_status_delivering": "Delivering",
+  "payment_method_label": "Payment method"
 
 }

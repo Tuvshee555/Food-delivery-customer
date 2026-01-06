@@ -6,11 +6,13 @@ import { toast } from "sonner";
 
 import { OrderDetails } from "./types";
 import { ItemsList } from "./ItemsList";
-import { Summary } from "./Summary";
-import { Timeline } from "./Timeline";
 
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { OrderMeta } from "../components/OrderMeta";
+import { DeliveryInfo } from "../components/DeliveryInfo";
+import { OrderCostSummary } from "../components/OrderCostSummary";
+import { QPayPaymentBlock } from "../components/QPayPaymentBlock";
 
 export default function OrderDetailPage() {
   const { userId, token } = useAuth();
@@ -80,14 +82,15 @@ export default function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-background pt-[130px] pb-24 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-10">
-        {/* STATUS + TIMELINE */}
-        <Timeline status={order.status} createdAt={order.createdAt} />
+        <OrderMeta order={order} />
 
-        {/* ITEMS */}
+        <DeliveryInfo order={order} />
+
+        <QPayPaymentBlock order={order} />
+
         <ItemsList items={order.items} />
 
-        {/* SUMMARY */}
-        <Summary order={order} onUpdated={fetchOrder} />
+        <OrderCostSummary order={order} />
       </div>
     </div>
   );

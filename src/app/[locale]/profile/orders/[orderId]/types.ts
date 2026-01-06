@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ReactNode } from "react";
+
 export type OrderStatus =
   | "PENDING"
   | "WAITING_PAYMENT"
@@ -18,6 +21,11 @@ export type OrderItem = {
 };
 
 export type OrderDetails = {
+  qpay: any;
+  deliveryFee: any;
+  delivery: any;
+  orderNumber: ReactNode;
+  paymentMethod: ReactNode;
   id: string;
   totalPrice: number;
   createdAt: string;

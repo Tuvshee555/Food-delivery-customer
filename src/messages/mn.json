@@ -339,6 +339,7 @@
   "order_status_waiting_payment": "Төлбөр хүлээж байна",
   "order_status_cod_pending": "Бэлнээр төлөх",
   "order_status_paid": "Төлөгдсөн",
-  "order_status_delivering": "Хүргэлтэнд гарсан"
+  "order_status_delivering": "Хүргэлтэнд гарсан",
+  "payment_method_label": "Төлбөрийн арга"
   
 }

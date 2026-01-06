@@ -48,7 +48,8 @@ export default function PaymentSummary({
     0
   );
 
-  const deliveryFee = 100;
+  // const deliveryFee = 100;
+  const deliveryFee = 0;
   const grandTotal = productTotal + deliveryFee;
 
   return (

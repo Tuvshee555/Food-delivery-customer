@@ -22,7 +22,9 @@ interface StickyProps {
 
 export default function StickyCheckoutActions({
   cart,
-  delivery = 100,
+  // delivery = 100,
+  delivery = 0,
+
   paymentMethod,
   onBack,
   onSubmit,

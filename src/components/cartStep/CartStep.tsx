@@ -144,7 +144,8 @@ export default function CartStep({ cart }: { cart: CartItem[] }) {
         >
           <CartSummary
             total={total}
-            delivery={100}
+            // delivery={100}
+            delivery={0}
             onCheckout={() => router.push(`/${locale}/checkout?step=info`)}
             onClear={items.length > 0 ? clearCart : undefined}
           />

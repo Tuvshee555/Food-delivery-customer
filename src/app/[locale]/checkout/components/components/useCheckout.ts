@@ -52,7 +52,8 @@ export function useCheckout(cart: CartItem[]) {
     [cart]
   );
 
-  const deliveryFee = 100;
+  // const deliveryFee = 100;
+  const deliveryFee = 0;
   const totalPrice = productTotal + deliveryFee;
 
   const initialLoadRef = useRef(true);

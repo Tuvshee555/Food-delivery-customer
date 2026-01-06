@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type OrderItem = {
   quantity: number;
   food: {
@@ -8,6 +9,8 @@ export type OrderItem = {
 };
 
 export type OrderData = {
+  orderNumber: any;
+  createdAt: string | number | Date;
   status: string;
   paymentMethod: string;
   id?: string;
@@ -15,4 +18,5 @@ export type OrderData = {
   deliveryFee?: number;
   productTotal?: number;
   items?: OrderItem[];
+  delivery: any;
 };

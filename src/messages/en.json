@@ -364,6 +364,8 @@
   "check_payment": "Check payment",
   "view_order_details": "View order details",
   "payment_waiting_note": "This order will be automatically cancelled if payment is not completed within a short time.",
-  "payment_waiting_subtitle": "Your order will be confirmed once payment is completed."
+  "payment_waiting_subtitle": "Your order will be confirmed once payment is completed.",
+  "order_date": "Order date",
+  "delivery_address": "Delivery address"
 
 }

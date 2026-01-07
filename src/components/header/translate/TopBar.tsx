@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import Link from "next/link";
@@ -21,12 +22,12 @@ export default function TopBar() {
         </span>
 
         <div className="flex items-center gap-4">
-          <NavLink href={`/${locale}/contact`} label={t("contact")} />
+          {/* <NavLink href={`/${locale}/contact`} label={t("contact")} />
           <Divider />
           <NavLink href={`/${locale}/branches`} label={t("branches")} />
           <Divider />
           <NavLink href={`/${locale}/jobs`} label={t("jobs")} />
-          <Divider />
+          <Divider /> */}
 
           <div className="flex items-center gap-3 text-foreground">
             <Facebook className="hover:opacity-80 transition" size={14} />

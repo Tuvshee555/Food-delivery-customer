@@ -25,7 +25,7 @@ export default function BankTransferPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notifying, setNotifying] = useState(false);
+  // const [notifying, setNotifying] = useState(false);
 
   const orderId = searchParams.get("orderId");
 
@@ -76,29 +76,29 @@ export default function BankTransferPage() {
   };
 
   // notify admin / mark waiting (idempotent)
-  const notifyPaid = async () => {
-    if (!order || !token) return;
-    setNotifying(true);
-    try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
-        { status: "WAITING_PAYMENT" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success(t("bank_notify_success"));
-      // refresh order
-      const r = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setOrder(r.data);
-    } catch (err) {
-      console.error(err);
-      toast.error(t("bank_notify_error"));
-    } finally {
-      setNotifying(false);
-    }
-  };
+  // const notifyPaid = async () => {
+  //   if (!order || !token) return;
+  //   setNotifying(true);
+  //   try {
+  //     await axios.patch(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
+  //       { status: "WAITING_PAYMENT" },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     toast.success(t("bank_notify_success"));
+  //     // refresh order
+  //     const r = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setOrder(r.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error(t("bank_notify_error"));
+  //   } finally {
+  //     setNotifying(false);
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -117,7 +117,7 @@ export default function BankTransferPage() {
   // -------------------------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-background pt-[120px] pb-24 px-4">
+    <div className="min-h-screen bg-background pt-[60px] pb-24 px-4">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Title */}
         <div className="space-y-2">
@@ -179,7 +179,17 @@ export default function BankTransferPage() {
         </div>
 
         {/* Secondary actions: notify admin */}
-        <div className="flex gap-3">
+        <div>
+          <Button
+            variant="ghost"
+            className="w-full h-[44px] border border-border"
+            onClick={() => doCopy(`${ACCOUNT_NUMBER} • ${order.orderNumber}`)}
+          >
+            {t("copy_all")}
+          </Button>
+        </div>
+
+        {/* <div className="flex gap-3">
           <Button
             variant="ghost"
             className="w-full h-[44px] border border-border"
@@ -195,7 +205,7 @@ export default function BankTransferPage() {
           >
             {notifying ? t("sending") : t("bank_i_transferred")}
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

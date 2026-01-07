@@ -47,7 +47,7 @@ export default function FoodDetailPage({
 
   return (
     <main className="min-h-screen w-full bg-background text-foreground pt-0 lg:pt-[90px] pb-20">
-      <section className=" grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-10 items-start px-0 lg:px-10">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-10 items-stretch px-0 lg:px-10">
         <FoodMedia food={food} />
         <div className="px-4 sm:px-6 lg:px-0">
           <FoodInfo food={food} />

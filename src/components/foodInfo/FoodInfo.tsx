@@ -104,7 +104,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex flex-col gap-5 text-foreground"
+      className="flex flex-col min-h-full gap-5 text-foreground"
     >
       <FoodTitle
         name={food.foodName}
@@ -161,7 +161,8 @@ export const FoodInfo = ({ food }: { food: any }) => {
         "
       />
 
-      <div className={food.sizes?.length ? "" : "lg:mt-[98px]"}>
+      {/* <div className={food.sizes?.length ? "" : "lg:mt-[98px]"}> */}
+      <div className="mt-auto">
         <FoodActions
           onAddToCart={handleAddToCart}
           onOrderNow={handleOrderNow}

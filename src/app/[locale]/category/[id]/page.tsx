@@ -60,7 +60,7 @@ export default function CategoryPage({
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-8 mt-0 md:mt-[40px]">
         {/* SIDEBAR */}
         <div className="hidden md:block w-[260px] shrink-0">
           <CategorySidebar filters={filters} onFilterToggle={toggleFilter} />

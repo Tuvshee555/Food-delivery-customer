@@ -16,7 +16,7 @@ export default function CheckoutLayout({
 }: any) {
   return (
     <main className="min-h-screen bg-background text-foreground pb-[110px] md:pb-[60px]">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-0 lg:gap-10">
         {/* Delivery FIRST on mobile */}
         <motion.section
           initial={{ opacity: 0, x: 16 }}

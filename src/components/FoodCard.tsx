@@ -125,34 +125,6 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
           )}
         </div>
 
-        {/* DOTS — under the image, large & obvious */}
-        {/* {displayImages.length > 1 && (
-          <div
-            className="mt-3 flex justify-center gap-3"
-            role="tablist"
-            aria-hidden={false}
-          >
-            {displayImages.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`show image ${i + 1}`}
-                onMouseEnter={() => setHoverIndex(i)}
-                onFocus={() => setHoverIndex(i)}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setHoverIndex(i);
-                }}
-                className={`w-4 h-4 rounded-full transition-transform focus:outline-none ${
-                  i === hoverIndex
-                    ? "bg-foreground scale-100"
-                    : "bg-foreground/30 scale-90"
-                }`}
-              />
-            ))}
-          </div>
-        )} */}
-
         {/* INFO */}
         <div className="pt-3 space-y-1">
           <h3 className="text-foreground font-medium text-[15px] line-clamp-2">

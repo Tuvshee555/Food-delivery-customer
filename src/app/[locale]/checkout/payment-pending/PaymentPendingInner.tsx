@@ -25,7 +25,7 @@ export default function PaymentPendingInner() {
   }
 
   return (
-    <main className="min-h-screen pt-20 pb-28 bg-background">
+    <main className="min-h-screen pt-6 lg:pt-20 pb-56 lg:pb-28 bg-background">
       <div className="mx-auto max-w-6xl px-4 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 items-start">
         {/* LEFT — PAYMENT */}
         <div className="space-y-6">

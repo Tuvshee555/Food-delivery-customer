@@ -98,7 +98,7 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-[130px] pb-24 px-4 sm:px-6">
+    <div className="min-h-screen bg-background pt-6 sm:pt-[130px] pb-56 lg:pb-28 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-10">
         <OrderMeta order={order} />
 

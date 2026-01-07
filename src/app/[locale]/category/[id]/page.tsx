@@ -41,10 +41,10 @@ export default function CategoryPage({
   }, [filteredFoods, page]);
 
   return (
-    <main className="min-h-screen w-full bg-background text-foreground px-4 sm:px-6 md:px-10 py-6">
+    <main className="min-h-screen w-full bg-background text-foreground px-4 sm:px-6 md:px-10 pb-6">
       {/* MOBILE ACTIONS */}
-      <div className="md:hidden sticky top-0 z-20 bg-background border-b border-border">
-        <div className="flex gap-3 px-4 py-3">
+      <div className="md:hidden sticky top-0 z-50 isolate bg-background border-b border-border">
+        <div className="flex gap-3 px-4 py-3 z-[99999]">
           <CategoryFilterSheet
             filters={filters}
             onFilterToggle={toggleFilter}

@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export const FoodSizes = ({
@@ -11,10 +12,22 @@ export const FoodSizes = ({
 }: {
   sizes: any[];
   selectedSize: string | null;
-  setSelectedSize: (s: string | null) => void;
+  setSelectedSize: (s: string) => void;
 }) => {
   const { t } = useI18n();
 
+  // 🔒 Hooks MUST be before any return
+  useEffect(() => {
+    if (!sizes || sizes.length === 0) return;
+
+    if (!selectedSize) {
+      const first = typeof sizes[0] === "string" ? sizes[0] : sizes[0]?.label;
+
+      if (first) setSelectedSize(first);
+    }
+  }, [sizes, selectedSize, setSelectedSize]);
+
+  // ⛔ Safe early return AFTER hooks
   if (!sizes || sizes.length === 0) return null;
 
   return (

@@ -100,51 +100,53 @@ export const PayFood = () => {
   /* ---------------- RENDER ---------------- */
 
   return (
-    <>
-      <div className="flex flex-col gap-6">
-        {/* HEADER */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-foreground">
-            {t("your_cart")}
-          </h1>
+    <div className="flex flex-col h-full">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-semibold text-foreground">
+          {t("your_cart")}
+        </h1>
 
-          {!loading && cartItems.length > 0 && (
-            <button
-              onClick={clearAll}
-              className="text-sm text-muted-foreground hover:text-destructive"
-            >
-              {t("clear_cart")}
-            </button>
-          )}
-        </div>
-
-        {/* ITEMS */}
-        <div className="space-y-5 max-h-[360px] overflow-y-auto pr-1">
-          {loading ? (
-            <p className="text-center py-10 text-muted-foreground">
-              {t("loading")}
-            </p>
-          ) : cartItems.length > 0 ? (
-            cartItems.map((item) => (
-              <CartItemRow
-                key={`${item.foodId}-${item.selectedSize ?? "default"}`}
-                item={item}
-                onUpdateQty={(qty) => updateQuantity(qty, item)}
-                onRemove={() => removeItem(item)}
-              />
-            ))
-          ) : (
-            <p className="text-center py-10 text-muted-foreground">
-              {t("cart_empty")}
-            </p>
-          )}
-        </div>
-
-        {/* SUMMARY */}
-        {!loading && cartItems.length > 0 && <CartSummary total={totalPrice} />}
+        {!loading && cartItems.length > 0 && (
+          <button
+            onClick={clearAll}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t("clear_cart")}
+          </button>
+        )}
       </div>
 
+      {/* ITEMS — SCROLLABLE */}
+      <div className="flex-1 overflow-y-auto space-y-5">
+        {loading ? (
+          <p className="text-center py-10 text-muted-foreground">
+            {t("loading")}
+          </p>
+        ) : cartItems.length > 0 ? (
+          cartItems.map((item) => (
+            <CartItemRow
+              key={`${item.foodId}-${item.selectedSize ?? "default"}`}
+              item={item}
+              onUpdateQty={(qty) => updateQuantity(qty, item)}
+              onRemove={() => removeItem(item)}
+            />
+          ))
+        ) : (
+          <p className="text-center py-10 text-muted-foreground">
+            {t("cart_empty")}
+          </p>
+        )}
+      </div>
+
+      {/* SUMMARY — BOTTOM ACTION */}
+      {!loading && cartItems.length > 0 && (
+        <div className="pt-4 border-t border-border">
+          <CartSummary total={totalPrice} />
+        </div>
+      )}
+
       <SheetFooter />
-    </>
+    </div>
   );
 };

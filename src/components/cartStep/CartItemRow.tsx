@@ -29,11 +29,30 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
     <div className="flex justify-between items-center border px-3 border-border py-4 rounded-md">
       {/* LEFT */}
       <div className="flex items-center gap-3 min-w-0">
-        <img
-          src={item.food.image}
-          alt={item.food.foodName}
-          className="w-[72px] h-[72px] rounded-lg object-cover shrink-0"
-        />
+        <div className="relative shrink-0">
+          <img
+            src={item.food.image}
+            alt={item.food.foodName}
+            className="w-[72px] h-[72px] object-cover"
+          />
+
+          {/* always-visible subtle remove */}
+          <button
+            onClick={onRemove}
+            aria-label="Remove item"
+            className="
+    absolute -top-2 -left-2
+    h-[20px] w-[20px]
+    flex items-center justify-center
+    rounded-full
+    bg-black
+    text-white
+    shadow-sm
+  "
+          >
+            <X size={12} />
+          </button>
+        </div>
 
         <div className="space-y-0.5 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">
@@ -80,18 +99,22 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
           <Plus size={16} />
         </button>
 
-        <button
+        {/* <button
           onClick={onRemove}
-          className="
-            h-[36px] w-[36px]
-            flex items-center justify-center
-            rounded-md
-            text-destructive
-          "
           aria-label="Remove item"
+          className="
+    h-[36px] w-[36px]
+    flex items-center justify-center
+    rounded-md
+    border border-border
+    text-muted-foreground
+    transition
+    hover:bg-muted
+    hover:text-foreground
+  "
         >
           <X size={16} />
-        </button>
+        </button> */}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import TopBar from "./translate/TopBar";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategory } from "@/hooks/useCategory";
@@ -73,11 +74,20 @@ export default function Header({
 
   return (
     <>
-      {showTopBar && (
-        <div className="fixed top-0 left-0 w-full z-[60] hidden md:block">
-          <TopBar />
-        </div>
-      )}
+      {/* TOP BAR — animated */}
+      <AnimatePresence>
+        {showTopBar && (
+          <motion.div
+            initial={{ y: -36, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -36, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed top-0 left-0 w-full z-[60] hidden md:block"
+          >
+            <TopBar />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <HeaderDesktop
         locale={locale}

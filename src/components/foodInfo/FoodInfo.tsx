@@ -136,27 +136,29 @@ export const FoodInfo = ({ food }: { food: any }) => {
         "
       />
 
-      <FoodActions
-        onAddToCart={handleAddToCart}
-        onOrderNow={handleOrderNow}
-        isProcessing={isProcessing}
-        addText={t("add_to_cart")}
-        orderText={t("order_now")}
-        primaryClass="
+      <div className={food.sizes?.length ? "" : "lg:mt-[98px]"}>
+        <FoodActions
+          onAddToCart={handleAddToCart}
+          onOrderNow={handleOrderNow}
+          isProcessing={isProcessing}
+          addText={t("add_to_cart")}
+          orderText={t("order_now")}
+          primaryClass="
           h-[44px]
           rounded-md
           bg-foreground
           text-background
           text-sm font-medium
         "
-        secondaryClass="
+          secondaryClass="
           h-[44px]
           rounded-md
           bg-muted
           text-foreground
           text-sm font-medium
         "
-      />
+        />
+      </div>
     </motion.div>
   );
 };

@@ -99,16 +99,108 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
 
   return (
     <div className="w-full">
-      {/* MEDIA */}
+      {/* DESKTOP LAYOUT */}
+      <div className="hidden lg:flex gap-4">
+        {/* THUMBNAILS — LEFT */}
+        {mediaList.length > 1 && (
+          <div className="flex flex-col gap-3">
+            {mediaList.map((m, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveIndex(i)}
+                className={`relative w-14 h-14 rounded-md overflow-hidden border flex-shrink-0 ${
+                  i === activeIndex ? "border-primary" : "border-border"
+                }`}
+              >
+                {m.type === "image" ? (
+                  <img
+                    src={m.src}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <video src={m.src} className="w-full h-full object-cover" />
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xs">
+                      ▶
+                    </span>
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* MAIN MEDIA */}
+        <div
+          ref={containerRef}
+          className="
+            relative flex-1
+            h-[460px]
+            bg-muted
+            overflow-hidden
+            border border-border
+            rounded-xl
+          "
+        >
+          <motion.div
+            className="flex h-full"
+            drag={false}
+            animate={{ x: -activeIndex * slideWidth }}
+            transition={{ type: "spring", stiffness: 300, damping: 35 }}
+          >
+            {mediaList.map((m, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-full h-full relative"
+                style={{ minWidth: slideWidth || "100%" }}
+              >
+                <AnimatePresence mode="wait">
+                  {m.type === "image" ? (
+                    <motion.img
+                      key={m.src}
+                      src={m.src}
+                      alt={food.foodName}
+                      onClick={() => setLightboxOpen(true)}
+                      className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+                      initial={{ opacity: 0.6 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.18 }}
+                      draggable={false}
+                    />
+                  ) : (
+                    <motion.video
+                      key={m.src}
+                      src={m.src}
+                      controls
+                      playsInline
+                      onClick={() => setLightboxOpen(true)}
+                      className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+                      initial={{ opacity: 0.6 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.18 }}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* MOBILE LAYOUT */}
       <div
         ref={containerRef}
         className="
           relative w-full
-          h-[320px] sm:h-[380px] lg:h-[460px]
+          h-[320px] sm:h-[380px]
           bg-muted
           overflow-hidden
           border border-border
-          rounded-none lg:rounded-xl
+          rounded-none
+          lg:hidden
         "
       >
         <motion.div
@@ -130,35 +222,22 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
               className="flex-shrink-0 w-full h-full relative"
               style={{ minWidth: slideWidth || "100%" }}
             >
-              <AnimatePresence mode="wait">
-                {m.type === "image" ? (
-                  <motion.img
-                    key={m.src}
-                    src={m.src}
-                    alt={food.foodName}
-                    onClick={() => setLightboxOpen(true)}
-                    className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
-                    initial={{ opacity: 0.6 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.18 }}
-                    draggable={false}
-                  />
-                ) : (
-                  <motion.video
-                    key={m.src}
-                    src={m.src}
-                    controls
-                    playsInline
-                    onClick={() => setLightboxOpen(true)}
-                    className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
-                    initial={{ opacity: 0.6 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.18 }}
-                  />
-                )}
-              </AnimatePresence>
+              {m.type === "image" ? (
+                <img
+                  src={m.src}
+                  alt={food.foodName}
+                  onClick={() => setLightboxOpen(true)}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <video
+                  src={m.src}
+                  controls
+                  playsInline
+                  onClick={() => setLightboxOpen(true)}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
             </div>
           ))}
         </motion.div>
@@ -176,36 +255,6 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
                 i === activeIndex ? "bg-primary" : "bg-muted-foreground/40"
               }`}
             />
-          ))}
-        </div>
-      )}
-
-      {/* THUMBNAILS — desktop */}
-      {mediaList.length > 1 && (
-        <div className="hidden lg:flex gap-3 mt-4 overflow-x-auto">
-          {mediaList.map((m, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveIndex(i)}
-              className={`relative w-14 h-14 rounded-md overflow-hidden border flex-shrink-0 ${
-                i === activeIndex ? "border-primary" : "border-border"
-              }`}
-            >
-              {m.type === "image" ? (
-                <img
-                  src={m.src}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <>
-                  <video src={m.src} className="w-full h-full object-cover" />
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xs">
-                    ▶
-                  </span>
-                </>
-              )}
-            </button>
           ))}
         </div>
       )}

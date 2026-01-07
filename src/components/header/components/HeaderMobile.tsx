@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, ArrowLeft } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -37,32 +38,49 @@ export default function HeaderMobile({
   const search = useSearchParams();
   const router = useRouter();
 
+  /* hide / show on scroll */
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - lastScrollY.current) < 10) return;
+
+      if (y > lastScrollY.current && y > 60) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+
+      lastScrollY.current = y;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const tab = search?.get("tab") ?? "";
   const pathAfterLocale = pathname.replace(`/${locale}`, "") || "/";
 
   const isFoodDetail = pathAfterLocale.startsWith("/food/");
-
   const isHome =
     pathAfterLocale === "/" ||
     pathAfterLocale === "/home-page" ||
     pathAfterLocale === "";
-
   const isCategory = pathAfterLocale.startsWith("/category");
   const isProfile = pathAfterLocale.startsWith("/profile");
   const isCheckout = pathAfterLocale.startsWith("/checkout");
 
   const title = (() => {
     if (isCheckout) return t("nav.checkout", "Захиалга");
-
     if (isHome) return null;
     if (isCategory || isFoodDetail) return t("nav.products");
-
     if (isProfile) {
       if (tab === "orders") return t("nav.orders");
       if (tab === "tickets") return t("nav.tickets");
       return t("nav.profile");
     }
-
     return null;
   })();
 
@@ -72,7 +90,13 @@ export default function HeaderMobile({
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full h-[64px] z-[59] bg-background border-b md:hidden">
+      <header
+        className={`fixed top-0 left-0 w-full h-[64px] z-[59] md:hidden
+          transition-transform duration-300 ease-out
+          ${hidden ? "-translate-y-full" : "translate-y-0"}
+          bg-background border-b
+        `}
+      >
         <div className="relative h-full px-4 flex items-center">
           {/* LEFT */}
           {showBack ? (
@@ -120,7 +144,7 @@ export default function HeaderMobile({
         </div>
       </header>
 
-      {/* MOBILE SHEET */}
+      {/* MOBILE MENU SHEET */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.aside

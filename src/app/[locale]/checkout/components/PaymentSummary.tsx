@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 /* Cart item */
 type CartItem = {
@@ -51,6 +52,12 @@ export default function PaymentSummary({
   // const deliveryFee = 100;
   const deliveryFee = 0;
   const grandTotal = productTotal + deliveryFee;
+
+  useEffect(() => {
+    if (!paymentMethod) {
+      setPaymentMethod("QPAY");
+    }
+  }, [paymentMethod, setPaymentMethod]);
 
   return (
     <aside className="w-full lg:w-[400px] bg-card rounded-2xl p-6 space-y-6 h-fit">

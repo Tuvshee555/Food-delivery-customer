@@ -26,19 +26,21 @@ export const CartItemRow = ({ item, onUpdateQty, onRemove }: Props) => {
   const disableMinus = qty <= 1;
 
   return (
-    <div className="relative flex items-center gap-4 py-4 border-b border-border">
+    <div className="relative flex items-center gap-4  pb-4 border-b border-border">
       {/* REMOVE */}
       <button
         onClick={onRemove}
-        className="
-          absolute -top-2 -left-2
-          h-6 w-6
-          rounded-full
-          bg-background
-          border border-border
-          flex items-center justify-center
-        "
         aria-label="Remove item"
+        className="
+    absolute -top-2 -left-2
+    h-[20px] w-[20px]
+    flex items-center justify-center
+    rounded-full
+    bg-black
+    text-white
+    shadow-sm
+    z-[99999]
+  "
       >
         <X size={12} />
       </button>

@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchDialog } from "../SearchDialog";
@@ -47,10 +48,33 @@ export default function HeaderDesktop({
   firstLetter: string;
   cartCount: number;
 }) {
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - lastScrollY.current) < 10) return;
+
+      if (y > lastScrollY.current && y > 80) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+
+      lastScrollY.current = y;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <>
       <header
-        className={`fixed left-0 w-full z-[59] hidden md:block transition-all duration-300
+        className={`fixed left-0 w-full z-[59] hidden md:block
+          transition-transform duration-300 ease-out
+          ${hidden ? "-translate-y-full" : "translate-y-0"}
           ${showTopBar ? "top-9" : "top-0"}
           ${
             scrolled
@@ -101,7 +125,7 @@ export default function HeaderDesktop({
               <SearchDialog />
               <SheetRight cartCount={cartCount} />
               <motion.button
-                onClick={() => onOpenProfile && onOpenProfile()}
+                onClick={() => onOpenProfile?.()}
                 whileTap={{ scale: 0.98 }}
                 aria-label={t("user")}
                 className="w-[42px] h-[42px] rounded-full flex items-center justify-center bg-background border border-border text-foreground text-sm font-semibold"

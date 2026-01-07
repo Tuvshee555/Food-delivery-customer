@@ -69,10 +69,15 @@ export const CartSummary: React.FC<Props> = ({
           <button
             onClick={onClear}
             className="
-              hidden sm:block
-              w-full h-[44px]
-              text-sm text-destructive
-            "
+    hidden sm:flex
+    w-full h-[44px]
+    items-center justify-center
+    text-sm font-medium
+    bg-muted
+    text-foreground
+    border border-border
+    hover:bg-muted/80
+  "
           >
             {t("clear_cart")}
           </button>

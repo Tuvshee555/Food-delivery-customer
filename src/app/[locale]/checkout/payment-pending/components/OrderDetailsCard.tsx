@@ -1,61 +1,54 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { Order } from "../PaymentPendingInner";
-
-export function OrderDetailsCard({
-  t,
-  order,
-}: {
-  t: (k: string) => string;
-  order: Order;
-}) {
+export function OrderDetailsCard({ t, order }: any) {
   const formatCurrency = (n?: number | null) =>
     n == null ? "₮0" : `₮${n.toLocaleString()}`;
 
+  const InfoRow = ({
+    title,
+    children,
+  }: {
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <div>
+      <p className="font-medium mb-1">{title}</p>
+      <p className="text-muted-foreground leading-relaxed">{children}</p>
+    </div>
+  );
+
   return (
-    <section className="bg-card border rounded-2xl p-6 space-y-6">
-      <h3 className="font-semibold text-base">{t("order_details")}</h3>
+    <section className="bg-card  rounded-2xl space-y-6">
+      <h3 className="font-semibold">{t("order_details")}</h3>
 
+      {/* SUMMARY */}
       <div className="border rounded-xl p-4 text-sm space-y-3">
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("order_number")}</span>
-          <span className="font-medium text-foreground">
-            #{order.orderNumber}
-          </span>
-        </div>
+        <Row label={t("order_number")} value={`#${order.orderNumber}`} />
+        <Row
+          label={t("order_date")}
+          value={
+            order.createdAt ? new Date(order.createdAt).toLocaleString() : "-"
+          }
+        />
+        <Row
+          label={t("product_total")}
+          value={formatCurrency(order.totalPrice)}
+        />
+        <Row label={t("delivery_fee")} value="₮0" />
 
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("order_date")}</span>
-          <span className="text-foreground">
-            {order.createdAt ? new Date(order.createdAt).toLocaleString() : "-"}
-          </span>
-        </div>
-
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("product_total")}</span>
-          <span className="text-foreground">
-            {formatCurrency(order.totalPrice)}
-          </span>
-        </div>
-
-        <div className="flex justify-between text-muted-foreground">
-          <span>{t("delivery_fee")}</span>
-          <span className="text-foreground">₮0</span>
-        </div>
-
-        <div className="border-t pt-3 flex justify-between font-semibold text-base">
+        <div className="border-t pt-3 flex justify-between text-base font-semibold">
           <span>{t("total")}</span>
           <span>{formatCurrency(order.totalPrice)}</span>
         </div>
       </div>
 
+      {/* ITEMS */}
       <div className="border rounded-xl divide-y">
-        {(order.items ?? []).map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between p-4 gap-4"
-          >
+        {(order.items ?? []).map((item: any) => (
+          <div key={item.id} className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
               <img
                 src={item.food.image ?? "/placeholder.png"}
@@ -63,7 +56,7 @@ export function OrderDetailsCard({
                 className="w-14 h-14 rounded-md object-cover"
               />
               <div>
-                <p className="font-medium leading-snug">{item.food.foodName}</p>
+                <p className="font-medium">{item.food.foodName}</p>
                 <p className="text-sm text-muted-foreground">
                   {t("quantity")}: {item.quantity}
                 </p>
@@ -77,33 +70,37 @@ export function OrderDetailsCard({
         ))}
       </div>
 
-      <div className="border rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-        <div>
-          <p className="font-medium mb-1">{t("delivery_address")}</p>
-          <p className="text-muted-foreground">
-            {order.delivery?.city ?? ""}
-            {order.delivery?.district ? `, ${order.delivery?.district}` : ""}
-            <br />
-            {order.delivery?.address ?? ""}
-          </p>
-        </div>
+      {/* DELIVERY */}
+      <div className="border rounded-xl p-4 space-y-4 text-sm">
+        <InfoRow title={t("delivery_address")}>
+          {order.delivery?.city}
+          {order.delivery?.district ? `, ${order.delivery?.district}` : ""}
+          <br />
+          {order.delivery?.address}
+        </InfoRow>
 
-        <div>
-          <p className="font-medium mb-1">{t("full_name")}</p>
-          <p className="text-muted-foreground">
-            {order.delivery
-              ? `${order.delivery.lastName ?? ""} ${
-                  order.delivery.firstName ?? ""
-                }`
-              : ""}
-          </p>
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <InfoRow title={t("full_name")}>
+            {order.delivery?.lastName} {order.delivery?.firstName}
+          </InfoRow>
 
-        <div>
-          <p className="font-medium mb-1">{t("phone_number")}</p>
-          <p className="text-muted-foreground">{order.delivery?.phone ?? ""}</p>
+          <InfoRow title={t("phone_number")}>{order.delivery?.phone}</InfoRow>
         </div>
       </div>
     </section>
   );
 }
+
+const Row = ({ label, value }: any) => (
+  <div className="flex justify-between text-muted-foreground">
+    <span>{label}</span>
+    <span className="text-foreground font-medium">{value}</span>
+  </div>
+);
+
+const Block = ({ title, children }: any) => (
+  <div>
+    <p className="font-medium mb-1">{title}</p>
+    <p className="text-muted-foreground">{children}</p>
+  </div>
+);

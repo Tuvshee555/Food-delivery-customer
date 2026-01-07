@@ -9,6 +9,7 @@ export type OrderItem = {
 };
 
 export type OrderData = {
+  payment: any;
   orderNumber: any;
   createdAt: string | number | Date;
   status: string;

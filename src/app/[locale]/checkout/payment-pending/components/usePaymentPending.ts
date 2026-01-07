@@ -15,16 +15,19 @@ export function usePaymentPending() {
 
   const [orderId, setOrderId] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderData | null>(null);
+
   const [qrText, setQrText] = useState<string | null>(null);
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
+
   const [paid, setPaid] = useState(false);
   const [status, setStatus] = useState<string>(t("payment_creating"));
   const [loadingOrder, setLoadingOrder] = useState(false);
 
-  const hasRequestedInvoice = useRef(false);
   const pollRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
+  const hasRequestedInvoice = useRef(false);
 
+  /** 🧹 MOUNT / UNMOUNT */
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -33,6 +36,7 @@ export function usePaymentPending() {
     };
   }, []);
 
+  /** 🔗 ORDER ID FROM URL / STORAGE */
   useEffect(() => {
     const fromUrl = searchParams.get("orderId");
     if (fromUrl) {
@@ -45,6 +49,7 @@ export function usePaymentPending() {
     if (stored) setOrderId(stored);
   }, [searchParams]);
 
+  /** 📦 FETCH ORDER */
   const fetchOrder = async (id: string) => {
     setLoadingOrder(true);
     try {
@@ -69,26 +74,40 @@ export function usePaymentPending() {
     if (orderId) fetchOrder(orderId);
   }, [orderId]);
 
-  /** 🔑 CORE LOGIC */
+  /** 🔑 CORE PAYMENT LOGIC (REFRESH SAFE) */
   useEffect(() => {
     if (!order) return;
 
-    // Already paid → go to order
+    /** ✅ ALREADY PAID */
     if (order.status === "PAID" || order.status === "DELIVERED") {
+      setPaid(true);
+      setQrText(null);
+      setStatus(t("payment_success"));
       router.push(`/${locale}/orders/${order.id}`);
       return;
     }
 
-    // COD / BANK → no online payment
+    /** 🚚 NOT ONLINE PAYMENT */
     if (order.paymentMethod !== "QPAY") {
       router.push(`/${locale}/orders/${order.id}`);
       return;
     }
 
-    // Only QPAY + waiting payment
+    /** 🔁 RESTORE EXISTING PAYMENT (REFRESH FIX) */
+    if (order.payment?.status === "PENDING") {
+      if (order.payment.invoiceId) {
+        setInvoiceId(order.payment.invoiceId);
+      }
+      if (order.payment.qrText) {
+        setQrText(order.payment.qrText);
+      }
+      setStatus(t("payment_waiting"));
+    }
+
+    /** 🆕 CREATE INVOICE ONLY IF NONE EXISTS */
     if (
-      order.paymentMethod === "QPAY" &&
       order.status === "WAITING_PAYMENT" &&
+      !order.payment?.invoiceId &&
       !hasRequestedInvoice.current
     ) {
       hasRequestedInvoice.current = true;
@@ -104,7 +123,7 @@ export function usePaymentPending() {
             { headers }
           );
 
-          if (!res.data?.qr_text) {
+          if (!res.data?.qr_text || !res.data?.invoice_id) {
             toast.error(t("payment_qr_error"));
             return;
           }
@@ -121,7 +140,7 @@ export function usePaymentPending() {
     }
   }, [order]);
 
-  /** 🔁 POLLING */
+  /** 🔁 POLLING PAYMENT STATUS */
   useEffect(() => {
     if (!invoiceId || paid) return;
 
@@ -143,6 +162,7 @@ export function usePaymentPending() {
         setPaid(true);
         setStatus(t("payment_success"));
         clearInterval(pollRef.current!);
+
         setTimeout(() => {
           router.push(`/${locale}/orders/${orderId}`);
         }, 1500);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -5,46 +6,15 @@ import { usePaymentPending } from "./components/usePaymentPending";
 import { PaymentStatusCard } from "./components/PaymentStatusCard";
 import { OrderDetailsCard } from "./components/OrderDetailsCard";
 
-export type Food = {
-  id: string;
-  foodName: string;
-  image?: string | null;
-  price: number;
-};
-
-export type OrderItem = {
-  id: string;
-  food: Food;
-  quantity: number;
-};
-
-export type Delivery = {
-  city?: string | null;
-  district?: string | null;
-  address?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  phone?: string | null;
-};
-
-export type Order = {
-  orderNumber?: string | number | null;
-  createdAt?: string | null;
-  totalPrice?: number | null;
-  items?: OrderItem[] | null;
-  delivery?: Delivery | null;
-};
-
 export default function PaymentPendingInner() {
-  const { t, orderId, order, qrText, paid, status } =
-    usePaymentPending() as unknown as {
-      t: (k: string) => string;
-      orderId?: string | null;
-      order?: Order | null;
-      qrText?: string | null;
-      paid?: boolean;
-      status?: string | null;
-    };
+  const { t, orderId, order, qrText, paid, status } = usePaymentPending() as {
+    t: (k: string) => string;
+    orderId?: string | null;
+    order?: any;
+    qrText?: string | null;
+    paid?: boolean;
+    status?: string | null;
+  };
 
   if (!orderId) {
     return (
@@ -56,10 +26,11 @@ export default function PaymentPendingInner() {
 
   return (
     <main className="min-h-screen pt-20 pb-28 bg-background">
-      <div className="mx-auto px-4 space-y-8 flex justify-center items-center gap-[150px]">
-        <div>
+      <div className="mx-auto max-w-6xl px-4 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 items-start">
+        {/* LEFT — PAYMENT */}
+        <div className="space-y-6">
           <section className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold leading-tight">
+            <h1 className="text-2xl font-semibold">
               {paid ? t("payment_success_title") : t("payment_waiting_title")}
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -75,6 +46,7 @@ export default function PaymentPendingInner() {
           />
         </div>
 
+        {/* RIGHT — ORDER */}
         {order && <OrderDetailsCard t={t} order={order} />}
       </div>
     </main>

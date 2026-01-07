@@ -49,10 +49,16 @@ const addToCartLocal = (item: LocalCartItem): boolean => {
     return false;
   }
 };
+const BESTSELLER_THRESHOLD = 20;
 
 export const FoodInfo = ({ food }: { food: any }) => {
   const router = useRouter();
   const { locale, t } = useI18n();
+
+  const isFeatured = Boolean(food.isFeatured);
+  const salesCount = Number(food.salesCount ?? 0);
+  const discount = Number(food.discount ?? 0);
+  const hasDiscount = discount > 0;
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -98,13 +104,32 @@ export const FoodInfo = ({ food }: { food: any }) => {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex flex-col gap-8 text-foreground"
+      className="flex flex-col gap-5 text-foreground"
     >
       <FoodTitle
         name={food.foodName}
         price={food.price}
         oldPrice={food.oldPrice}
       />
+      <div className="flex flex-wrap gap-2">
+        {isFeatured && (
+          <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm bg-red-600 text-white">
+            {t("featured")}
+          </span>
+        )}
+
+        {!isFeatured && salesCount >= BESTSELLER_THRESHOLD && (
+          <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm bg-muted text-foreground border border-border">
+            {t("bestseller")}
+          </span>
+        )}
+
+        {hasDiscount && (
+          <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm bg-yellow-500 text-black">
+            -{discount}%
+          </span>
+        )}
+      </div>
 
       {food.ingredients && (
         <p className="text-sm leading-relaxed text-muted-foreground">

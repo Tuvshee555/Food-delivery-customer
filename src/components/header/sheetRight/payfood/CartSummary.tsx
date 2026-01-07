@@ -13,7 +13,7 @@ export const CartSummary = ({ total }: Props) => {
   const { locale, t } = useI18n();
 
   return (
-    <div className="pt-4 border-t border-border">
+    <div className="">
       <div className="flex justify-between items-center mb-4">
         <span className="text-sm font-medium text-muted-foreground">
           {t("grand_total")}

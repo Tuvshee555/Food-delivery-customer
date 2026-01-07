@@ -8,6 +8,10 @@ const labels: Record<OrderStatus, string> = {
   PENDING: "Захиалга хүлээгдэж байна",
   DELIVERED: "Хүргэгдсэн",
   CANCELLED: "Цуцлагдсан",
+  WAITING_PAYMENT: "",
+  COD_PENDING: "",
+  PAID: "",
+  DELIVERING: "",
 };
 
 export const Timeline = ({

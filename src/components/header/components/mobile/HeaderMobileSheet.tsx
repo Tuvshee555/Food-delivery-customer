@@ -1,8 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
-import CategoryTree from "./mobilesheet/CategoryTree";
-import SheetFooter from "./mobilesheet/SheetFooter";
+import CategoryTree from "../mobilesheet/CategoryTree";
+import SheetFooter from "../mobilesheet/SheetFooter";
 
 export type CategoryNode = {
   id: string;

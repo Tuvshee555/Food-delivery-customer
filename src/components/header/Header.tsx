@@ -7,8 +7,8 @@ import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useCategory } from "@/hooks/useCategory";
 import { useCategoryTree } from "@/hooks/useCategoryTree";
 import { useEmailSync } from "./email/hooks/useEmailSync";
-import HeaderDesktop from "./components/HeaderDesktop";
-import HeaderMobile from "./components/HeaderMobile";
+import HeaderDesktop from "./components/desktop/HeaderDesktop";
+import HeaderMobile from "./components/mobile/HeaderMobile";
 
 export default function Header({
   compact = false,

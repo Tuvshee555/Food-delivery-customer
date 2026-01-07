@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Menu, ArrowLeft } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { SearchDialog } from "../SearchDialog";
-import { SheetRight } from "../sheetRight/SheetRight";
+import { SearchDialog } from "../../SearchDialog";
+import { SheetRight } from "../../sheetRight/SheetRight";
 import HeaderMobileSheet from "./HeaderMobileSheet";
 
 type CategoryNode = {

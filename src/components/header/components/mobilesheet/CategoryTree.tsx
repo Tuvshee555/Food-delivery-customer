@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { CategoryNode } from "../HeaderMobileSheet";
+import { CategoryNode } from "@/hooks/useCategoryTree";
 
 export default function CategoryTree({
   locale,

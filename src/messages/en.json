@@ -318,7 +318,8 @@
   "payment": {
     "qpay": "QPay",
     "card": "Card payment",
-    "cod": "Cash on delivery"
+    "cod": "Cash on delivery",
+    "bank": "Bank transfer"
   },
   "payment.bank": "Bank transfer",
   "invalid_payment_method": "Invalid payment method",

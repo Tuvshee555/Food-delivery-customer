@@ -192,6 +192,11 @@ export function useCheckout(cart: CartItem[]) {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("PAYLOAD SENT", {
+        items: normalizedItems,
+        totalPrice,
+        paymentMethod,
+      });
 
       const order = res.data ?? {};
       // backend shape: use whichever field you return — prefer `id` + `orderNumber`

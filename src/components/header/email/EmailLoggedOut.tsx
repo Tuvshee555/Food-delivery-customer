@@ -45,14 +45,17 @@ export const EmailLoggedOut = ({ closeSheet }: EmailLoggedOutProps) => {
       </div>
 
       {/* GOOGLE */}
+      {/* GOOGLE */}
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={(cred) => {
-            closeSheet();
-            handleGoogleLogin(cred, redirect, router, locale);
-          }}
-          onError={() => toast.error(t("google_login_error"))}
-        />
+        <div className="w-full max-w-sm [&>div]:w-full">
+          <GoogleLogin
+            onSuccess={(cred) => {
+              closeSheet();
+              handleGoogleLogin(cred, redirect, router, locale);
+            }}
+            onError={() => toast.error(t("google_login_error"))}
+          />
+        </div>
       </div>
 
       {/* FACEBOOK */}

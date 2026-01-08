@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
+import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export default function AuthDrawer({
   open,
@@ -13,20 +14,25 @@ export default function AuthDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const { setAuthToken } = useAuth();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [phase, setPhase] = useState<"idle" | "otp">("idle");
   const [loading, setLoading] = useState(false);
-  const [digits, setDigits] = useState(Array(6).fill(""));
-  const [isCorrect, setIsCorrect] = useState<null | boolean>(null);
-  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
-  const router = useRouter();
+  const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  /* ================= LOGIC (UNCHANGED) ================= */
 
   const sendOTP = async () => {
     const normalized = email.trim().toLowerCase();
+
     if (!/^\S+@\S+\.\S+$/.test(normalized)) {
-      toast.error("Имэйл буруу байна");
+      toast.error(t("auth.invalid_email"));
       return;
     }
 
@@ -41,11 +47,13 @@ export default function AuthDrawer({
     );
     setLoading(false);
 
-    if (!res.ok) return toast.error("Код илгээхэд алдаа гарлаа");
+    if (!res.ok) {
+      toast.error(t("auth.otp_send_failed"));
+      return;
+    }
 
-    toast.success("Код илгээлээ");
+    toast.success(t("auth.otp_sent"));
     setPhase("otp");
-
     setTimeout(() => inputsRef.current[0]?.focus(), 50);
   };
 
@@ -67,8 +75,7 @@ export default function AuthDrawer({
 
     if (val && i < 5) inputsRef.current[i + 1]?.focus();
 
-    const full = next.join("");
-    if (full.length === 6) autoVerify(full);
+    if (next.join("").length === 6) autoVerify(next.join(""));
   };
 
   const autoVerify = async (code: string) => {
@@ -92,18 +99,12 @@ export default function AuthDrawer({
     const data = await res.json();
     setIsCorrect(true);
 
-    // keep userId/email in localStorage for other rehydrate logic
     localStorage.setItem("userId", data.user.id);
     setAuthToken(data.token, data.user.email);
 
-    console.log(data, "data");
-
-    toast.success("Амжилттай нэвтэрлээ!");
-
-    // close the dialog first
+    toast.success(t("auth.login_success"));
     onClose();
 
-    // safe client-side redirect if provided
     const redirect =
       new URLSearchParams(window.location.search).get("redirect") ||
       "/home-page";
@@ -113,12 +114,14 @@ export default function AuthDrawer({
 
   if (!open) return null;
 
+  /* ================= UI ================= */
+
   return (
     <AnimatePresence>
-      {/* Background Blur */}
+      {/* Backdrop */}
       <motion.div
         key="bg"
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -128,108 +131,113 @@ export default function AuthDrawer({
       {/* Modal */}
       <motion.div
         key="modal"
-        initial={{ opacity: 0, scale: 0.92 }}
+        initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.92 }}
+        exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.25 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
-        <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-lg p-8 text-white relative shadow-2xl">
+        <div className="w-full max-w-lg rounded-3xl bg-card border border-border p-6 sm:p-8 text-foreground shadow-2xl">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">Нэвтрэх</h2>
-            <button onClick={onClose} className="text-xl">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">{t("auth.login_title")}</h2>
+            <button
+              onClick={onClose}
+              aria-label={t("common.close")}
+              className="h-[44px] w-[44px] rounded-md text-muted-foreground hover:bg-muted"
+            >
               ×
             </button>
           </div>
 
-          {/* ------------------- PHASE 1: EMAIL ------------------- */}
+          {/* PHASE: EMAIL */}
           {phase === "idle" && (
-            <>
-              <label className="text-sm mb-2 block">Имэйл</label>
+            <div className="space-y-4">
+              <label className="text-sm text-muted-foreground">
+                {t("auth.email")}
+              </label>
+
               <input
-                className="w-full px-4 py-3 rounded-xl bg-[#111] border border-gray-700 mb-6"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Имэйл"
+                placeholder={t("auth.email_placeholder")}
+                className="h-[44px] w-full rounded-xl border border-border bg-background px-4 text-sm"
               />
 
               <button
                 onClick={sendOTP}
                 disabled={loading}
-                className="w-full bg-[#fff] text-black py-3 rounded-xl font-semibold"
+                className="h-[44px] w-full rounded-xl bg-foreground text-background text-sm font-medium disabled:opacity-60"
               >
-                {loading ? "Түр хүлээнэ үү..." : "Үргэлжлүүлэх"}
+                {loading ? t("common.loading") : t("common.continue")}
               </button>
-            </>
+            </div>
           )}
 
-          {/* ------------------- PHASE 2: OTP ------------------- */}
+          {/* PHASE: OTP */}
           {phase === "otp" && (
-            <>
-              <label className="text-sm mb-2 block">Баталгаажуулах код</label>
+            <div className="space-y-4">
+              <label className="text-sm text-muted-foreground">
+                {t("auth.otp")}
+              </label>
 
-              {/* Centered OTP box container */}
-              <div className="flex justify-center gap-3 mb-3">
+              <div className="flex justify-center gap-2">
                 {digits.map((d, i) => (
                   <motion.input
                     key={i}
                     ref={(el) => {
                       inputsRef.current[i] = el;
                     }}
-                    onPaste={handlePaste}
-                    onChange={(e) => handleDigitChange(i, e.target.value)}
                     value={d}
                     maxLength={1}
-                    className={`
-      w-14 h-14 text-center text-lg rounded-xl bg-[#111] border 
-      transition-all duration-200
-      ${
-        isCorrect === true
-          ? "border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
-          : isCorrect === false
-          ? "border-red-500"
-          : "border-gray-700"
-      }
-    `}
+                    onPaste={handlePaste}
+                    onChange={(e) => handleDigitChange(i, e.target.value)}
+                    className={`h-[44px] w-[44px] rounded-md border text-center text-sm
+                      ${
+                        isCorrect === true
+                          ? "border-foreground"
+                          : isCorrect === false
+                          ? "border-destructive"
+                          : "border-border"
+                      }`}
                     animate={
-                      isCorrect === false ? { x: [-5, 5, -5, 5, 0] } : {}
+                      isCorrect === false ? { x: [-4, 4, -4, 4, 0] } : {}
                     }
                   />
                 ))}
               </div>
 
-              <p className="text-gray-400 text-sm mb-6 text-center">
-                Таны <span className="text-white">{email}</span> хаяг руу 6
-                оронтой код илгээлээ.
+              <p className="max-w-prose text-center text-sm leading-relaxed text-muted-foreground">
+                {email}
+                {t("auth.otp_sent_to")}
               </p>
 
-              <div className="flex justify-between mb-4">
+              <div className="flex justify-between">
                 <button
                   onClick={() => {
                     setPhase("idle");
                     setDigits(Array(6).fill(""));
                   }}
-                  className="px-4 py-2 border border-gray-700 rounded-xl"
+                  className="h-[44px] px-4 rounded-md border border-border text-sm"
                 >
-                  Буцах
+                  {t("common.back")}
                 </button>
 
                 <button
                   onClick={sendOTP}
-                  className="flex items-center gap-1 text-gray-300 underline"
+                  className="h-[44px] px-2 text-sm underline text-muted-foreground"
                 >
-                  ⟳ Дахин илгээх
+                  {t("auth.resend")}
                 </button>
               </div>
 
               <button
                 onClick={() => autoVerify(digits.join(""))}
-                className="w-full bg-white text-black py-3 rounded-xl font-semibold"
+                className="h-[44px] w-full rounded-xl bg-foreground text-background text-sm font-medium"
               >
-                Баталгаажуулах
+                {t("common.verify")}
               </button>
-            </>
+            </div>
           )}
         </div>
       </motion.div>

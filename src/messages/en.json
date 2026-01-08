@@ -265,7 +265,12 @@
     "en": "English"
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "verify": "Verify",
+    "back": "Back",
+    "loading": "Please wait...",
+    "close": "Close"
   },
   "filter": "Filter",
   "sort": "Sort",
@@ -280,7 +285,17 @@
     "or": "or",
     "sign_in_facebook": "Continue with Facebook",
     "sign_in_guest": "Continue as guest",
-    "terms_notice": "By signing in, you agree to our Terms of Service and Privacy Policy."
+    "terms_notice": "By signing in, you agree to our Terms of Service and Privacy Policy.",
+    "login_title": "Sign in",
+    "email": "Email",
+    "email_placeholder": "Email address",
+    "invalid_email": "Invalid email address",
+    "otp": "Verification code",
+    "otp_sent": "Verification code sent",
+    "otp_send_failed": "Failed to send code",
+    "otp_sent_to": " We sent a 6-digit code to",
+    "resend": "Resend",
+    "login_success": "Successfully signed in"
   },
   "cart2": {
     "yourCart": "Your cart",

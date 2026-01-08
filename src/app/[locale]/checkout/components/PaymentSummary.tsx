@@ -15,7 +15,7 @@ type CartItem = {
 };
 
 /* MUST MATCH BACKEND ENUM EXACTLY */
-export type PaymentMethod = "QPAY" | "BANK" | "COD" | null;
+export type PaymentMethod = "QPAY" | "BANK" | "CARD" | null;
 
 interface PaymentSummaryProps {
   cart: CartItem[];
@@ -31,7 +31,7 @@ const PAYMENT_METHODS: {
 }[] = [
   { value: "QPAY", labelKey: "payment.qpay" },
   { value: "BANK", labelKey: "payment.bank" },
-  { value: "COD", labelKey: "payment.cod" },
+  { value: "CARD", labelKey: "payment.card" },
 ];
 
 export default function PaymentSummary({

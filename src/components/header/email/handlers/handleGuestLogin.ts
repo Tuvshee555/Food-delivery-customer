@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { guestLogin } from "@/app/[locale]/sign-in/components/helpers";
 import { toast } from "sonner";
 
 export const handleGuestLogin = async (
@@ -8,6 +9,7 @@ export const handleGuestLogin = async (
   router: any,
   locale: string
 ) => {
+  await guestLogin(`/${locale}${redirect}`, router.push);
   let guestId = localStorage.getItem("userId");
 
   if (!guestId || !guestId.startsWith("guest-")) {

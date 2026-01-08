@@ -3,7 +3,8 @@
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { saveAuth } from "@/utils/auth";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 export default function AuthDrawer({
   open,
@@ -12,12 +13,15 @@ export default function AuthDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const { setAuthToken } = useAuth();
+
   const [email, setEmail] = useState("");
   const [phase, setPhase] = useState<"idle" | "otp">("idle");
   const [loading, setLoading] = useState(false);
   const [digits, setDigits] = useState(Array(6).fill(""));
   const [isCorrect, setIsCorrect] = useState<null | boolean>(null);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const router = useRouter();
 
   const sendOTP = async () => {
     const normalized = email.trim().toLowerCase();
@@ -88,23 +92,25 @@ export default function AuthDrawer({
     const data = await res.json();
     setIsCorrect(true);
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("email", data.user.email);
+    // <-- FIX: use AuthProvider as single source of truth
+    setAuthToken(data.token);
+    // keep userId/email in localStorage for other rehydrate logic
     localStorage.setItem("userId", data.user.id);
+    localStorage.setItem("email", data.user.email);
 
-    saveAuth(data);
-
-    // 🔥 IMPORTANT: Tell AuthProvider to update
-    window.dispatchEvent(new Event("auth-changed"));
+    console.log(data, "data");
 
     toast.success("Амжилттай нэвтэрлээ!");
 
+    // close the dialog first
+    onClose();
+
+    // safe client-side redirect if provided
     const redirect =
       new URLSearchParams(window.location.search).get("redirect") ||
       "/home-page";
-
-    // 🔥 SAFE redirect (NO RELOAD)
-    window.location.href = redirect;
+    // router.push is client-side navigation (no full reload)
+    router.push(redirect);
   };
 
   if (!open) return null;
@@ -223,13 +229,12 @@ export default function AuthDrawer({
                 onClick={() => autoVerify(digits.join(""))}
                 className="w-full bg-white text-black py-3 rounded-xl font-semibold"
               >
-                Баталгаажүүлэх
+                Баталгаажуулах
               </button>
             </>
           )}
         </div>
       </motion.div>
     </AnimatePresence>
-    //
   );
 }

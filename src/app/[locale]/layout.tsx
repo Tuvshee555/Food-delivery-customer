@@ -8,6 +8,7 @@ import { AuthProvider } from "./provider/AuthProvider";
 
 import Providers from "@/components/Providers"; // client wrapper for next-themes
 import AppShellClient from "@/components/AppShellClient";
+import { AuthDialogProvider } from "@/components/header/email/components/AuthDialogProvider";
 
 type Props = {
   children: ReactNode;
@@ -35,8 +36,9 @@ export default async function LocaleLayout({ children, params }: Props) {
       <ClientI18nProvider locale={locale} messages={messages}>
         <AuthProvider>
           <Providers>
-            {/* AppShellClient handles header, footer, bottom nav, and the email sheet */}
-            <AppShellClient>{children}</AppShellClient>
+            <AuthDialogProvider>
+              <AppShellClient>{children}</AppShellClient>
+            </AuthDialogProvider>
           </Providers>
         </AuthProvider>
       </ClientI18nProvider>

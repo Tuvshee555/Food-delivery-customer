@@ -26,6 +26,7 @@ export const Email = ({ open, onOpenChange }: EmailProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
+        aria-describedby={undefined}
         side="right"
         className="
     fixed inset-y-0 right-0
@@ -38,6 +39,7 @@ export const Email = ({ open, onOpenChange }: EmailProps) => {
   "
       >
         <VisuallyHidden>
+          <p id="sheet-desc">{t("user_menu")}</p>
           <SheetTitle>{t("user_menu")}</SheetTitle>
         </VisuallyHidden>
 

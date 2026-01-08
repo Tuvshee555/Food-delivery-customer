@@ -79,34 +79,48 @@ export const facebookLogin = async (
 };
 
 /* GUEST LOGIN */
+/* client helper - guest login */
+
 export const guestLogin = async (
   redirectUrl: string,
   push: (url: string) => void
 ) => {
+  // make a stable guestId (so the same guest persists)
   let guestId = localStorage.getItem("userId");
-
   if (!guestId || !guestId.startsWith("guest-")) {
     guestId = "guest-" + crypto.randomUUID();
     localStorage.setItem("userId", guestId);
   }
 
-  const guestToken = "guest-token-" + crypto.randomUUID();
-  localStorage.setItem("token", guestToken);
-  localStorage.setItem("email", "Зочин хэрэглэгч");
-  localStorage.setItem("guest", "true");
-
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ guestId }),
-    });
-  } catch {
-    return toast.error("Guest үүсгэхэд алдаа гарлаа!");
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/guest`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestId }),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok || !data.token) {
+      console.error("Guest login failed:", data);
+      return toast.error("Failed to create guest account");
+    }
+
+    // store the server-issued JWT and user info
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userId", data.user.id);
+    localStorage.setItem("email", data.user.email ?? "Guest User");
+    localStorage.setItem("guest", "true");
+
+    // notify existing listener (your AuthProvider listens for this)
+    window.dispatchEvent(new Event("auth-changed"));
+
+    toast.success("Зочноор нэвтэрлээ!");
+    push(redirectUrl);
+  } catch (err) {
+    console.error("guestLogin error:", err);
+    toast.error("Failed to create guest account");
   }
-
-  notifyAuth();
-  toast.success("Зочноор нэвтэрлээ!");
-
-  setTimeout(() => push(redirectUrl), 150);
 };

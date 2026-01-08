@@ -45,8 +45,12 @@ function CheckoutInner() {
     if (authLoading) return;
 
     if (!token) {
-      const pathname = window.location.pathname;
-      router.push(`/${locale}/sign-in?redirect=${pathname}`);
+      const fullPath = window.location.pathname + window.location.search;
+
+      router.push(
+        `/${locale}/sign-in?redirect=${encodeURIComponent(fullPath)}`
+      );
+
       return;
     }
 

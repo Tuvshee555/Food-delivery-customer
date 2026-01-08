@@ -11,7 +11,8 @@ type UserType = { id?: string; userId?: string };
 type AuthContextType = {
   userId: string | null;
   token: string | null;
-  setAuthToken: (token: string | null) => void;
+  email: string | null;
+  setAuthToken: (token: string | null, email?: string | null) => void;
   loading: boolean;
 };
 
@@ -19,55 +20,45 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const { locale } = useI18n(); // ⬅ FIXED HERE
+  const { locale } = useI18n();
+
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const { decodedToken, reEvaluateToken } = useJwt<UserType>(token || "");
 
+  /* ---------- INITIAL HYDRATION ---------- */
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUserId = localStorage.getItem("userId");
-
-    if (storedToken?.startsWith("guest-token-")) {
-      setToken(storedToken);
-      setUserId(storedUserId || null);
-      setLoading(false);
-      return;
-    }
+    const storedEmail = localStorage.getItem("email");
 
     if (storedToken) {
       setToken(storedToken);
       reEvaluateToken(storedToken);
     }
 
+    if (storedUserId) setUserId(storedUserId);
+    if (storedEmail) setEmail(storedEmail);
+
     setLoading(false);
   }, []);
 
+  /* ---------- DECODE JWT ---------- */
   useEffect(() => {
-    if (!token) return;
+    if (!token || !decodedToken) return;
 
-    if (token.startsWith("guest-token-")) {
-      setUserId(localStorage.getItem("userId"));
-      return;
-    }
-
-    if (decodedToken) {
-      setUserId(decodedToken.id || decodedToken.userId || null);
-    }
+    setUserId(decodedToken.id || decodedToken.userId || null);
   }, [token, decodedToken]);
 
+  /* ---------- GLOBAL AUTH SYNC ---------- */
   useEffect(() => {
     const handler = () => {
       const newToken = localStorage.getItem("token");
       const newUserId = localStorage.getItem("userId");
-
-      if (newToken?.startsWith("guest-token-")) {
-        setToken(newToken);
-        setUserId(newUserId || null);
-        return;
-      }
+      const newEmail = localStorage.getItem("email");
 
       if (newToken) {
         setToken(newToken);
@@ -75,34 +66,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setToken(null);
         setUserId(null);
+        setEmail(null);
       }
+
+      setUserId(newUserId || null);
+      setEmail(newEmail || null);
     };
 
     window.addEventListener("auth-changed", handler);
     return () => window.removeEventListener("auth-changed", handler);
   }, []);
 
-  const setAuthToken = (newToken: string | null) => {
+  /* ---------- SINGLE SOURCE OF TRUTH ---------- */
+  const setAuthToken = (newToken: string | null, newEmail?: string | null) => {
     if (newToken) {
       localStorage.setItem("token", newToken);
       setToken(newToken);
       reEvaluateToken(newToken);
+
+      if (newEmail) {
+        localStorage.setItem("email", newEmail);
+        setEmail(newEmail);
+      }
+
       window.dispatchEvent(new Event("auth-changed"));
       return;
     }
 
+    // logout
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
+    localStorage.removeItem("email");
 
     setToken(null);
     setUserId(null);
+    setEmail(null);
 
     window.dispatchEvent(new Event("auth-changed"));
     router.push(`/${locale}/sign-in`);
   };
 
   return (
-    <AuthContext.Provider value={{ userId, token, setAuthToken, loading }}>
+    <AuthContext.Provider
+      value={{
+        userId,
+        token,
+        email,
+        setAuthToken,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

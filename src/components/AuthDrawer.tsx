@@ -92,11 +92,9 @@ export default function AuthDrawer({
     const data = await res.json();
     setIsCorrect(true);
 
-    // <-- FIX: use AuthProvider as single source of truth
-    setAuthToken(data.token);
     // keep userId/email in localStorage for other rehydrate logic
     localStorage.setItem("userId", data.user.id);
-    localStorage.setItem("email", data.user.email);
+    setAuthToken(data.token, data.user.email);
 
     console.log(data, "data");
 
@@ -109,7 +107,7 @@ export default function AuthDrawer({
     const redirect =
       new URLSearchParams(window.location.search).get("redirect") ||
       "/home-page";
-    // router.push is client-side navigation (no full reload)
+
     router.push(redirect);
   };
 

@@ -3,7 +3,6 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 import { useFacebookSDK } from "./hooks/useFacebookSDK";
-import { useEmailSync } from "./hooks/useEmailSync";
 import { EmailLoggedOut } from "./EmailLoggedOut";
 import { EmailLoggedIn } from "./EmailLoggedIn";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
@@ -18,8 +17,7 @@ export const Email = ({ open, onOpenChange }: EmailProps) => {
   useFacebookSDK();
 
   const { t } = useI18n();
-  const email = useEmailSync();
-  const { token, setAuthToken } = useAuth();
+  const { token, email, setAuthToken } = useAuth();
 
   const firstLetter = email ? email[0].toUpperCase() : "?";
 

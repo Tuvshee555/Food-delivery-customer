@@ -11,7 +11,7 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
 
-const slides = ["/BackMain.png", "/BackMain.png", "/BackMain.png"];
+const slides = ["/BackMain.jpg", "/BackMain.jpg", "/BackMain.jpg"];
 
 export function HeroCarousel() {
   const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));

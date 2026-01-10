@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { toast } from "sonner";
 import { FacebookAuthResponse, GoogleLoginPayload } from "./type";
 
@@ -104,7 +105,7 @@ export const guestLogin = async (
 
     const data = await res.json();
     if (!res.ok || !data.token) {
-      console.error("Guest login failed:", data);
+      // console.error("Guest login failed:", data);
       return toast.error("Failed to create guest account");
     }
 
@@ -120,7 +121,7 @@ export const guestLogin = async (
     toast.success("Зочноор нэвтэрлээ!");
     push(redirectUrl);
   } catch (err) {
-    console.error("guestLogin error:", err);
+    // console.error("guestLogin error:", err);
     toast.error("Failed to create guest account");
   }
 };

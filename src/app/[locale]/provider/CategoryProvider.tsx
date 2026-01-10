@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -29,7 +30,7 @@ export const CategoryProvider = ({
       );
       setCategory(response.data);
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      // console.error("Error fetching categories:", error);
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -55,7 +56,7 @@ export default function BankTransferPage() {
 
         setOrder(res.data);
       } catch (err) {
-        console.error(err);
+        // console.error(err);
         toast.error(t("order_not_found"));
       } finally {
         setLoading(false);
@@ -74,31 +75,6 @@ export default function BankTransferPage() {
       toast.error(t("copy_failed"));
     }
   };
-
-  // notify admin / mark waiting (idempotent)
-  // const notifyPaid = async () => {
-  //   if (!order || !token) return;
-  //   setNotifying(true);
-  //   try {
-  //     await axios.patch(
-  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
-  //       { status: "WAITING_PAYMENT" },
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-  //     toast.success(t("bank_notify_success"));
-  //     // refresh order
-  //     const r = await axios.get(
-  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${order.id}`,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-  //     setOrder(r.data);
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error(t("bank_notify_error"));
-  //   } finally {
-  //     setNotifying(false);
-  //   }
-  // };
 
   if (loading) {
     return (

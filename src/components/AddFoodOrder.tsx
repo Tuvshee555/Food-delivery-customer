@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
@@ -61,7 +62,7 @@ export const AddFoodOrder: React.FC<AddFoodOrderProps> = ({ food }) => {
 
       toast.success("✅ Added to cart!");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       toast.error("❌ Failed to add item.");
     }
   };

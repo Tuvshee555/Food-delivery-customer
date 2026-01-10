@@ -168,11 +168,11 @@ export function useCheckout(cart: CartItem[]) {
       }
 
       // Helpful local debug
-      console.log("START PAYMENT", {
-        paymentMethod,
-        normalizedItems,
-        totalPrice,
-      });
+      // console.log("START PAYMENT", {
+      //   paymentMethod,
+      //   normalizedItems,
+      //   totalPrice,
+      // });
 
       // POST order to backend — send paymentMethod exactly as backend expects
       const res = await axios.post(
@@ -200,7 +200,7 @@ export function useCheckout(cart: CartItem[]) {
         order.orderNumber ?? order.order_number ?? null;
 
       if (!returnedOrderId) {
-        console.error("Order creation returned unexpected payload:", order);
+        // console.error("Order creation returned unexpected payload:", order);
         toast.error(t("err_create_order"));
         return;
       }
@@ -233,7 +233,7 @@ export function useCheckout(cart: CartItem[]) {
       toast.success(t("order_success"));
       router.push(`/${locale}/orders/${returnedOrderId}`);
     } catch (err: any) {
-      console.error("handlePaymentStart error:", err?.response?.data ?? err);
+      // console.error("handlePaymentStart error:", err?.response?.data ?? err);
       if (err?.response?.status === 401) {
         router.push(`/${locale}/log-in`);
         return;

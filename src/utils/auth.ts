@@ -6,9 +6,9 @@ export function saveAuth(data: {
   localStorage.setItem("email", data.user.email);
   localStorage.setItem("userId", data.user.id);
 
-  console.log("SAVED AUTH:", {
-    token: data.token,
-    email: data.user.email,
-    userId: data.user.id,
-  });
+  // console.log("SAVED AUTH:", {
+  //   token: data.token,
+  //   email: data.user.email,
+  //   userId: data.user.id,
+  // });
 }

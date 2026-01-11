@@ -32,7 +32,7 @@ export default function TermsDialog({
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (isLoading) return; // ✅ prevent closing while submitting
+        if (isLoading) return;
         onOpenChange(v);
       }}
     >

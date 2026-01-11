@@ -138,7 +138,7 @@ export const HeroCategoryStrip = () => {
                       "
                     >
                       <img
-                        src={previewImages.get(cat.id) ?? "/BackMain.png"}
+                        src={previewImages.get(cat.id) ?? "/BackMain.jpg"}
                         alt={cat.categoryName}
                         className="absolute inset-0 w-full h-full object-cover"
                       />

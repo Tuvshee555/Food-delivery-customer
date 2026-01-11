@@ -63,7 +63,16 @@ export const OrdersList = () => {
     queryKey: ["orders", userId],
     queryFn: fetchOrders,
     enabled: Boolean(userId && token),
-    refetchInterval: false,
+
+    // ✅ Auto refresh ONLY if user has unpaid QPay orders
+    refetchInterval: (query) => {
+      const list = (query.state.data as OrderListItem[]) || [];
+      const hasWaitingQpay = list.some(
+        (o) => o.status === "WAITING_PAYMENT" && o.paymentMethod === "QPAY"
+      );
+      return hasWaitingQpay ? 30000 : false;
+    },
+
     refetchOnWindowFocus: true,
   });
 

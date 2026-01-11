@@ -16,7 +16,8 @@ import { OrderCostSummary } from "../components/OrderCostSummary";
 import { QPayPaymentBlock } from "../components/QPayPaymentBlock";
 
 export default function OrderDetailPage() {
-  const { userId, token } = useAuth();
+  const { userId, token, loading: authLoading } = useAuth();
+
   const params = useParams();
   const router = useRouter();
   const { locale, t } = useI18n();
@@ -24,12 +25,12 @@ export default function OrderDetailPage() {
   const orderId = typeof params.orderId === "string" ? params.orderId : null;
 
   const [order, setOrder] = useState<OrderDetails | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [orderLoading, setOrderLoading] = useState(true);
 
   const fetchOrder = useCallback(async () => {
     if (!orderId || !token) return;
 
-    setLoading(true);
+    setOrderLoading(true);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${orderId}`,
@@ -46,11 +47,13 @@ export default function OrderDetailPage() {
       toast.error(t("order_not_found"));
       setOrder(null);
     } finally {
-      setLoading(false);
+      setOrderLoading(false);
     }
   }, [orderId, token, t]);
 
   useEffect(() => {
+    if (authLoading) return; // ✅ WAIT UNTIL AUTH HYDRATES
+
     if (!token || !userId) {
       router.push(`/${locale}/log-in`);
       return;
@@ -62,15 +65,15 @@ export default function OrderDetailPage() {
     }
 
     fetchOrder();
-  }, [fetchOrder, token, userId, orderId, locale, t, router]);
+  }, [fetchOrder, token, userId, orderId, locale, t, router, authLoading]);
 
   // Poll while waiting payment so frontend updates when webhook flips order to PAID
   useEffect(() => {
     if (!order) return;
+
     let id: ReturnType<typeof setInterval> | null = null;
 
     if (order.status === "WAITING_PAYMENT") {
-      // poll every 10 seconds
       id = setInterval(() => {
         fetchOrder();
       }, 300000);
@@ -81,7 +84,8 @@ export default function OrderDetailPage() {
     };
   }, [order?.status, fetchOrder]);
 
-  if (loading) {
+  // ✅ show loader while auth OR order is loading
+  if (authLoading || orderLoading) {
     return (
       <p className="text-center mt-16 text-sm text-muted-foreground">
         {t("loading")}
@@ -104,7 +108,6 @@ export default function OrderDetailPage() {
 
         <DeliveryInfo order={order} />
 
-        {/* pass fetchOrder so the QPay block can manually request a status check */}
         <QPayPaymentBlock order={order} onRefresh={fetchOrder} />
 
         <ItemsList items={order.items} />

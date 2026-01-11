@@ -83,13 +83,14 @@ export function usePaymentPending() {
       setPaid(true);
       setQrText(null);
       setStatus(t("payment_success"));
-      router.push(`/${locale}/orders/${order.id}`);
+      router.push(`/${locale}/profile/orders/${order.id}`);
+
       return;
     }
 
     /** 🚚 NOT ONLINE PAYMENT */
     if (order.paymentMethod !== "QPAY") {
-      router.push(`/${locale}/orders/${order.id}`);
+      router.push(`/${locale}/profile/orders/${order.id}`);
       return;
     }
 
@@ -164,7 +165,7 @@ export function usePaymentPending() {
         clearInterval(pollRef.current!);
 
         setTimeout(() => {
-          router.push(`/${locale}/orders/${orderId}`);
+          router.push(`/${locale}/profile/orders/${orderId}`);
         }, 1500);
       }
     }, 5000);

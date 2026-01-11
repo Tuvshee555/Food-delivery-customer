@@ -1,12 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { OrderData } from "./types";
+
+const API_TIMEOUT = 30_000;
 
 export function usePaymentPending() {
   const { t, locale } = useI18n();
@@ -25,7 +27,9 @@ export function usePaymentPending() {
 
   const pollRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
-  const hasRequestedInvoice = useRef(false);
+
+  // prevent spamming create invoice
+  const creatingInvoiceRef = useRef(false);
 
   /** 🧹 MOUNT / UNMOUNT */
   useEffect(() => {
@@ -41,7 +45,9 @@ export function usePaymentPending() {
     const fromUrl = searchParams.get("orderId");
     if (fromUrl) {
       setOrderId(fromUrl);
-      localStorage.setItem("lastOrderId", fromUrl);
+      try {
+        localStorage.setItem("lastOrderId", fromUrl);
+      } catch {}
       return;
     }
 
@@ -49,95 +55,127 @@ export function usePaymentPending() {
     if (stored) setOrderId(stored);
   }, [searchParams]);
 
-  /** 📦 FETCH ORDER */
-  const fetchOrder = async (id: string) => {
-    setLoadingOrder(true);
-    try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
+  /** 📦 FETCH ORDER */
+  const fetchOrder = useCallback(async (id: string) => {
+    setLoadingOrder(true);
+
+    try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${id}`,
-        { headers }
+        {
+          headers: getAuthHeaders(),
+          timeout: API_TIMEOUT,
+        }
       );
 
-      if (mountedRef.current) setOrder(res.data ?? null);
+      if (!mountedRef.current) return;
+
+      const data = res.data ?? null;
+      setOrder(data);
+
+      // ✅ instant redirect if already paid
+      if (data?.status === "PAID" || data?.status === "DELIVERED") {
+        setPaid(true);
+        setQrText(null);
+        setStatus(t("payment_success"));
+        router.replace(`/${locale}/profile/orders/${id}`);
+      }
     } catch {
       toast.error(t("order_not_found"));
       if (mountedRef.current) setOrder(null);
     } finally {
       if (mountedRef.current) setLoadingOrder(false);
     }
-  };
+  }, []);
 
+  /** 🧾 CREATE INVOICE */
+  const createInvoice = useCallback(
+    async (id: string, amount: number) => {
+      if (creatingInvoiceRef.current) return;
+      creatingInvoiceRef.current = true;
+
+      try {
+        if (mountedRef.current) setStatus(t("payment_creating"));
+
+        const res = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/create`,
+          { orderId: id, amount },
+          {
+            headers: getAuthHeaders(),
+            timeout: API_TIMEOUT,
+          }
+        );
+
+        if (!mountedRef.current) return;
+
+        if (!res.data?.qr_text || !res.data?.invoice_id) {
+          toast.error(t("payment_qr_error"));
+          setStatus(t("payment_create_fail"));
+          return;
+        }
+
+        setQrText(res.data.qr_text);
+        setInvoiceId(res.data.invoice_id);
+        setStatus(t("payment_waiting"));
+      } catch {
+        if (mountedRef.current) {
+          toast.error(t("payment_create_fail"));
+          setStatus(t("payment_create_fail"));
+        }
+      } finally {
+        creatingInvoiceRef.current = false;
+      }
+    },
+    [t]
+  );
+
+  /** ✅ RUN ASAP WHEN ORDER ID EXISTS */
   useEffect(() => {
-    if (orderId) fetchOrder(orderId);
+    if (!orderId) return;
+
+    // start fetching order immediately
+    fetchOrder(orderId);
+
+    // show user something instantly
+    setStatus(t("payment_creating"));
   }, [orderId]);
 
-  /** 🔑 CORE PAYMENT LOGIC (REFRESH SAFE) */
+  /** 🔑 WHEN ORDER ARRIVES: RESTORE OR CREATE */
   useEffect(() => {
     if (!order) return;
 
-    /** ✅ ALREADY PAID */
-    if (order.status === "PAID" || order.status === "DELIVERED") {
-      setPaid(true);
-      setQrText(null);
-      setStatus(t("payment_success"));
-      router.push(`/${locale}/profile/orders/${order.id}`);
-
-      return;
-    }
-
-    /** 🚚 NOT ONLINE PAYMENT */
+    // 🚚 NOT ONLINE PAYMENT
     if (order.paymentMethod !== "QPAY") {
-      router.push(`/${locale}/profile/orders/${order.id}`);
+      router.replace(`/${locale}/profile/orders/${order.id}`);
       return;
     }
 
-    /** 🔁 RESTORE EXISTING PAYMENT (REFRESH FIX) */
+    // ✅ restore existing payment quickly
+    if (order.payment?.invoiceId) setInvoiceId(order.payment.invoiceId);
+    if (order.payment?.qrText) setQrText(order.payment.qrText);
+
+    // ✅ if already pending payment
     if (order.payment?.status === "PENDING") {
-      if (order.payment.invoiceId) {
-        setInvoiceId(order.payment.invoiceId);
-      }
-      if (order.payment.qrText) {
-        setQrText(order.payment.qrText);
-      }
       setStatus(t("payment_waiting"));
     }
 
-    /** 🆕 CREATE INVOICE ONLY IF NONE EXISTS */
+    // ✅ if order needs invoice — create immediately
     if (
       order.status === "WAITING_PAYMENT" &&
       !order.payment?.invoiceId &&
-      !hasRequestedInvoice.current
+      !invoiceId &&
+      !qrText
     ) {
-      hasRequestedInvoice.current = true;
+      if (!order.id) return;
+      const amount = Number(order.totalPrice ?? 0);
+      if (amount <= 0) return;
 
-      (async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-          const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/create`,
-            { orderId: order.id, amount: order.totalPrice },
-            { headers }
-          );
-
-          if (!res.data?.qr_text || !res.data?.invoice_id) {
-            toast.error(t("payment_qr_error"));
-            return;
-          }
-
-          if (mountedRef.current) {
-            setQrText(res.data.qr_text);
-            setInvoiceId(res.data.invoice_id);
-            setStatus(t("payment_waiting"));
-          }
-        } catch {
-          toast.error(t("payment_create_fail"));
-        }
-      })();
+      createInvoice(order.id, amount);
     }
   }, [order]);
 
@@ -149,7 +187,8 @@ export function usePaymentPending() {
       try {
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/check`,
-          { invoiceId }
+          { invoiceId },
+          { timeout: API_TIMEOUT }
         );
         return res.data;
       } catch {
@@ -159,21 +198,35 @@ export function usePaymentPending() {
 
     pollRef.current = window.setInterval(async () => {
       const data = await check();
+
       if (data?.paid && mountedRef.current) {
         setPaid(true);
         setStatus(t("payment_success"));
-        clearInterval(pollRef.current!);
+
+        if (pollRef.current) clearInterval(pollRef.current);
 
         setTimeout(() => {
-          router.push(`/${locale}/profile/orders/${orderId}`);
-        }, 1500);
+          router.replace(`/${locale}/profile/orders/${orderId}`);
+        }, 1200);
       }
-    }, 5000);
+    }, 4000);
 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [invoiceId, paid]);
+  }, [invoiceId, paid, orderId]);
+
+  /** ✅ USER MANUAL RETRY */
+  const retryCreateInvoice = async () => {
+    if (!orderId) return;
+    if (!order) {
+      await fetchOrder(orderId);
+      return;
+    }
+    if (order.paymentMethod !== "QPAY") return;
+    if (!order.id) return;
+    await createInvoice(order.id, order.totalPrice ?? 0);
+  };
 
   return {
     t,
@@ -183,5 +236,8 @@ export function usePaymentPending() {
     paid,
     status,
     loadingOrder,
+
+    retryCreateInvoice, // ✅ allow retry button UI
+    invoiceId,
   };
 }

@@ -1,3 +1,4 @@
+// TermsDialog.tsx
 "use client";
 
 import {
@@ -16,17 +17,25 @@ interface TermsDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onConfirm: () => void;
+  isLoading?: boolean;
 }
 
 export default function TermsDialog({
   open,
   onOpenChange,
   onConfirm,
+  isLoading = false,
 }: TermsDialogProps) {
   const { t } = useI18n();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (isLoading) return; // ✅ prevent closing while submitting
+        onOpenChange(v);
+      }}
+    >
       <DialogContent className="max-w-lg bg-card text-foreground border border-border">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">
@@ -62,13 +71,30 @@ export default function TermsDialog({
 
         <DialogFooter className="flex gap-3 pt-4">
           <DialogClose asChild>
-            <Button variant="outline" className="h-[44px]">
+            <Button variant="outline" className="h-[44px]" disabled={isLoading}>
               {t("cancel")}
             </Button>
           </DialogClose>
 
-          <Button onClick={onConfirm} className="h-[44px]">
-            {t("continue")}
+          <Button onClick={onConfirm} className="h-[44px]" disabled={isLoading}>
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray="60"
+                  />
+                </svg>
+                {t("loading")}
+              </span>
+            ) : (
+              t("continue")
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

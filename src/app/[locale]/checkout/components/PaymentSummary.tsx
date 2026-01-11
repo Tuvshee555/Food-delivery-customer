@@ -23,6 +23,7 @@ interface PaymentSummaryProps {
   paymentMethod: PaymentMethod;
   setPaymentMethod: (p: PaymentMethod) => void;
   hideActions?: boolean;
+  isSubmitting?: boolean; // ✅ NEW
 }
 
 const PAYMENT_METHODS: {
@@ -40,6 +41,7 @@ export default function PaymentSummary({
   paymentMethod,
   setPaymentMethod,
   hideActions = false,
+  isSubmitting = false,
 }: PaymentSummaryProps) {
   const { locale, t } = useI18n();
   const router = useRouter();
@@ -49,15 +51,17 @@ export default function PaymentSummary({
     0
   );
 
-  // const deliveryFee = 100;
   const deliveryFee = 0;
   const grandTotal = productTotal + deliveryFee;
 
   useEffect(() => {
-    if (!paymentMethod) {
-      setPaymentMethod("QPAY");
-    }
+    if (!paymentMethod) setPaymentMethod("QPAY");
   }, [paymentMethod, setPaymentMethod]);
+
+  const handleSubmit = () => {
+    if (isSubmitting) return; // ✅ prevent spam click
+    onSubmit();
+  };
 
   return (
     <aside className="w-full lg:w-[400px] bg-card rounded-2xl p-6 space-y-6 h-fit">
@@ -101,6 +105,7 @@ export default function PaymentSummary({
               name="payment"
               checked={paymentMethod === m.value}
               onChange={() => setPaymentMethod(m.value)}
+              disabled={isSubmitting} // ✅ lock while submitting
             />
             <span className="text-sm">{t(m.labelKey)}</span>
           </label>
@@ -113,16 +118,34 @@ export default function PaymentSummary({
             variant="outline"
             className="w-full h-[44px]"
             onClick={() => router.push(`/${locale}/checkout?step=cart`)}
+            disabled={isSubmitting}
           >
             {t("back")}
           </Button>
 
           <Button
             className="w-full h-[44px]"
-            onClick={onSubmit}
-            disabled={!paymentMethod}
+            onClick={handleSubmit}
+            disabled={!paymentMethod || isSubmitting}
           >
-            {t("order")}
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray="60"
+                  />
+                </svg>
+                {t("loading")}
+              </span>
+            ) : (
+              t("order")
+            )}
           </Button>
         </div>
       )}

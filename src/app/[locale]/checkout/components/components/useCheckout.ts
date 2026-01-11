@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
@@ -43,6 +44,9 @@ export function useCheckout(cart: CartItem[]) {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [openTerms, setOpenTerms] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+
+  // NEW: submission lock
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /* use backend enum everywhere */
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
@@ -139,11 +143,31 @@ export function useCheckout(cart: CartItem[]) {
     setOpenTerms(true);
   };
 
-  const handlePaymentStart = async () => {
+  // create idempotency key (UUID fallback)
+  const createIdempotencyKey = () => {
     try {
-      setOpenTerms(false);
+      // modern browsers
+      // @ts-ignore
+      if (globalThis?.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+      // fallback
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    } catch {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    }
+  };
 
-      if (!cart.length) return toast.error(t("cart_empty"));
+  const handlePaymentStart = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // ✅ don’t close terms dialog yet (prevents clicking order again)
+      if (!cart.length) {
+        toast.error(t("cart_empty"));
+        return;
+      }
+
       if (!token) {
         router.push(`/${locale}/log-in`);
         return;
@@ -161,26 +185,22 @@ export function useCheckout(cart: CartItem[]) {
         return;
       }
 
-      // --- VALIDATION: paymentMethod must be one of API values ---
       if (!paymentMethod) {
         toast.error(t("choose_payment_method"));
         return;
       }
 
-      // Helpful local debug
-      // console.log("START PAYMENT", {
-      //   paymentMethod,
-      //   normalizedItems,
-      //   totalPrice,
-      // });
+      const idempotencyKey =
+        // @ts-ignore
+        globalThis?.crypto?.randomUUID?.() ??
+        `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-      // POST order to backend — send paymentMethod exactly as backend expects
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
         {
           items: normalizedItems,
           totalPrice,
-          paymentMethod: paymentMethod, // exact value: "QPAY" | "BANK" | "COD"
+          paymentMethod,
           firstName: form.firstName ?? null,
           lastName: form.lastName ?? null,
           phone: form.phonenumber ?? null,
@@ -189,23 +209,26 @@ export function useCheckout(cart: CartItem[]) {
           khoroo: form.khoroo ?? null,
           address: form.address ?? null,
           notes: form.notes ?? "",
+          idempotencyKey,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 60_000,
+        }
       );
 
       const order = res.data ?? {};
-      // backend shape: use whichever field you return — prefer `id` + `orderNumber`
       const returnedOrderId = order.id ?? order.orderId ?? null;
-      const returnedOrderNumber =
-        order.orderNumber ?? order.order_number ?? null;
 
       if (!returnedOrderId) {
-        // console.error("Order creation returned unexpected payload:", order);
         toast.error(t("err_create_order"));
         return;
       }
 
-      // clear cart client side
+      // ✅ now safe to close dialog
+      setOpenTerms(false);
+
+      // clear cart
       localStorage.removeItem(CART_KEY);
       window.dispatchEvent(new Event("cart-updated"));
 
@@ -214,7 +237,6 @@ export function useCheckout(cart: CartItem[]) {
         localStorage.setItem("lastOrderId", returnedOrderId);
       } catch {}
 
-      // ROUTING — use exact paymentMethod
       if (paymentMethod === "QPAY") {
         router.push(
           `/${locale}/checkout/payment-pending?orderId=${returnedOrderId}`
@@ -229,16 +251,17 @@ export function useCheckout(cart: CartItem[]) {
         return;
       }
 
-      // COD
       toast.success(t("order_success"));
       router.push(`/${locale}/orders/${returnedOrderId}`);
     } catch (err: any) {
-      // console.error("handlePaymentStart error:", err?.response?.data ?? err);
       if (err?.response?.status === 401) {
         router.push(`/${locale}/log-in`);
         return;
       }
       toast.error(t("err_create_order"));
+    } finally {
+      // ✅ only reset after request finishes
+      setIsSubmitting(false);
     }
   };
 
@@ -256,6 +279,7 @@ export function useCheckout(cart: CartItem[]) {
     totalPrice,
     handleSubmit,
     handlePaymentStart,
+    isSubmitting, // expose loading flag for UI
     t,
     router,
   };

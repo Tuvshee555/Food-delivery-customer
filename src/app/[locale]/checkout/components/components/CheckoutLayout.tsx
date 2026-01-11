@@ -13,6 +13,7 @@ export default function CheckoutLayout({
   setPaymentMethod,
   onSubmit,
   setForm,
+  isSubmitting, // ✅ NEW
 }: any) {
   return (
     <main className="min-h-screen bg-background text-foreground pb-[110px] md:pb-[60px]">
@@ -37,6 +38,7 @@ export default function CheckoutLayout({
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             onSubmit={onSubmit}
+            isSubmitting={isSubmitting} // ✅ PASS IT HERE
           />
         </motion.section>
       </div>

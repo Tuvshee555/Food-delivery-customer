@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -11,7 +10,7 @@ import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
 
 /** CANONICAL (match backend) */
-export type PaymentMethod = "QPAY" | "BANK" | "COD" | null;
+export type PaymentMethod = "QPAY" | "BANK" | "COD" | "LEMON" | null;
 
 export type CartItem = {
   foodId?: string;
@@ -165,11 +164,13 @@ export function useCheckout(cart: CartItem[]) {
       // ✅ don’t close terms dialog yet (prevents clicking order again)
       if (!cart.length) {
         toast.error(t("cart_empty"));
+        setIsSubmitting(false);
         return;
       }
 
       if (!token) {
         router.push(`/${locale}/log-in`);
+        setIsSubmitting(false);
         return;
       }
 
@@ -182,18 +183,17 @@ export function useCheckout(cart: CartItem[]) {
 
       if (!normalizedItems.length) {
         toast.error(t("err_invalid_cart_items"));
+        setIsSubmitting(false);
         return;
       }
 
       if (!paymentMethod) {
         toast.error(t("choose_payment_method"));
+        setIsSubmitting(false);
         return;
       }
 
-      const idempotencyKey =
-        // @ts-ignore
-        globalThis?.crypto?.randomUUID?.() ??
-        `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const idempotencyKey = createIdempotencyKey();
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order`,
@@ -218,14 +218,93 @@ export function useCheckout(cart: CartItem[]) {
       );
 
       const order = res.data ?? {};
-      const returnedOrderId = order.id ?? order.orderId ?? null;
+      // backend sometimes returns order.id or order.orderId - handle both
+      const returnedOrderId =
+        order.id ?? order.orderId ?? order.orderId ?? null;
 
       if (!returnedOrderId) {
         toast.error(t("err_create_order"));
+        setIsSubmitting(false);
         return;
       }
 
-      // ✅ now safe to close dialog
+      // If Lemon flow, create checkout and redirect to Lemon
+      if (paymentMethod === "LEMON") {
+        // make redirect back to your frontend success page
+        const redirectUrl = `${window.location.origin}/${locale}/profile/orders/${returnedOrderId}`;
+
+        // prefer per-app env variant id
+        const variantFromEnv =
+          Number(process.env.NEXT_PUBLIC_LEMON_VARIANT_ID || 0) || undefined;
+
+        if (!variantFromEnv) {
+          toast.error(
+            t("payment.lemon_variant_missing") ||
+              "LEMON variant id missing. Contact admin."
+          );
+          // fallback: still clear cart and go to orders page
+          setOpenTerms(false);
+          localStorage.removeItem(CART_KEY);
+          try {
+            localStorage.setItem("lastOrderId", returnedOrderId);
+          } catch {}
+          setOrderId(returnedOrderId);
+          router.push(`/${locale}/profile/orders/${returnedOrderId}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        try {
+          const lemonRes = await axios.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/payment/lemon/checkout`,
+            {
+              orderId: returnedOrderId,
+              variantId: variantFromEnv,
+              redirectUrl,
+            },
+            { headers: { Authorization: `Bearer ${token}` }, timeout: 15000 }
+          );
+
+          const lemonData = lemonRes.data ?? {};
+          const checkoutUrl =
+            lemonData.checkoutUrl ?? lemonData.checkout_url ?? null;
+
+          if (!checkoutUrl) {
+            throw new Error("no checkout url");
+          }
+
+          // close terms, clear cart, store last order id
+          setOpenTerms(false);
+          localStorage.removeItem(CART_KEY);
+          try {
+            localStorage.setItem("lastOrderId", returnedOrderId);
+          } catch {}
+          window.dispatchEvent(new Event("cart-updated"));
+          setOrderId(returnedOrderId);
+
+          // redirect to Lemon checkout (hard redirect)
+          window.location.href = checkoutUrl;
+          return;
+        } catch (err: any) {
+          console.error("LEMON checkout error:", err?.response?.data || err);
+          toast.error(
+            t("err_create_lemon_checkout") || "Failed to start payment"
+          );
+          // fallback: route to order detail so user can retry
+          setOpenTerms(false);
+          localStorage.removeItem(CART_KEY);
+          try {
+            localStorage.setItem("lastOrderId", returnedOrderId);
+          } catch {}
+          setOrderId(returnedOrderId);
+          router.push(`/${locale}/profile/orders/${returnedOrderId}`);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // non-LEMON flows:
+      // close terms
       setOpenTerms(false);
 
       // clear cart
@@ -241,6 +320,7 @@ export function useCheckout(cart: CartItem[]) {
         router.push(
           `/${locale}/checkout/payment-pending?orderId=${returnedOrderId}`
         );
+        setIsSubmitting(false);
         return;
       }
 
@@ -248,19 +328,22 @@ export function useCheckout(cart: CartItem[]) {
         router.push(
           `/${locale}/checkout/bank-transfer?orderId=${returnedOrderId}`
         );
+        setIsSubmitting(false);
         return;
       }
 
       toast.success(t("order_success"));
-      router.push(`/${locale}/orders/${returnedOrderId}`);
+      router.push(`/${locale}/profile/orders/${returnedOrderId}`);
     } catch (err: any) {
       if (err?.response?.status === 401) {
         router.push(`/${locale}/log-in`);
+        setIsSubmitting(false);
         return;
       }
+      console.error("handlePaymentStart error:", err?.response?.data || err);
       toast.error(t("err_create_order"));
     } finally {
-      // ✅ only reset after request finishes
+      // ✅ only reset after request finishes if we didn't redirect away
       setIsSubmitting(false);
     }
   };

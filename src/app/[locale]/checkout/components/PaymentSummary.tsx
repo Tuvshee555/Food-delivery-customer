@@ -1,3 +1,4 @@
+// components/PaymentSummary.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ type CartItem = {
 };
 
 /* MUST MATCH BACKEND ENUM EXACTLY */
-export type PaymentMethod = "QPAY" | "BANK" | "CARD" | null;
+export type PaymentMethod = "QPAY" | "BANK" | "LEMON" | null;
 
 interface PaymentSummaryProps {
   cart: CartItem[];
@@ -32,7 +33,8 @@ const PAYMENT_METHODS: {
 }[] = [
   { value: "QPAY", labelKey: "payment.qpay" },
   { value: "BANK", labelKey: "payment.bank" },
-  { value: "CARD", labelKey: "payment.card" },
+  // label still reads "card" but value = LEMON so backend gets LEMON
+  { value: "LEMON", labelKey: "payment.card" },
 ];
 
 export default function PaymentSummary({

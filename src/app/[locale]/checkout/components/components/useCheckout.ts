@@ -233,16 +233,18 @@ export function useCheckout(cart: CartItem[]) {
         // make redirect back to your frontend success page
         const redirectUrl = `${window.location.origin}/${locale}/profile/orders/${returnedOrderId}`;
 
-        // prefer per-app env variant id
+        // Prefer raw string env (NEXT_PUBLIC is required for client)
         const variantFromEnv =
-          Number(process.env.NEXT_PUBLIC_LEMON_VARIANT_ID || 0) || undefined;
+          process.env.NEXT_PUBLIC_LEMON_VARIANT_ID ?? undefined;
 
+        console.log("LEMON flow: variantFromEnv:", variantFromEnv);
         if (!variantFromEnv) {
           toast.error(
             t("payment.lemon_variant_missing") ||
               "LEMON variant id missing. Contact admin."
           );
-          // fallback: still clear cart and go to orders page
+
+          // store lastOrderId then route to order detail as fallback
           setOpenTerms(false);
           localStorage.removeItem(CART_KEY);
           try {
@@ -255,6 +257,12 @@ export function useCheckout(cart: CartItem[]) {
         }
 
         try {
+          console.log("Calling backend /payment/lemon/checkout", {
+            orderId: returnedOrderId,
+            variantId: variantFromEnv,
+            redirectUrl,
+          });
+
           const lemonRes = await axios.post(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/payment/lemon/checkout`,
             {
@@ -265,11 +273,24 @@ export function useCheckout(cart: CartItem[]) {
             { headers: { Authorization: `Bearer ${token}` }, timeout: 15000 }
           );
 
-          const lemonData = lemonRes.data ?? {};
+          console.log("LEMON checkout response:", lemonRes?.data);
+
+          const data = lemonRes.data ?? {};
+          // try multiple possible keys (checkoutUrl, checkout_url, data.data.attributes.url)
           const checkoutUrl =
-            lemonData.checkoutUrl ?? lemonData.checkout_url ?? null;
+            data.checkoutUrl ??
+            data.checkout_url ??
+            (data.data && data.data.attributes && data.data.attributes.url) ??
+            (data.data &&
+              data.data.attributes &&
+              data.data.attributes.checkout_url) ??
+            null;
 
           if (!checkoutUrl) {
+            console.error(
+              "No checkoutUrl found in lemon response",
+              lemonRes.data
+            );
             throw new Error("no checkout url");
           }
 
@@ -282,15 +303,18 @@ export function useCheckout(cart: CartItem[]) {
           window.dispatchEvent(new Event("cart-updated"));
           setOrderId(returnedOrderId);
 
-          // redirect to Lemon checkout (hard redirect)
-          window.location.href = checkoutUrl;
+          // hard redirect to Lemon checkout (use location.assign)
+          window.location.assign(checkoutUrl);
+          // NOTE: return so function ends here (redirect happening)
           return;
         } catch (err: any) {
           console.error("LEMON checkout error:", err?.response?.data || err);
           toast.error(
-            t("err_create_lemon_checkout") || "Failed to start payment"
+            t("err_create_lemon_checkout") ||
+              "Failed to start payment — try again"
           );
-          // fallback: route to order detail so user can retry
+
+          // fallback: route to order detail so user can retry (but keep lastOrderId)
           setOpenTerms(false);
           localStorage.removeItem(CART_KEY);
           try {

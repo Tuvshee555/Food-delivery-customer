@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/PaymentSummary.tsx
 "use client";
 
@@ -48,10 +49,13 @@ export default function PaymentSummary({
   const { locale, t } = useI18n();
   const router = useRouter();
 
-  const productTotal = cart.reduce(
-    (sum, i) => sum + (i.food?.price ?? i.price ?? 0) * i.quantity,
-    0
-  );
+  const productTotal = cart.reduce((sum, i) => {
+    const unitPrice = Number(i.food?.price ?? i.price ?? 0);
+    const qty = Number((i as any).quantity ?? (i as any).qty ?? 1); // fallback to 1
+    return sum + unitPrice * qty;
+  }, 0);
+
+  console.log(productTotal, "total");
 
   const deliveryFee = 0;
   const grandTotal = productTotal + deliveryFee;

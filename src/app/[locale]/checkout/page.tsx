@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -41,6 +40,7 @@ function CheckoutInner() {
   }, []);
 
   // auth guard + cart load
+  // auth guard + cart load
   useEffect(() => {
     if (authLoading) return;
 
@@ -55,7 +55,14 @@ function CheckoutInner() {
     }
 
     loadLocalCart();
-  }, [authLoading, token]);
+  }, [authLoading, token, loadLocalCart, locale, router]);
+
+  // ✅ KEEP PARENT CART UPDATED
+  useEffect(() => {
+    const handler = () => loadLocalCart();
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, [loadLocalCart]);
 
   if (authLoading || loading) {
     return <p className="p-10">{t("loading")}</p>;

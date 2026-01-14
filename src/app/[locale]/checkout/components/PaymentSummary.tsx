@@ -5,27 +5,30 @@
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /* Cart item */
 type CartItem = {
-  quantity: number;
+  quantity?: number;
+  qty?: number;
   price?: number;
   food?: {
     price?: number;
   };
 };
 
+const CART_KEY = "cart";
+
 /* MUST MATCH BACKEND ENUM EXACTLY */
 export type PaymentMethod = "QPAY" | "BANK" | "LEMON" | null;
 
 interface PaymentSummaryProps {
-  cart: CartItem[];
+  cart: CartItem[]; // initial cart (server/prop)
   onSubmit: () => void;
   paymentMethod: PaymentMethod;
   setPaymentMethod: (p: PaymentMethod) => void;
   hideActions?: boolean;
-  isSubmitting?: boolean; // ✅ NEW
+  isSubmitting?: boolean;
 }
 
 const PAYMENT_METHODS: {
@@ -34,7 +37,6 @@ const PAYMENT_METHODS: {
 }[] = [
   { value: "QPAY", labelKey: "payment.qpay" },
   { value: "BANK", labelKey: "payment.bank" },
-  // label still reads "card" but value = LEMON so backend gets LEMON
   { value: "LEMON", labelKey: "payment.card" },
 ];
 
@@ -49,13 +51,37 @@ export default function PaymentSummary({
   const { locale, t } = useI18n();
   const router = useRouter();
 
-  const productTotal = cart.reduce((sum, i) => {
-    const unitPrice = Number(i.food?.price ?? i.price ?? 0);
-    const qty = Number((i as any).quantity ?? (i as any).qty ?? 1); // fallback to 1
-    return sum + unitPrice * qty;
-  }, 0);
+  // ✅ behave like CartStep
+  const [items, setItems] = useState<CartItem[]>(cart ?? []);
 
-  console.log(productTotal, "total");
+  // ✅ sync from prop (first load / SSR)
+  useEffect(() => {
+    setItems(cart ?? []);
+  }, [cart]);
+
+  // ✅ listen for cart changes globally (CartStep dispatches "cart-updated")
+  useEffect(() => {
+    const handler = () => {
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        setItems(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        setItems([]);
+      }
+    };
+
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []);
+
+  const productTotal = useMemo(() => {
+    return items.reduce((sum, i) => {
+      const unitPrice = Number(i.food?.price ?? i.price ?? 0);
+      const qty = Number((i as any).quantity ?? (i as any).qty ?? 1);
+      return sum + unitPrice * qty;
+    }, 0);
+  }, [items]);
 
   const deliveryFee = 0;
   const grandTotal = productTotal + deliveryFee;
@@ -65,7 +91,7 @@ export default function PaymentSummary({
   }, [paymentMethod, setPaymentMethod]);
 
   const handleSubmit = () => {
-    if (isSubmitting) return; // ✅ prevent spam click
+    if (isSubmitting) return;
     onSubmit();
   };
 
@@ -111,7 +137,7 @@ export default function PaymentSummary({
               name="payment"
               checked={paymentMethod === m.value}
               onChange={() => setPaymentMethod(m.value)}
-              disabled={isSubmitting} // ✅ lock while submitting
+              disabled={isSubmitting}
             />
             <span className="text-sm">{t(m.labelKey)}</span>
           </label>

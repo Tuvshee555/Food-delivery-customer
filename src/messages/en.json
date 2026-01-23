@@ -405,6 +405,8 @@
   "upload_failed": "Upload failed",
   "failed_to_post_review": "Failed to post review",
   "review_posted": "Review posted",
-  "server_error": "Server error"
-
+  "server_error": "Server error",
+  "review_only_buyers": "Only customers who purchased can review. Reviews are verified automatically.",
+  "review_available_after_paid": "Reviews are available after your order is paid/delivered.",
+  "review_min_chars": "Please write at least 2 characters."
 }

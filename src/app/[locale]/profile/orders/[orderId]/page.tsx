@@ -14,6 +14,7 @@ import { OrderMeta } from "../components/OrderMeta";
 import { DeliveryInfo } from "../components/DeliveryInfo";
 import { OrderCostSummary } from "../components/OrderCostSummary";
 import { QPayPaymentBlock } from "../components/QPayPaymentBlock";
+import { OrderReviewSection } from "./components/OrderReviewSection";
 
 export default function OrderDetailPage() {
   const { userId, token, loading: authLoading } = useAuth();
@@ -34,13 +35,10 @@ export default function OrderDetailPage() {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${orderId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (!res.ok) throw new Error("fetch_failed");
-
       const data = await res.json();
       setOrder(data);
     } catch {
@@ -73,9 +71,7 @@ export default function OrderDetailPage() {
     let id: ReturnType<typeof setInterval> | null = null;
 
     if (order.status === "WAITING_PAYMENT") {
-      id = setInterval(() => {
-        fetchOrder();
-      }, 300000);
+      id = setInterval(fetchOrder, 300000);
     }
 
     return () => {
@@ -106,8 +102,11 @@ export default function OrderDetailPage() {
         <DeliveryInfo order={order} />
         <QPayPaymentBlock order={order} onRefresh={fetchOrder} />
 
-        {/* ✅ Review button + modal is inside ItemsList */}
-        <ItemsList items={order.items} token={token} />
+        {/* items */}
+        <ItemsList items={order.items} />
+
+        {/* ✅ REVIEWS SECTION (separate file) */}
+        <OrderReviewSection order={order} token={token} />
 
         <OrderCostSummary order={order} />
       </div>

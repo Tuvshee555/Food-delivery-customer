@@ -394,6 +394,17 @@
   "posting": "Posting...",
   "no_reviews": "No reviews yet.",
   "verified_purchase": "Verified purchase",
-  "verified_purchase_info": "Only customers who purchased can review. Reviews are verified automatically."
+  "verified_purchase_info": "Only customers who purchased can review. Reviews are verified automatically.",
+  "ordered_foods": "Ordered foods",
+  "review_after_purchase": "You can leave a review from your Order page after purchase.",
+  "sort_high": "Highest rating",
+  "sort_low": "Lowest rating",
+  "only_photos": "Only with photos",
+  "add_photos": "Add photos",
+  "max_photos_6": "Max 6 photos",
+  "upload_failed": "Upload failed",
+  "failed_to_post_review": "Failed to post review",
+  "review_posted": "Review posted",
+  "server_error": "Server error"
 
 }

@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { OrderStatusBadge } from "./OrderStatusBadge";
-import { OrderDetails } from "../[orderId]/types";
+import { OrderDetails } from "../[orderId]/components/types";
 
 export function OrderMeta({ order }: { order: OrderDetails }) {
   const { t } = useI18n();

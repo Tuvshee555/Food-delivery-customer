@@ -1,6 +1,6 @@
 "use client";
 
-import { OrderDetails } from "../[orderId]/types";
+import { OrderDetails } from "../[orderId]/components/types";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 export function DeliveryInfo({ order }: { order: OrderDetails }) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
-import { OrderDetails } from "../[orderId]/types";
+import { OrderDetails } from "../[orderId]/components/types";
 
 export function OrderCostSummary({ order }: { order: OrderDetails }) {
   const { t } = useI18n();

@@ -13,6 +13,7 @@ export type OrderItem = {
   id: string;
   quantity: number;
   food: {
+    id: string;
     foodName: string;
     price: number;
     image: string;

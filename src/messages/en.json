@@ -383,6 +383,17 @@
   "payment_waiting_subtitle": "Your order will be confirmed once payment is completed.",
   "order_date": "Order date",
   "delivery_address": "Delivery address",
-  "delivery_information": "Delivery information"
+  "delivery_information": "Delivery information",
+  "reviews": "Reviews",
+  "customer_reviews": "Customer Reviews",
+  "write_review": "Write a review",
+  "login_to_review": "Please login to leave a review.",
+  "rating": "Rating",
+  "review_placeholder": "Share your experience...",
+  "post_review": "Post review",
+  "posting": "Posting...",
+  "no_reviews": "No reviews yet.",
+  "verified_purchase": "Verified purchase",
+  "verified_purchase_info": "Only customers who purchased can review. Reviews are verified automatically."
 
 }

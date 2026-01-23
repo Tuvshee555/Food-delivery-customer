@@ -47,9 +47,7 @@ export default function DesktopNav({
             className="flex items-center gap-2"
           >
             <img src="/order1.png" className="w-8 h-8" alt="logo" />
-            <span className="text-foreground text-lg font-semibold">
-              NomNom
-            </span>
+            <span className="text-foreground text-lg font-semibold">NEXA</span>
           </Link>
 
           <nav className="flex items-center gap-8">

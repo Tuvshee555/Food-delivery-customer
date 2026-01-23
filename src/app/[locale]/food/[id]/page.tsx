@@ -7,6 +7,7 @@ import { FoodType } from "@/type/type";
 import { FoodMedia } from "@/components/food/FoodMedia";
 import { FoodInfo } from "@/components/foodInfo/FoodInfo";
 import { SimilarFoods } from "@/components/food/SimilarFoods";
+import { FoodReviews } from "@/components/review/FoodReviews";
 
 async function getFood(id: string): Promise<FoodType | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food/${id}`, {
@@ -37,7 +38,9 @@ export default function FoodDetailPage({
       if (!data) notFound();
       setFood(data);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`, {
+        cache: "no-store",
+      });
       const all = await res.json();
       if (Array.isArray(all)) setAllFoods(all);
     })();
@@ -49,9 +52,15 @@ export default function FoodDetailPage({
     <main className="min-h-screen w-full bg-background text-foreground pt-0 lg:pt-[90px] pb-20">
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-10 items-stretch px-0 lg:px-10">
         <FoodMedia food={food} />
+
         <div className="px-4 sm:px-6 lg:px-0">
           <FoodInfo food={food} />
         </div>
+      </section>
+
+      {/* ✅ Reviews (Vitals-style) */}
+      <section className="px-4 sm:px-6 lg:px-10 mt-10">
+        <FoodReviews foodId={food.id} />
       </section>
 
       <SimilarFoods food={food} allFoods={allFoods} />

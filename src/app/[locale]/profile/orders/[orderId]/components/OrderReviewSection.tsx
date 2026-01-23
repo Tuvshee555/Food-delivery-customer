@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import axios from "axios";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { OrderDetails } from "./types";
 
@@ -14,8 +15,11 @@ type Props = {
 type Draft = {
   rating: number;
   comment: string;
-  images: string[];
   posting: boolean;
+
+  imageFiles: File[];
+  imagePreviews: string[];
+  uploadedUrls: string[];
 };
 
 const clampRating = (n: number) => Math.max(1, Math.min(5, Math.floor(n)));
@@ -24,17 +28,31 @@ const safeToken = (token: string | null) => {
   if (!token) return null;
   const t = token.trim();
   if (!t || t === "null" || t === "undefined") return null;
-  // optional sanity check: JWT usually has 2 dots
   if (t.split(".").length < 3) return null;
   return t;
 };
 
+const MAX_IMAGES = 6;
+
+async function uploadMedia(files: File[]): Promise<string[]> {
+  if (!files.length) return [];
+
+  const formData = new FormData();
+  files.forEach((f) => formData.append("files", f));
+
+  const res = await axios.post(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/upload/media`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+
+  return res.data.urls;
+}
+
 export const OrderReviewSection = ({ order, token }: Props) => {
   const { t } = useI18n();
-
   const usableToken = useMemo(() => safeToken(token), [token]);
 
-  // Only show after paid/delivered/etc
   const canReview = useMemo(() => {
     return ["PAID", "DELIVERING", "DELIVERED"].includes(order.status);
   }, [order.status]);
@@ -45,8 +63,10 @@ export const OrderReviewSection = ({ order, token }: Props) => {
       map[item.food.id] = {
         rating: 5,
         comment: "",
-        images: [],
         posting: false,
+        imageFiles: [],
+        imagePreviews: [],
+        uploadedUrls: [],
       };
     }
     return map;
@@ -54,24 +74,24 @@ export const OrderReviewSection = ({ order, token }: Props) => {
 
   const [drafts, setDrafts] = useState<Record<string, Draft>>(initialDrafts);
 
-  // keep drafts in sync if order.items changes
+  // keep drafts stable if items change
   useEffect(() => {
     setDrafts((prev) => {
-      const next: Record<string, Draft> = { ...prev };
+      const next = { ...prev };
 
-      // add missing
       for (const item of order.items) {
         if (!next[item.food.id]) {
           next[item.food.id] = {
             rating: 5,
             comment: "",
-            images: [],
             posting: false,
+            imageFiles: [],
+            imagePreviews: [],
+            uploadedUrls: [],
           };
         }
       }
 
-      // remove old drafts that no longer exist in order
       const ids = new Set(order.items.map((x) => x.food.id));
       for (const k of Object.keys(next)) {
         if (!ids.has(k)) delete next[k];
@@ -81,20 +101,56 @@ export const OrderReviewSection = ({ order, token }: Props) => {
     });
   }, [order.items]);
 
-  const uploadImage = async (file: File) => {
-    const form = new FormData();
-    form.append("file", file);
+  const addImages = (foodId: string, files: File[]) => {
+    setDrafts((prev) => {
+      const cur = prev[foodId];
+      if (!cur) return prev;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/upload`, {
-      method: "POST",
-      body: form,
+      const spaceLeft = MAX_IMAGES - cur.imageFiles.length;
+      const picked = files.slice(0, Math.max(0, spaceLeft));
+
+      if (picked.length <= 0) {
+        toast.error(t("max_photos_6") ?? "Max 6 photos");
+        return prev;
+      }
+
+      const previews = picked.map((f) => URL.createObjectURL(f));
+
+      return {
+        ...prev,
+        [foodId]: {
+          ...cur,
+          imageFiles: [...cur.imageFiles, ...picked].slice(0, MAX_IMAGES),
+          imagePreviews: [...cur.imagePreviews, ...previews].slice(
+            0,
+            MAX_IMAGES,
+          ),
+        },
+      };
     });
+  };
 
-    const data = await res.json().catch(() => ({}));
-    const url = data?.url || data?.secure_url || data?.image;
+  const removeImage = (foodId: string, index: number) => {
+    setDrafts((prev) => {
+      const cur = prev[foodId];
+      if (!cur) return prev;
 
-    if (!res.ok || !url) throw new Error("upload_failed");
-    return String(url);
+      const nextFiles = cur.imageFiles.filter((_, i) => i !== index);
+      const nextPreviews = cur.imagePreviews.filter((_, i) => i !== index);
+
+      // also remove uploaded url if exists at same position
+      const nextUrls = cur.uploadedUrls.filter((_, i) => i !== index);
+
+      return {
+        ...prev,
+        [foodId]: {
+          ...cur,
+          imageFiles: nextFiles,
+          imagePreviews: nextPreviews,
+          uploadedUrls: nextUrls,
+        },
+      };
+    });
   };
 
   const submit = async (foodId: string) => {
@@ -104,10 +160,7 @@ export const OrderReviewSection = ({ order, token }: Props) => {
       toast.error(t("login_to_review") ?? "Please login to leave a review.");
       return;
     }
-
     if (!d) return;
-
-    // stop double submit
     if (d.posting) return;
 
     const trimmed = d.comment.trim();
@@ -124,18 +177,30 @@ export const OrderReviewSection = ({ order, token }: Props) => {
     }));
 
     try {
-      const headers: HeadersInit = { "Content-Type": "application/json" };
-      headers.Authorization = `Bearer ${usableToken}`;
+      // ✅ Upload images if selected
+      let urls = d.uploadedUrls;
+
+      if (d.imageFiles.length > 0 && urls.length !== d.imageFiles.length) {
+        urls = await uploadMedia(d.imageFiles);
+
+        setDrafts((prev) => ({
+          ...prev,
+          [foodId]: { ...prev[foodId], uploadedUrls: urls },
+        }));
+      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/review/food/${foodId}`,
         {
           method: "POST",
-          headers,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${usableToken}`,
+          },
           body: JSON.stringify({
             rating: clampRating(d.rating),
             comment: trimmed,
-            images: d.images,
+            images: urls,
           }),
         },
       );
@@ -152,14 +217,16 @@ export const OrderReviewSection = ({ order, token }: Props) => {
 
       toast.success(t("review_posted") ?? "Review posted");
 
-      // reset form for this item
+      // reset draft
       setDrafts((prev) => ({
         ...prev,
         [foodId]: {
           rating: 5,
           comment: "",
-          images: [],
           posting: false,
+          imageFiles: [],
+          imagePreviews: [],
+          uploadedUrls: [],
         },
       }));
     } catch (err) {
@@ -204,12 +271,9 @@ export const OrderReviewSection = ({ order, token }: Props) => {
       <div className="space-y-6">
         {order.items.map((item) => {
           const foodId = item.food.id;
-          const d = drafts[foodId] ?? {
-            rating: 5,
-            comment: "",
-            images: [],
-            posting: false,
-          };
+          const d = drafts[foodId];
+
+          if (!d) return null;
 
           return (
             <div
@@ -260,7 +324,7 @@ export const OrderReviewSection = ({ order, token }: Props) => {
                 maxLength={800}
               />
 
-              {/* upload */}
+              {/* ✅ Multi upload + preview grid */}
               <div className="mt-3">
                 <div className="text-xs font-medium">
                   {t("add_photos") ?? "Add photos"}
@@ -269,59 +333,27 @@ export const OrderReviewSection = ({ order, token }: Props) => {
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   className="mt-2 text-sm"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-
-                    // reset input so the same file can be selected again
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
                     e.currentTarget.value = "";
-
-                    // limit 6 images
-                    if (d.images.length >= 6) {
-                      toast.error(t("max_photos_6") ?? "Max 6 photos");
-                      return;
-                    }
-
-                    try {
-                      const url = await uploadImage(file);
-
-                      setDrafts((prev) => {
-                        const current = prev[foodId];
-                        const nextImages = [...current.images, url].slice(0, 6);
-                        return {
-                          ...prev,
-                          [foodId]: { ...current, images: nextImages },
-                        };
-                      });
-                    } catch (err) {
-                      console.error(err);
-                      toast.error(t("upload_failed") ?? "Upload failed");
-                    }
+                    if (!files.length) return;
+                    addImages(foodId, files);
                   }}
                 />
 
-                {!!d.images.length && (
+                {!!d.imagePreviews.length && (
                   <div className="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
-                    {d.images.map((img) => (
-                      <div key={img} className="relative">
+                    {d.imagePreviews.map((src, idx) => (
+                      <div key={src + idx} className="relative">
                         <img
-                          src={img}
-                          alt="review"
+                          src={src}
+                          alt="preview"
                           className="w-full aspect-square object-cover rounded-md border border-border"
                         />
                         <button
-                          onClick={() =>
-                            setDrafts((prev) => ({
-                              ...prev,
-                              [foodId]: {
-                                ...prev[foodId],
-                                images: prev[foodId].images.filter(
-                                  (x) => x !== img,
-                                ),
-                              },
-                            }))
-                          }
+                          onClick={() => removeImage(foodId, idx)}
                           className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-foreground text-background text-xs"
                         >
                           ✕
@@ -332,7 +364,8 @@ export const OrderReviewSection = ({ order, token }: Props) => {
                 )}
 
                 <div className="mt-2 text-[11px] text-muted-foreground">
-                  {t("max_photos_6") ?? "Max 6 photos"}
+                  {(t("max_photos_6") ?? "Max 6 photos") +
+                    ` • ${d.imageFiles.length}/${MAX_IMAGES}`}
                 </div>
               </div>
 

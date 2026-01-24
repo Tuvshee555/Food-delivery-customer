@@ -12,15 +12,18 @@ type Filters = {
 };
 
 const PER_PAGE = 8;
+const BESTSELLER_THRESHOLD = 20;
 
-function hasFlag(item: any, keys: string[]) {
-  return keys.some((k) => {
-    const v = item?.[k];
-    if (typeof v === "boolean") return v;
-    if (typeof v === "number") return v > 0;
-    if (typeof v === "string") return v === "true" || v === "1";
-    return false;
-  });
+function isDiscounted(item: any) {
+  return Number(item?.discount ?? 0) > 0;
+}
+
+function isFeatured(item: any) {
+  return Boolean(item?.isFeatured);
+}
+
+function isBestseller(item: any) {
+  return Number(item?.salesCount ?? 0) >= BESTSELLER_THRESHOLD;
 }
 
 export function useCategoryLogic(id: string) {
@@ -30,8 +33,7 @@ export function useCategoryLogic(id: string) {
   const [categoryName, setCategoryName] = useState(t("category"));
   const [page, setPage] = useState(1);
   const [sortType, setSortType] = useState<SortType>("newest");
-
-  const [isLoading, setIsLoading] = useState(true); // ✅ ADD
+  const [isLoading, setIsLoading] = useState(true);
 
   const [filters, setFilters] = useState<Filters>({
     discount: false,
@@ -44,7 +46,7 @@ export function useCategoryLogic(id: string) {
 
   useEffect(() => {
     const controller = new AbortController();
-    setIsLoading(true); // ✅ START LOADING
+    setIsLoading(true);
 
     async function fetchAll() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`, {
@@ -100,7 +102,7 @@ export function useCategoryLogic(id: string) {
 
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/category/${id}/foods-tree`,
-          { signal: controller.signal }
+          { signal: controller.signal },
         );
         const json = await res.json();
 
@@ -110,7 +112,7 @@ export function useCategoryLogic(id: string) {
         setFoods([]);
         setCategoryName(t("category"));
       } finally {
-        setIsLoading(false); // ✅ END LOADING
+        setIsLoading(false);
       }
     }
 
@@ -122,18 +124,17 @@ export function useCategoryLogic(id: string) {
     setPage(1);
   }, [id, sortType, filters]);
 
+  // ✅ FILTERING
   const filteredFoods = useMemo(() => {
     return foods.filter((f) => {
-      if (filters.discount && !hasFlag(f, ["discount", "isDiscount"]))
-        return false;
-      if (filters.featured && !hasFlag(f, ["featured", "isFeatured"]))
-        return false;
-      if (filters.bestseller && !hasFlag(f, ["bestseller", "isBestseller"]))
-        return false;
+      if (filters.discount && !isDiscounted(f)) return false;
+      if (filters.featured && !isFeatured(f)) return false;
+      if (filters.bestseller && !isBestseller(f)) return false;
       return true;
     });
   }, [foods, filters]);
 
+  // ✅ SORTING
   const sortedFoods = useMemo(() => {
     return [...filteredFoods].sort((a: any, b: any) => {
       if (sortType === "low") return (a.price ?? 0) - (b.price ?? 0);
@@ -159,6 +160,6 @@ export function useCategoryLogic(id: string) {
     setPage,
     setSortType,
     toggleFilter,
-    isLoading, // ✅ EXPOSE
+    isLoading,
   };
 }

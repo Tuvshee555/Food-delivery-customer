@@ -33,7 +33,7 @@ const addToCartLocal = (item: LocalCartItem): boolean => {
     const cart: LocalCartItem[] = JSON.parse(raw);
 
     const index = cart.findIndex(
-      (c) => c.foodId === item.foodId && c.selectedSize === item.selectedSize
+      (c) => c.foodId === item.foodId && c.selectedSize === item.selectedSize,
     );
 
     if (index >= 0) {
@@ -49,7 +49,34 @@ const addToCartLocal = (item: LocalCartItem): boolean => {
     return false;
   }
 };
+
 const BESTSELLER_THRESHOLD = 20;
+
+const formatCount = (n: number) => {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+};
+
+const Stars = ({ value }: { value: number }) => {
+  const full = Math.max(0, Math.min(5, Math.round(value)));
+  return (
+    <div className="flex items-center gap-1 leading-none">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span
+          key={i}
+          className={
+            i < full
+              ? "text-yellow-500 text-sm"
+              : "text-muted-foreground text-sm"
+          }
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+};
 
 export const FoodInfo = ({ food }: { food: any }) => {
   const router = useRouter();
@@ -59,6 +86,9 @@ export const FoodInfo = ({ food }: { food: any }) => {
   const salesCount = Number(food.salesCount ?? 0);
   const discount = Number(food.discount ?? 0);
   const hasDiscount = discount > 0;
+
+  const avgRating = Number(food.avgRating ?? 0);
+  const reviewCount = Number(food.reviewCount ?? 0);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -111,6 +141,34 @@ export const FoodInfo = ({ food }: { food: any }) => {
         price={food.price}
         oldPrice={food.oldPrice}
       />
+
+      {/* ✅ Rating + Bought count (Vitals style) */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        {reviewCount > 0 ? (
+          <div className="flex items-center gap-2">
+            <Stars value={avgRating} />
+            <span className="font-medium text-foreground">
+              {avgRating.toFixed(1)}
+            </span>
+            <span>
+              ({reviewCount} {t("reviews") ?? "reviews"})
+            </span>
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground">
+            {t("no_reviews") ?? "No reviews yet"}
+          </div>
+        )}
+
+        <span className="hidden sm:inline">•</span>
+
+        {salesCount > 0 && (
+          <span>
+            {formatCount(salesCount)} {t("times_bought") ?? "bought"}
+          </span>
+        )}
+      </div>
+
       <div className="flex flex-wrap gap-2">
         {isFeatured && (
           <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm bg-red-600 text-white">
@@ -161,7 +219,6 @@ export const FoodInfo = ({ food }: { food: any }) => {
         "
       />
 
-      {/* <div className={food.sizes?.length ? "" : "lg:mt-[98px]"}> */}
       <div className="mt-auto">
         <FoodActions
           onAddToCart={handleAddToCart}

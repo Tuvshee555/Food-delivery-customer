@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { use, useMemo, useState } from "react";
@@ -11,6 +10,8 @@ import { CategorySortDrawer } from "@/components/category/components/CategorySor
 import { FoodCardSkeleton } from "@/components/skeletons/FoodCardSkeleton";
 
 const PAGE_SIZE = 48;
+
+type SortType = "newest" | "oldest" | "low" | "high";
 
 export default function CategoryPage({
   params,
@@ -29,11 +30,8 @@ export default function CategoryPage({
   } = useCategoryLogic(id);
 
   const [page, setPage] = useState(1);
-  const [mobileSort, setMobileSort] = useState<
-    "newest" | "oldest" | "low" | "high" | "discounted"
-  >("newest");
 
-  const totalPages = Math.ceil(filteredFoods.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredFoods.length / PAGE_SIZE));
 
   const pagedFoods = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -41,39 +39,42 @@ export default function CategoryPage({
   }, [filteredFoods, page]);
 
   return (
-    <main className="min-h-screen w-full bg-background text-foreground px-4 sm:px-6 md:px-10 pb-6">
+    <main className="min-h-screen w-full bg-background px-4 sm:px-6 md:px-10 pb-6">
       {/* MOBILE ACTIONS */}
-      <div className="md:hidden sticky top-0 z-50 isolate bg-background border-b border-border">
-        <div className="flex gap-3 px-4 py-3 z-[99999]">
+      <div className="md:hidden sticky top-0 z-50 bg-background border-b">
+        <div className="flex gap-3 px-4 py-3">
           <CategoryFilterSheet
             filters={filters}
             onFilterToggle={toggleFilter}
           />
+
           <CategorySortDrawer
-            value={mobileSort}
+            value="newest"
             onChange={(v) => {
-              setMobileSort(v);
-              setSortType(v as any);
+              // "discounted" is a filter, not a sort
+              if (v !== "discounted") {
+                setSortType(v as SortType);
+              }
               setPage(1);
             }}
           />
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8 mt-0 md:mt-[40px]">
+      <div className="flex flex-col md:flex-row gap-8 mt-6">
         {/* SIDEBAR */}
-        <div className="hidden md:block w-[260px] shrink-0">
+        <aside className="hidden md:block w-[260px] shrink-0">
           <CategorySidebar filters={filters} onFilterToggle={toggleFilter} />
-        </div>
+        </aside>
 
         {/* CONTENT */}
-        <div className="flex-1">
+        <section className="flex-1">
           <div className="hidden md:block">
             <CategoryHeader
               title={categoryName}
               count={filteredFoods.length}
               onSortChange={(v) => {
-                setSortType(v as any);
+                setSortType(v as SortType);
                 setPage(1);
               }}
             />
@@ -91,73 +92,44 @@ export default function CategoryPage({
           </div>
 
           {/* PAGINATION */}
-          {!isLoading && filteredFoods.length > 0 && (
-            <div className="flex justify-center items-center gap-2 mt-12 text-sm">
+          {!isLoading && totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-12 text-sm">
               <button
-                className="px-3 py-2 rounded border border-border disabled:opacity-40"
                 onClick={() => setPage(1)}
                 disabled={page === 1}
+                className="px-3 py-2 border rounded disabled:opacity-40"
               >
                 «
               </button>
 
               <button
-                className="px-3 py-2 rounded border border-border disabled:opacity-40"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                className="px-3 py-2 border rounded disabled:opacity-40"
               >
                 ‹
               </button>
 
-              {Array.from({ length: totalPages }).map((_, i) => {
-                const p = i + 1;
-                const isActive = p === page;
-
-                // limit visible buttons
-                if (p !== 1 && p !== totalPages && Math.abs(p - page) > 1) {
-                  if (p === 2 || p === totalPages - 1) {
-                    return (
-                      <span key={p} className="px-2 text-muted-foreground">
-                        …
-                      </span>
-                    );
-                  }
-                  return null;
-                }
-
-                return (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`px-3 py-2 rounded border ${
-                      isActive
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "border-border text-muted-foreground"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                );
-              })}
+              <span className="px-3 py-2">{page}</span>
 
               <button
-                className="px-3 py-2 rounded border border-border disabled:opacity-40"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                className="px-3 py-2 border rounded disabled:opacity-40"
               >
                 ›
               </button>
 
               <button
-                className="px-3 py-2 rounded border border-border disabled:opacity-40"
                 onClick={() => setPage(totalPages)}
                 disabled={page === totalPages}
+                className="px-3 py-2 border rounded disabled:opacity-40"
               >
                 »
               </button>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </main>
   );

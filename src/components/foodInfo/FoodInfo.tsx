@@ -84,6 +84,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
 
   const isFeatured = Boolean(food.isFeatured);
   const salesCount = Number(food.salesCount ?? 0);
+  console.log(salesCount);
   const discount = Number(food.discount ?? 0);
   const hasDiscount = discount > 0;
 

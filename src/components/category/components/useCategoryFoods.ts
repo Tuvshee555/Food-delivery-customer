@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { FoodType } from "@/type/type";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
@@ -12,19 +13,18 @@ type Filters = {
 };
 
 const PER_PAGE = 8;
-const BESTSELLER_THRESHOLD = 20;
 
-function isDiscounted(item: any) {
-  return Number(item?.discount ?? 0) > 0;
-}
+// ⚠️ With derived sales, 20 may be too high.
+// You can tune this later.
+const BESTSELLER_THRESHOLD = 5;
 
-function isFeatured(item: any) {
-  return Boolean(item?.isFeatured);
-}
+const isDiscounted = (item: FoodType) => Number(item.discount ?? 0) > 0;
 
-function isBestseller(item: any) {
-  return Number(item?.salesCount ?? 0) >= BESTSELLER_THRESHOLD;
-}
+const isFeatured = (item: FoodType) => Boolean(item.isFeatured);
+
+// salesCount now comes from backend (derived)
+const isBestseller = (item: FoodType) =>
+  Number(item.salesCount ?? 0) >= BESTSELLER_THRESHOLD;
 
 export function useCategoryLogic(id: string) {
   const { t } = useI18n();
@@ -44,62 +44,71 @@ export function useCategoryLogic(id: string) {
   const toggleFilter = (k: keyof Filters) =>
     setFilters((p) => ({ ...p, [k]: !p[k] }));
 
+  /* -------------------------------------------------- */
+  /* 🔒 ROUTE-DRIVEN FILTER PRESETS                      */
+  /* -------------------------------------------------- */
+  useEffect(() => {
+    if (id === "bestseller") {
+      setFilters({
+        discount: false,
+        featured: false,
+        bestseller: true,
+      });
+      setCategoryName(t("footer_bestseller"));
+      return;
+    }
+
+    if (id === "featured") {
+      setFilters({
+        discount: false,
+        featured: true,
+        bestseller: false,
+      });
+      setCategoryName(t("footer_featured"));
+      return;
+    }
+
+    if (id === "discounted") {
+      setFilters({
+        discount: true,
+        featured: false,
+        bestseller: false,
+      });
+      setCategoryName(t("footer_discounted"));
+      return;
+    }
+
+    if (id === "all") {
+      setFilters({
+        discount: false,
+        featured: false,
+        bestseller: false,
+      });
+      setCategoryName(t("all_products"));
+    }
+  }, [id, t]);
+
+  /* -------------------------------------------------- */
+  /* 📡 FETCH DATA                                      */
+  /* -------------------------------------------------- */
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
 
-    async function fetchAll() {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`, {
-        signal: controller.signal,
-      });
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
-    }
-
     async function run() {
       try {
+        // virtual categories
         if (["all", "featured", "discounted", "bestseller"].includes(id)) {
-          const map = {
-            all: () => {
-              setFilters({
-                discount: false,
-                featured: false,
-                bestseller: false,
-              });
-              setCategoryName(t("all_products"));
-            },
-            featured: () => {
-              setFilters({
-                discount: false,
-                featured: true,
-                bestseller: false,
-              });
-              setCategoryName(t("footer_featured"));
-            },
-            discounted: () => {
-              setFilters({
-                discount: true,
-                featured: false,
-                bestseller: false,
-              });
-              setCategoryName(t("footer_discounted"));
-            },
-            bestseller: () => {
-              setFilters({
-                discount: false,
-                featured: false,
-                bestseller: true,
-              });
-              setCategoryName(t("footer_bestseller"));
-            },
-          };
-
-          map[id as keyof typeof map]?.();
-          const allFoods = await fetchAll();
-          setFoods(allFoods);
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/food`,
+            { signal: controller.signal },
+          );
+          const data = await res.json();
+          setFoods(Array.isArray(data) ? data : []);
           return;
         }
 
+        // real category
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/category/${id}/foods-tree`,
           { signal: controller.signal },
@@ -110,7 +119,6 @@ export function useCategoryLogic(id: string) {
         setCategoryName(json?.category?.categoryName ?? t("category"));
       } catch {
         setFoods([]);
-        setCategoryName(t("category"));
       } finally {
         setIsLoading(false);
       }
@@ -120,11 +128,16 @@ export function useCategoryLogic(id: string) {
     return () => controller.abort();
   }, [id, t]);
 
+  /* -------------------------------------------------- */
+  /* 🔄 RESET PAGE ON STATE CHANGE                      */
+  /* -------------------------------------------------- */
   useEffect(() => {
     setPage(1);
-  }, [id, sortType, filters]);
+  }, [filters, sortType, id]);
 
-  // ✅ FILTERING
+  /* -------------------------------------------------- */
+  /* ✅ FILTERING                                      */
+  /* -------------------------------------------------- */
   const filteredFoods = useMemo(() => {
     return foods.filter((f) => {
       if (filters.discount && !isDiscounted(f)) return false;
@@ -134,19 +147,22 @@ export function useCategoryLogic(id: string) {
     });
   }, [foods, filters]);
 
-  // ✅ SORTING
+  /* -------------------------------------------------- */
+  /* 🔃 SORTING                                       */
+  /* -------------------------------------------------- */
   const sortedFoods = useMemo(() => {
-    return [...filteredFoods].sort((a: any, b: any) => {
-      if (sortType === "low") return (a.price ?? 0) - (b.price ?? 0);
-      if (sortType === "high") return (b.price ?? 0) - (a.price ?? 0);
+    return [...filteredFoods].sort((a, b) => {
+      if (sortType === "low") return a.price - b.price;
+      if (sortType === "high") return b.price - a.price;
 
-      const da = new Date(a.createdAt || 0).getTime();
-      const db = new Date(b.createdAt || 0).getTime();
+      const da = new Date(a.createdAt).getTime();
+      const db = new Date(b.createdAt).getTime();
       return sortType === "oldest" ? da - db : db - da;
     });
   }, [filteredFoods, sortType]);
 
   const totalPages = Math.max(1, Math.ceil(sortedFoods.length / PER_PAGE));
+
   const pagedFoods = sortedFoods.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return {

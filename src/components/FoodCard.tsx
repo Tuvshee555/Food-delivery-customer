@@ -1,5 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -8,54 +8,70 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import type { FoodCardPropsType } from "@/type/type";
 
+// ⚠️ Must match useCategoryLogic
+const BESTSELLER_THRESHOLD = 5;
+
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   const { locale, t } = useI18n();
   const [hoverIndex, setHoverIndex] = useState(0);
 
-  const BESTSELLER_THRESHOLD = 20;
+  const price = Number(food.price ?? NaN);
+  const oldPrice = Number(food.oldPrice ?? NaN);
+  const discount = Number(food.discount ?? NaN);
+  const isFeatured = Boolean(food.isFeatured);
+  const salesCount = Number(food.salesCount ?? 0);
 
-  const price = Number((food as any)?.price ?? NaN);
-  const oldPrice = Number((food as any)?.oldPrice ?? NaN);
-  const discount = Number((food as any)?.discount ?? NaN);
-  const isFeatured = Boolean((food as any)?.isFeatured);
-  const salesCount = Number((food as any)?.salesCount ?? 0);
   const isDiscountFake = Boolean((food as any)?.isDiscountFake);
 
   const hasDiscount = !Number.isNaN(discount) && discount > 0;
-  const showOldPrice = !Number.isNaN(oldPrice) && oldPrice > price;
+  const showOldPrice =
+    !Number.isNaN(oldPrice) && !Number.isNaN(price) && oldPrice > price;
+
   const savings =
     showOldPrice && !Number.isNaN(price)
       ? Number((oldPrice - price).toFixed(2))
       : undefined;
 
+  /* -------------------------------------------------- */
+  /* 🖼️ IMAGE HANDLING                                  */
+  /* -------------------------------------------------- */
   const displayImages = useMemo(() => {
     const imgs: string[] = [];
-    const push = (m?: string | File) => {
-      if (!m) return;
-      imgs.push(typeof m === "string" ? m : URL.createObjectURL(m));
+
+    const push = (img?: string | File) => {
+      if (!img) return;
+      imgs.push(typeof img === "string" ? img : URL.createObjectURL(img));
     };
+
     push(food.image);
+
     if (Array.isArray((food as any)?.extraImages)) {
       (food as any).extraImages.forEach((i: any) => push(i));
     }
+
     return imgs.slice(0, 3);
   }, [food.image, JSON.stringify((food as any)?.extraImages ?? [])]);
 
   useEffect(() => {
     return () => {
-      displayImages.forEach((u) => {
-        if (u.startsWith("blob:")) URL.revokeObjectURL(u);
+      displayImages.forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
       });
     };
   }, [displayImages]);
 
+  /* -------------------------------------------------- */
+  /* 🖱️ HOVER IMAGE LOGIC                               */
+  /* -------------------------------------------------- */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (displayImages.length <= 1) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const i = Math.floor(
-      ((e.clientX - r.left) / r.width) * displayImages.length
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const index = Math.floor(
+      ((e.clientX - rect.left) / rect.width) * displayImages.length,
     );
-    setHoverIndex(Math.min(displayImages.length - 1, Math.max(0, i)));
+
+    setHoverIndex(Math.min(displayImages.length - 1, Math.max(0, index)));
   };
 
   const fmt = (v: number) => (Number.isNaN(v) ? "-" : v.toLocaleString());
@@ -69,12 +85,10 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
     >
       <div
         className="w-full cursor-pointer transition-transform duration-200"
-        onMouseLeave={() => {
-          setHoverIndex(0);
-        }}
+        onMouseLeave={() => setHoverIndex(0)}
         onMouseMove={handleMouseMove}
       >
-        {/* MEDIA (isolated relative box) */}
+        {/* MEDIA */}
         <div className="relative w-full aspect-[4/3] rounded-[10px] overflow-hidden bg-muted">
           <AnimatePresence mode="wait">
             <motion.img
@@ -117,8 +131,8 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
             )}
           </div>
 
-          {/* SOLD OUT (only covers image area) */}
-          {food.stock === 0 && (
+          {/* SOLD OUT */}
+          {(food as any)?.stock === 0 && (
             <div className="absolute inset-0 z-30 bg-black/60 flex items-center justify-center text-white font-semibold rounded-[10px]">
               {t("sold_out")}
             </div>

@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type FoodType = {
+  oldPrice: number;
+  discount: number;
+  isFeatured: any;
   foodId: string;
   salesCount: number;
   createdAt: number;
@@ -41,7 +45,7 @@ export type AddFoodOrderProps = {
 export type ValidationFunction = (
   value: string,
   nextStep: () => void,
-  setError: (error: string) => void
+  setError: (error: string) => void,
 ) => void;
 
 // ✅ Sign-up step type

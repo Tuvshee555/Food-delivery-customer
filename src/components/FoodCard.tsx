@@ -84,6 +84,7 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
       className="block w-full focus:outline-none"
     >
       <div
+        id={`food-${food.id}`}
         className="w-full cursor-pointer transition-transform duration-200"
         onMouseLeave={() => setHoverIndex(0)}
         onMouseMove={handleMouseMove}

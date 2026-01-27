@@ -45,7 +45,7 @@ export default function BankTransferPage() {
       try {
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${orderId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         if (res.data?.paymentMethod !== "BANK") {
@@ -88,8 +88,8 @@ export default function BankTransferPage() {
 
   // --- Bank details (replace with env or DB if you want dynamic) ---
   const BANK_NAME = "Хаан банк";
-  const ACCOUNT_HOLDER = "Урангоо IBAN данс";
-  const ACCOUNT_NUMBER = "670005005400052141";
+  const ACCOUNT_HOLDER = "Түвшинсайхан IBAN данс";
+  const ACCOUNT_NUMBER = "230005005653699009";
   // -------------------------------------------------------------------
 
   return (

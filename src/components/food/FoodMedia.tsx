@@ -24,7 +24,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
 
     if (Array.isArray(food.extraImages)) {
       food.extraImages.forEach((img) =>
-        list.push({ type: "image", src: getMediaUrl(img) })
+        list.push({ type: "image", src: getMediaUrl(img) }),
       );
     }
 
@@ -80,7 +80,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
   /* unified drag logic (desktop + mobile) */
   const onDragEnd = (
     _: any,
-    info: { offset: { x: number }; velocity: { x: number } }
+    info: { offset: { x: number }; velocity: { x: number } },
   ) => {
     if (!slideWidth) return;
 
@@ -249,7 +249,7 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
         </motion.div>
       </div>
 
-      {/* DOTS */}
+      {/* DOTS
       {mediaList.length > 1 && (
         <div className="mt-3 flex justify-center gap-1.5 lg:hidden">
           {mediaList.map((_, i) => (
@@ -260,6 +260,31 @@ export const FoodMedia = ({ food }: { food: FoodType }) => {
                 i === activeIndex ? "bg-primary" : "bg-muted-foreground/40"
               }`}
             />
+          ))}
+        </div>
+      )} */}
+      {/* MOBILE THUMBNAILS */}
+      {mediaList.length > 1 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto px-1 lg:hidden">
+          {mediaList.map((m, i) => (
+            <button
+              key={m.src}
+              onClick={() => setActiveIndex(i)}
+              className={`relative flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border ${
+                i === activeIndex ? "border-primary" : "border-border"
+              }`}
+            >
+              {m.type === "image" ? (
+                <img src={m.src} className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <video src={m.src} className="w-full h-full object-cover" />
+                  <span className="absolute inset-0 grid place-items-center bg-black/40 text-white text-xs">
+                    ▶
+                  </span>
+                </>
+              )}
+            </button>
           ))}
         </div>
       )}

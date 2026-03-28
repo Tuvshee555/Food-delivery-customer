@@ -51,25 +51,22 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="bg-foreground text-background mt-24">
+      <footer className="w-full bg-muted text-foreground border-t border-border mt-24">
         {/* Top CTA strip */}
-        <div className="border-b border-background/10">
+        <div className="border-b border-border">
           <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-xl font-bold">{t("footer_cta_title")}</h3>
-              <p className="text-background/60 text-sm mt-1">{t("footer_cta_subtitle")}</p>
+              <p className="text-muted-foreground text-sm mt-1">{t("footer_cta_subtitle")}</p>
             </div>
             <div className="flex gap-3 w-full md:w-auto">
               <Input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t("footer_email_placeholder")}
-                className="bg-background/10 border-background/20 text-background placeholder:text-background/40 w-full md:w-64"
+                className="bg-background border-border w-full md:w-64"
               />
-              <Button
-                variant="outline"
-                className="border-background/20 text-background hover:bg-background hover:text-foreground shrink-0"
-              >
+              <Button variant="outline" className="shrink-0">
                 {t("subscribe")}
               </Button>
             </div>
@@ -81,12 +78,12 @@ export default function Footer() {
           {/* Brand column */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 relative rounded-md overflow-hidden bg-background/10">
+              <div className="w-8 h-8 relative rounded-md overflow-hidden bg-background border border-border">
                 <Image src="/order1.png" alt={t("site_name")} fill className="object-contain" />
               </div>
               <span className="font-bold text-lg">{t("site_name")}</span>
             </div>
-            <p className="text-background/50 text-sm leading-relaxed mb-6">
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               {t("footer_brand_description")}
             </p>
             <div className="flex gap-3">
@@ -100,9 +97,9 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors"
+                  className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:bg-card transition-colors"
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 text-muted-foreground" />
                 </a>
               ))}
             </div>
@@ -110,7 +107,7 @@ export default function Footer() {
 
           {/* Help links */}
           <div>
-            <h4 className="font-semibold text-sm uppercase tracking-widest mb-5 text-background/70">
+            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-muted-foreground">
               {t("footer_menu_help")}
             </h4>
             <ul className="space-y-3">
@@ -118,7 +115,7 @@ export default function Footer() {
                 <li key={path}>
                   <button
                     onClick={() => go(path)}
-                    className="text-background/50 text-sm hover:text-background transition-colors text-left"
+                    className="text-muted-foreground text-sm hover:text-foreground transition-colors text-left"
                   >
                     {t(key)}
                   </button>
@@ -129,7 +126,7 @@ export default function Footer() {
 
           {/* Product links */}
           <div>
-            <h4 className="font-semibold text-sm uppercase tracking-widest mb-5 text-background/70">
+            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-muted-foreground">
               {t("footer_products")}
             </h4>
             <ul className="space-y-3">
@@ -137,7 +134,7 @@ export default function Footer() {
                 <li key={path}>
                   <button
                     onClick={() => go(path)}
-                    className="text-background/50 text-sm hover:text-background transition-colors text-left"
+                    className="text-muted-foreground text-sm hover:text-foreground transition-colors text-left"
                   >
                     {t(key)}
                   </button>
@@ -148,7 +145,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div className="pb-[80px] md:pb-0">
-            <h4 className="font-semibold text-sm uppercase tracking-widest mb-5 text-background/70">
+            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-muted-foreground">
               {t("footer_contact")}
             </h4>
             <ul className="space-y-3">
@@ -157,14 +154,14 @@ export default function Footer() {
                   <li key={i}>
                     <a
                       href={href}
-                      className="flex items-start gap-2 text-background/50 text-sm hover:text-background transition-colors"
+                      className="flex items-start gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors"
                     >
                       <Icon className="w-4 h-4 mt-0.5 shrink-0" />
                       {value}
                     </a>
                   </li>
                 ) : (
-                  <li key={i} className="flex items-start gap-2 text-background/50 text-sm">
+                  <li key={i} className="flex items-start gap-2 text-muted-foreground text-sm">
                     <Icon className="w-4 h-4 mt-0.5 shrink-0" />
                     {value}
                   </li>
@@ -175,16 +172,16 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-background/10">
+        <div className="border-t border-border">
           <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-2">
-            <p className="text-background/30 text-xs">
+            <p className="text-muted-foreground text-xs">
               © {new Date().getFullYear()} {t("site_name")}. {t("all_rights_reserved")}
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-background/30 text-xs hover:text-background/60 transition-colors">
+              <a href="#" className="text-muted-foreground text-xs hover:text-foreground transition-colors">
                 {t("privacy_policy")}
               </a>
-              <a href="#" className="text-background/30 text-xs hover:text-background/60 transition-colors">
+              <a href="#" className="text-muted-foreground text-xs hover:text-foreground transition-colors">
                 {t("terms_of_service")}
               </a>
             </div>
@@ -192,7 +189,7 @@ export default function Footer() {
         </div>
       </footer>
 
-      {/* Back to top — outside footer so it floats on top */}
+      {/* Back to top */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-10 w-10 sm:h-12 sm:w-12

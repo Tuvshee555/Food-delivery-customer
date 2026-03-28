@@ -425,5 +425,16 @@
   "view_all": "View All",
   "times_bought": "times bought",
   "new_arrivals_label": "New Arrivals",
-  "back_to_top": "Back to top"
+  "back_to_top": "Back to top",
+  "profile_subtitle": "Edit your personal information and delivery address",
+  "click_to_upload_photos": "Click to upload photos",
+  "photos_selected": "photos selected",
+  "name": "Name",
+  "dashboard_sub": "Overview",
+  "profile_sub": "Personal info",
+  "orders_sub": "Order history",
+  "tickets_sub": "Support tickets",
+  "guest": "Guest",
+  "ordered_items": "Ordered Items",
+  "view_detail": "View Detail"
 }

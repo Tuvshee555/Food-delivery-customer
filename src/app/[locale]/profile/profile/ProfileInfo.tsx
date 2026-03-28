@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { User, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../../provider/AuthProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
@@ -48,7 +49,6 @@ export const ProfileInfo = () => {
     notes: "",
   });
 
-  /* load user */
   useEffect(() => {
     setUserEmail(localStorage.getItem("email") ?? "");
     if (!userId || !token) return;
@@ -101,8 +101,17 @@ export const ProfileInfo = () => {
   };
 
   return (
-    <section className="max-w-3xl space-y-10 p-7 pb-[260px] sm:pb-7">
-      <h1 className="text-base font-semibold">{t("my_profile")}</h1>
+    <section className="bg-card rounded-2xl border border-border p-6 sm:p-8 pb-[200px] sm:pb-8">
+      {/* Section header */}
+      <div className="flex items-center gap-3 mb-8 pb-6 border-b border-border">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <User className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="font-bold text-lg">{t("my_profile")}</h1>
+          <p className="text-sm text-muted-foreground">{t("profile_subtitle")}</p>
+        </div>
+      </div>
 
       <ProfileFields
         form={form}
@@ -112,23 +121,19 @@ export const ProfileInfo = () => {
         email={userEmail}
       />
 
-      <div className="flex justify-end">
+      {/* Save button */}
+      <div className="flex justify-end pt-6 border-t border-border mt-8">
         <Button
           onClick={handleSave}
           disabled={loading || hasErrors}
-          className={`
-      h-[44px] px-6 w-full sm:w-auto
-      bg-primary text-primary-foreground
-      transition
-
-      ${
-        loading || hasErrors
-          ? "bg-primary/40 text-primary-foreground/70 border border-primary/40 cursor-not-allowed"
-          : ""
-      }
-    `}
+          className="gap-2 px-8"
         >
-          {loading ? `${t("saving")}…` : t("save")}
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {loading ? t("saving") : t("save")}
         </Button>
       </div>
     </section>

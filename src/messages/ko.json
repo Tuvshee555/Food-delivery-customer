@@ -176,7 +176,18 @@
 "view_all": "전체 보기",
 "times_bought": "번 구매됨",
 "new_arrivals_label": "신상품",
-"back_to_top": "맨 위로"
+"back_to_top": "맨 위로",
+"profile_subtitle": "개인 정보 및 배송 주소 수정",
+"click_to_upload_photos": "사진을 업로드하려면 클릭하세요",
+"photos_selected": "장 선택됨",
+"name": "이름",
+"dashboard_sub": "개요",
+"profile_sub": "개인 정보",
+"orders_sub": "주문 내역",
+"tickets_sub": "고객 지원",
+"guest": "게스트",
+"ordered_items": "주문 상품",
+"view_detail": "자세히 보기"
 
 
 

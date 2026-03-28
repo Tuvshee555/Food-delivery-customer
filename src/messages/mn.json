@@ -421,5 +421,16 @@
   "view_all": "Бүгдийг харах",
   "times_bought": "удаа худалдаж авсан",
   "new_arrivals_label": "Шинэ бүтээгдэхүүн",
-  "back_to_top": "Дээш буцах"
+  "back_to_top": "Дээш буцах",
+  "profile_subtitle": "Хувийн мэдээлэл болон хүргэлтийн хаягаа засах",
+  "click_to_upload_photos": "Зураг оруулахын тулд дарна уу",
+  "photos_selected": "зураг сонгогдлоо",
+  "name": "Нэр",
+  "dashboard_sub": "Ерөнхий мэдээлэл",
+  "profile_sub": "Хувийн мэдээлэл",
+  "orders_sub": "Захиалгын түүх",
+  "tickets_sub": "Дэмжлэгийн хүсэлт",
+  "guest": "Зочин",
+  "ordered_items": "Захиалсан бараа",
+  "view_detail": "Дэлгэрэнгүй"
 }

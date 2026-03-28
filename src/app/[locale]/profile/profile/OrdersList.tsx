@@ -1,15 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Clock, MapPin, Receipt } from "lucide-react";
+import { Clock, MapPin, Receipt, ArrowRight } from "lucide-react";
 
 import { useAuth } from "../../provider/AuthProvider";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { fadeUp, staggerContainer } from "@/utils/animations";
 
-/* 🔒 MUST MATCH BACKEND */
 export type OrderStatus =
   | "PENDING"
   | "WAITING_PAYMENT"
@@ -26,8 +26,6 @@ export type OrderListItem = {
   status: OrderStatus;
   paymentMethod: "COD" | "BANK" | "QPAY";
   createdAt: string;
-
-  // 🔥 DELIVERY INFO
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
@@ -37,70 +35,55 @@ export type OrderListItem = {
   address?: string | null;
 };
 
+const STATUS_STYLE: Record<OrderStatus, string> = {
+  PENDING:         "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
+  WAITING_PAYMENT: "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800",
+  COD_PENDING:     "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+  PAID:            "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800",
+  DELIVERING:      "bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800",
+  DELIVERED:       "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800",
+  CANCELLED:       "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800",
+};
+
 export const OrdersList = () => {
   const { userId, token } = useAuth();
-  const router = useRouter();
   const { locale, t } = useI18n();
 
   const fetchOrders = async (): Promise<OrderListItem[]> => {
     if (!userId || !token) return [];
-
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/user/${userId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-
     return res.data?.orders ?? [];
   };
 
-  const {
-    data: orders = [],
-    isLoading,
-    isFetching,
-  } = useQuery({
+  const { data: orders = [], isLoading, isFetching } = useQuery({
     queryKey: ["orders", userId],
     queryFn: fetchOrders,
     enabled: Boolean(userId && token),
-
-    // ✅ Auto refresh ONLY if user has unpaid QPay orders
     refetchInterval: (query) => {
       const list = (query.state.data as OrderListItem[]) || [];
-      const hasWaitingQpay = list.some(
-        (o) => o.status === "WAITING_PAYMENT" && o.paymentMethod === "QPAY"
-      );
-      return hasWaitingQpay ? 30000 : false;
+      return list.some((o) => o.status === "WAITING_PAYMENT" && o.paymentMethod === "QPAY") ? 30000 : false;
     },
-
     refetchOnWindowFocus: true,
   });
 
-  const statusStyle: Record<OrderStatus, string> = {
-    PENDING: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
-    WAITING_PAYMENT: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-    COD_PENDING: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-    PAID: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-    DELIVERING: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
-    DELIVERED: "bg-green-500/10 text-green-600 border-green-500/20",
-    CANCELLED: "bg-red-500/10 text-red-600 border-red-500/20",
-  };
-
   const statusLabel: Record<OrderStatus, string> = {
-    PENDING: t("order_status_pending"),
+    PENDING:         t("order_status_pending"),
     WAITING_PAYMENT: t("order_status_waiting_payment"),
-    COD_PENDING: t("order_status_cod_pending"),
-    PAID: t("order_status_paid"),
-    DELIVERING: t("order_status_delivering"),
-    DELIVERED: t("order_status_delivered"),
-    CANCELLED: t("order_status_cancelled"),
+    COD_PENDING:     t("order_status_cod_pending"),
+    PAID:            t("order_status_paid"),
+    DELIVERING:      t("order_status_delivering"),
+    DELIVERED:       t("order_status_delivered"),
+    CANCELLED:       t("order_status_cancelled"),
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-4 mt-6">
+      <div className="space-y-3 mt-6">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-28 rounded-xl bg-card animate-pulse" />
+          <div key={i} className="h-28 rounded-2xl bg-card border border-border animate-pulse" />
         ))}
       </div>
     );
@@ -116,90 +99,75 @@ export const OrdersList = () => {
   }
 
   return (
-    <div className="space-y-6 mt-5 pb-[200px]">
-      <div className="flex items-center gap-2">
+    <div className="space-y-4 mt-5 pb-[200px] sm:pb-8">
+      <div className="flex items-center gap-2 mb-2">
         <Receipt className="w-5 h-5" />
         <h1 className="text-lg font-semibold">{t("my_orders")}</h1>
       </div>
 
-      <div className="space-y-4">
-        {orders.map((order, i) => {
-          const addressLine = [
-            order.city,
-            order.district,
-            order.khoroo,
-            order.address,
-          ]
+      <motion.div
+        className="space-y-3"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+      >
+        {orders.map((order) => {
+          const addressLine = [order.city, order.district, order.khoroo, order.address]
             .filter(Boolean)
             .join(", ");
 
           return (
-            <motion.div
-              key={order.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className="bg-card border border-border rounded-xl p-4 space-y-3"
-            >
-              {/* Header */}
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("order_number")}
-                  </p>
-                  <p className="text-sm font-medium">#{order.orderNumber}</p>
-                </div>
-
-                <span
-                  className={`text-xs px-2 py-1 rounded-md border ${
-                    statusStyle[order.status]
-                  }`}
+            <motion.div key={order.id} variants={fadeUp}>
+              <Link href={`/${locale}/profile/orders/${order.id}`}>
+                <motion.div
+                  whileHover={{ x: 3 }}
+                  transition={{ duration: 0.15 }}
+                  className="group bg-card border border-border rounded-2xl p-5
+                    hover:border-primary/30 hover:shadow-md transition-all duration-200 cursor-pointer"
                 >
-                  {statusLabel[order.status]}
-                </span>
-              </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      {/* Order ID + status */}
+                      <div className="flex items-center gap-3 mb-3 flex-wrap">
+                        <span className="font-mono font-bold text-base">#{order.orderNumber}</span>
+                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_STYLE[order.status]}`}>
+                          {statusLabel[order.status]}
+                        </span>
+                      </div>
 
-              {/* Meta */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock size={14} />
-                {new Date(order.createdAt).toLocaleDateString()}
-              </div>
+                      {/* Meta row */}
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" />
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                        {addressLine && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[200px]">{addressLine}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-              {/* Delivery */}
-              <div className="flex gap-2 text-sm">
-                <MapPin size={14} className="mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-medium">
-                    {order.firstName} {order.lastName} · {order.phone}
-                  </p>
-                  <p className="text-muted-foreground">{addressLine}</p>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                <p className="font-semibold">
-                  {order.totalPrice.toLocaleString()}₮
-                </p>
-
-                <button
-                  onClick={() =>
-                    router.push(`/${locale}/profile/orders/${order.id}`)
-                  }
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  {t("view_details")}
-                </button>
-              </div>
+                    {/* Price + arrow */}
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-lg">{order.totalPrice.toLocaleString()}₮</p>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1
+                        justify-end mt-1 group-hover:text-primary transition-colors">
+                        {t("view_details")} <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {isFetching && (
-        <p className="text-xs text-center text-muted-foreground">
-          {t("refreshing")}
-        </p>
+        <p className="text-xs text-center text-muted-foreground">{t("refreshing")}</p>
       )}
     </div>
   );

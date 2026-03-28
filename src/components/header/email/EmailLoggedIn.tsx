@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User, Package, Ticket } from "lucide-react";
+import { LogOut, User, Package, Ticket, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { handleLogout } from "./handlers/handleLogout";
@@ -24,94 +24,91 @@ export const EmailLoggedIn = ({
 
   const activeTab = searchParams.get("tab");
 
-  const navItem = (
-    key: string,
-    label: string,
-    desc: string,
-    icon: React.ReactNode,
-    href: string
-  ) => {
-    const active = activeTab === key;
-
-    return (
-      <button
-        onClick={() => {
-          closeSheet(); // ✅ CLOSE SHEET
-          router.push(href); // ✅ NAVIGATE
-        }}
-        className={`flex items-center gap-4 h-[56px] px-4 rounded-lg border transition
-          ${
-            active
-              ? "bg-muted border-border"
-              : "bg-card border-border hover:bg-muted"
-          }`}
-      >
-        <div className="w-9 h-9 flex items-center justify-center rounded-md bg-muted">
-          {icon}
-        </div>
-
-        <div className="flex flex-col justify-center text-left leading-tight">
-          <span className="text-sm font-medium">{label}</span>
-          <span className="text-xs text-muted-foreground">{desc}</span>
-        </div>
-      </button>
-    );
-  };
+  const navItems = [
+    {
+      key: "profile",
+      icon: User,
+      label: t("profile_personal"),
+      sub: t("yourInfo"),
+      href: `/${locale}/profile?tab=profile`,
+    },
+    {
+      key: "orders",
+      icon: Package,
+      label: t("profile_orders"),
+      sub: t("yourOrders"),
+      href: `/${locale}/profile?tab=orders`,
+    },
+    {
+      key: "tickets",
+      icon: Ticket,
+      label: t("profile_tickets"),
+      sub: t("yourTickets"),
+      href: `/${locale}/profile?tab=tickets`,
+    },
+  ];
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex flex-col items-center pt-6 pb-5 border-b border-border">
-        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">
-          {firstLetter}
+      {/* Header with avatar */}
+      <div className="px-6 pt-8 pb-6 border-b border-border">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-primary/10 border-2 border-primary/20
+            flex items-center justify-center shrink-0">
+            <span className="text-xl font-bold text-primary">{firstLetter}</span>
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-base leading-tight truncate">
+              {t("guest")}
+            </p>
+            <p className="text-sm text-muted-foreground truncate max-w-[180px]">{email}</p>
+          </div>
         </div>
-
-        <p className="mt-3 text-sm text-muted-foreground truncate max-w-[220px]">
-          {email}
-        </p>
       </div>
 
-      {/* Navigation */}
-      <div className="flex flex-col gap-3 px-5 py-5">
-        {navItem(
-          "profile",
-          t("profile"),
-          t("yourInfo"),
-          <User className="w-5 h-5 text-muted-foreground" />,
-          `/${locale}/profile?tab=profile`
-        )}
-
-        {navItem(
-          "orders",
-          t("orders"),
-          t("yourOrders"),
-          <Package className="w-5 h-5 text-muted-foreground" />,
-          `/${locale}/profile?tab=orders`
-        )}
-
-        {navItem(
-          "tickets",
-          t("tickets"),
-          t("yourTickets"),
-          <Ticket className="w-5 h-5 text-muted-foreground" />,
-          `/${locale}/profile?tab=tickets`
-        )}
-      </div>
-
-      {/* Spacer */}
-      <div className="flex-1" />
+      {/* Nav items */}
+      <nav className="flex-1 px-3 py-4 space-y-1">
+        {navItems.map((item) => {
+          const active = activeTab === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => {
+                closeSheet();
+                router.push(item.href);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors group
+                ${active ? "bg-muted" : "hover:bg-muted"}`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors shrink-0
+                ${active ? "bg-background" : "bg-muted group-hover:bg-background"}`}>
+                <item.icon className={`w-4 h-4 transition-colors
+                  ${active ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`} />
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <p className="text-sm font-medium leading-tight">{item.label}</p>
+                <p className="text-xs text-muted-foreground">{item.sub}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Logout */}
-      <div className="border-t border-border px-5 py-4">
+      <div className="px-3 pb-6 border-t border-border pt-3">
         <button
           onClick={() => {
-            closeSheet(); // ✅ CLOSE SHEET
+            closeSheet();
             handleLogout(router, clearToken, locale);
           }}
-          className="w-full h-[44px] rounded-md border border-destructive text-destructive text-sm font-medium flex items-center justify-center gap-2 hover:bg-destructive/5 transition"
+          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl
+            text-destructive hover:bg-destructive/10 transition-colors"
         >
-          <LogOut className="w-4 h-4" />
-          {t("logout")}
+          <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center">
+            <LogOut className="w-4 h-4 text-destructive" />
+          </div>
+          <span className="text-sm font-medium">{t("logout")}</span>
         </button>
       </div>
     </div>

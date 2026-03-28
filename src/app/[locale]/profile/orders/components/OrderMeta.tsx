@@ -7,32 +7,31 @@ import { OrderDetails } from "../[orderId]/components/types";
 export function OrderMeta({ order }: { order: OrderDetails }) {
   const { t } = useI18n();
 
+  const fields = [
+    { label: t("order_number"), value: `#${order.orderNumber}`, mono: true },
+    { label: t("status"), value: <OrderStatusBadge status={order.status} /> },
+    {
+      label: t("payment_method"),
+      value: order.paymentMethod
+        ? t(`payment_method_${String(order.paymentMethod).toLowerCase()}`)
+        : "—",
+    },
+    { label: t("created_at"), value: new Date(order.createdAt).toLocaleString() },
+  ];
+
   return (
-    <div className="rounded-xl border bg-card p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-      <div>
-        <p className="text-muted-foreground">{t("order_number")}</p>
-        <p className="font-medium">{order.orderNumber}</p>
-      </div>
-
-      <div>
-        <p className="text-muted-foreground">{t("status")}</p>
-        <OrderStatusBadge status={order.status} />
-      </div>
-
-      <div>
-        <p className="text-muted-foreground">{t("payment_method")}</p>
-        <p className="font-medium">
-          {order.paymentMethod
-            ? t(`payment_method_${String(order.paymentMethod).toLowerCase()}`)
-            : "-"}
-        </p>
-      </div>
-
-      <div>
-        <p className="text-muted-foreground">{t("created_at")}</p>
-        <p className="font-medium">
-          {new Date(order.createdAt).toLocaleString()}
-        </p>
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {fields.map((item, i) => (
+          <div key={i}>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+              {item.label}
+            </p>
+            <div className={`font-semibold text-sm ${item.mono ? "font-mono" : ""}`}>
+              {item.value}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -10,6 +10,9 @@ import Email from "@/components/header/email/Email";
 import HeaderClient from "./header/HeaderClient";
 import { useCartSync } from "./header/sheetRight/components/useCartSync";
 import TopLoader from "./header/TopLoader";
+import CustomCursor from "./motion/CustomCursor";
+import ScrollProgress from "./motion/ScrollProgress";
+import PageEnter from "./motion/PageEnter";
 
 export default function AppShellClient({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -35,6 +38,9 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <PageEnter />
+      <CustomCursor />
+      <ScrollProgress />
       <TopLoader />
 
       <HeaderClient onOpenProfile={openProfile} cartCount={cartCount} />

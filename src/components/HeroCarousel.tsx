@@ -6,12 +6,38 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import Link from "next/link";
+import MagneticButton from "@/components/motion/MagneticButton";
 
 const slides = [
   { src: "/BackMain.jpg", subtitleKey: "featured_collection", titleKey: "featured" },
   { src: "/BackMain.jpg", subtitleKey: "featured_collection", titleKey: "new" },
   { src: "/BackMain.jpg", subtitleKey: "featured_collection", titleKey: "bestseller" },
 ];
+
+// Split text into characters, each animated individually
+function CharReveal({ text, delay = 0 }: { text: string; delay?: number }) {
+  const chars = text.split("");
+  return (
+    <span className="inline-flex flex-wrap overflow-hidden">
+      {chars.map((char, i) => (
+        <span key={i} className="overflow-hidden inline-block">
+          <motion.span
+            className="inline-block"
+            initial={{ y: "110%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            transition={{
+              duration: 0.5,
+              delay: delay + i * 0.03,
+              ease: [0.25, 0.46, 0.45, 0.94] as any,
+            }}
+          >
+            {char === " " ? "\u00a0" : char}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export function HeroCarousel() {
   const { t, locale } = useI18n();
@@ -37,10 +63,10 @@ export function HeroCarousel() {
         <motion.div
           key={active}
           className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] as any }}
         >
           <Image
             src={slides[active].src}
@@ -52,29 +78,39 @@ export function HeroCarousel() {
           />
 
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
 
           {/* Text overlay */}
-          <motion.div
-            className="absolute left-8 md:left-16 bottom-20 max-w-xs md:max-w-md"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <p className="text-white/70 text-xs md:text-sm uppercase tracking-widest mb-2 font-medium">
-              {t(slides[active].subtitleKey)}
-            </p>
-            <h2 className="text-white text-3xl md:text-4xl font-bold leading-tight mb-5">
-              {t(slides[active].titleKey)}
-            </h2>
-            <Link
-              href={`/${locale}/category/all`}
-              className="inline-flex items-center px-6 py-2.5 rounded-lg border border-white/70 text-white text-sm font-medium
-                hover:bg-white hover:text-black transition-all duration-200"
+          <div className="absolute left-8 md:left-16 bottom-20 max-w-xs md:max-w-lg">
+            <motion.p
+              className="text-white/60 text-xs md:text-sm uppercase tracking-[0.2em] mb-3 font-medium"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {t("shop_now")}
-            </Link>
-          </motion.div>
+              {t(slides[active].subtitleKey)}
+            </motion.p>
+
+            <h2 className="text-white text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight">
+              <CharReveal text={t(slides[active].titleKey)} delay={0.15} />
+            </h2>
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
+            >
+              <MagneticButton strength={0.3}>
+                <Link
+                  href={`/${locale}/category/all`}
+                  className="inline-flex items-center px-8 py-3 rounded-full border border-white/70 text-white text-sm font-semibold
+                    hover:bg-white hover:text-black transition-all duration-300 tracking-wide"
+                >
+                  {t("shop_now")}
+                </Link>
+              </MagneticButton>
+            </motion.div>
+          </div>
         </motion.div>
       </AnimatePresence>
 

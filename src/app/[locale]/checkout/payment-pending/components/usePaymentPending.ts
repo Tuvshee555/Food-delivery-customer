@@ -188,7 +188,7 @@ export function usePaymentPending() {
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/qpay/check`,
           { invoiceId },
-          { timeout: API_TIMEOUT }
+          { headers: getAuthHeaders(), timeout: API_TIMEOUT }
         );
         return res.data;
       } catch {

@@ -7,9 +7,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import type { FoodCardPropsType } from "@/type/type";
+import { fadeUp } from "@/utils/animations";
 
-// ⚠️ Must match useCategoryLogic
 const BESTSELLER_THRESHOLD = 5;
+const CART_KEY = "cart";
 
 export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   const { locale, t } = useI18n();
@@ -20,35 +21,23 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
   const discount = Number(food.discount ?? NaN);
   const isFeatured = Boolean(food.isFeatured);
   const salesCount = Number(food.salesCount ?? 0);
-
   const isDiscountFake = Boolean((food as any)?.isDiscountFake);
 
   const hasDiscount = !Number.isNaN(discount) && discount > 0;
-  const showOldPrice =
-    !Number.isNaN(oldPrice) && !Number.isNaN(price) && oldPrice > price;
+  const showOldPrice = !Number.isNaN(oldPrice) && !Number.isNaN(price) && oldPrice > price;
+  const savings = showOldPrice && !Number.isNaN(price) ? Number((oldPrice - price).toFixed(2)) : undefined;
 
-  const savings =
-    showOldPrice && !Number.isNaN(price)
-      ? Number((oldPrice - price).toFixed(2))
-      : undefined;
-
-  /* -------------------------------------------------- */
-  /* 🖼️ IMAGE HANDLING                                  */
-  /* -------------------------------------------------- */
+  /* Image handling */
   const displayImages = useMemo(() => {
     const imgs: string[] = [];
-
     const push = (img?: string | File) => {
       if (!img) return;
       imgs.push(typeof img === "string" ? img : URL.createObjectURL(img));
     };
-
     push(food.image);
-
     if (Array.isArray((food as any)?.extraImages)) {
       (food as any).extraImages.forEach((i: any) => push(i));
     }
-
     return imgs.slice(0, 3);
   }, [food.image, JSON.stringify((food as any)?.extraImages ?? [])]);
 
@@ -60,43 +49,66 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
     };
   }, [displayImages]);
 
-  /* -------------------------------------------------- */
-  /* 🖱️ HOVER IMAGE LOGIC                               */
-  /* -------------------------------------------------- */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (displayImages.length <= 1) return;
-
     const rect = e.currentTarget.getBoundingClientRect();
-    const index = Math.floor(
-      ((e.clientX - rect.left) / rect.width) * displayImages.length,
-    );
-
+    const index = Math.floor(((e.clientX - rect.left) / rect.width) * displayImages.length);
     setHoverIndex(Math.min(displayImages.length - 1, Math.max(0, index)));
   };
 
   const fmt = (v: number) => (Number.isNaN(v) ? "-" : v.toLocaleString());
-
   const mainImage = displayImages[hoverIndex] ?? "/placeholder.png";
 
+  const addToCartLocal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const raw = localStorage.getItem(CART_KEY) || "[]";
+      const cart: any[] = JSON.parse(raw);
+      const index = cart.findIndex((c) => c.foodId === food.id && !c.selectedSize);
+      if (index >= 0) {
+        cart[index].quantity += 1;
+      } else {
+        cart.push({
+          foodId: food.id,
+          quantity: 1,
+          selectedSize: null,
+          food: {
+            id: food.id,
+            foodName: food.foodName,
+            price: food.price,
+            image: typeof food.image === "string" ? food.image : "",
+          },
+        });
+      }
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      window.dispatchEvent(new Event("cart-updated"));
+    } catch {
+      // silently fail
+    }
+  };
+
   return (
-    <Link
-      href={`/${locale}/food/${food.id}`}
-      className="block w-full focus:outline-none"
-    >
-      <div
-        id={`food-${food.id}`}
-        className="w-full cursor-pointer transition-transform duration-200"
-        onMouseLeave={() => setHoverIndex(0)}
-        onMouseMove={handleMouseMove}
+    <Link href={`/${locale}/food/${food.id}`} className="block w-full focus:outline-none">
+      <motion.div
+        variants={fadeUp}
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.2 }}
+        className="group relative bg-card rounded-2xl overflow-hidden border border-border/60
+          hover:border-border hover:shadow-xl hover:shadow-black/5 transition-shadow duration-300 cursor-pointer"
       >
-        {/* MEDIA */}
-        <div className="relative w-full aspect-[4/3] rounded-[10px] overflow-hidden bg-muted">
+        {/* Image area */}
+        <div
+          className="relative aspect-[4/3] overflow-hidden bg-muted"
+          onMouseLeave={() => setHoverIndex(0)}
+          onMouseMove={handleMouseMove}
+        >
           <AnimatePresence mode="wait">
             <motion.img
               key={mainImage}
               src={mainImage}
               alt={food.foodName || ""}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               initial={{ opacity: 0.6 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -105,66 +117,67 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
             />
           </AnimatePresence>
 
-          {/* BADGES */}
-          <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent
+            opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Badges */}
+          <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5">
             {isFeatured && (
-              <span className="inline-flex text-xs font-semibold px-2 py-1 bg-red-600 text-white rounded-sm -rotate-6 shadow">
+              <span className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                 {t("featured")}
               </span>
             )}
-
             {!isFeatured && salesCount >= BESTSELLER_THRESHOLD && (
-              <span className="inline-flex text-xs font-semibold px-2 py-1 bg-muted text-foreground rounded-sm -rotate-6 shadow">
+              <span className="bg-muted text-foreground text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-border">
                 {t("bestseller")}
               </span>
             )}
-
             {hasDiscount && (
-              <span
-                className={`inline-flex text-xs font-semibold px-2 py-1 rounded-sm -rotate-6 shadow ${
-                  isDiscountFake
-                    ? "bg-yellow-400 text-black"
-                    : "bg-yellow-500 text-black"
-                }`}
-              >
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDiscountFake ? "bg-yellow-400 text-black" : "bg-rose-500 text-white"}`}>
                 -{discount}%
               </span>
             )}
           </div>
 
-          {/* SOLD OUT */}
+          {/* Sold out */}
           {(food as any)?.stock === 0 && (
-            <div className="absolute inset-0 z-30 bg-black/60 flex items-center justify-center text-white font-semibold rounded-[10px]">
+            <div className="absolute inset-0 z-30 bg-black/60 flex items-center justify-center text-white font-semibold">
               {t("sold_out")}
             </div>
           )}
+
+          {/* Quick add button */}
+          <button
+            className="absolute bottom-3 left-3 right-3 z-20 bg-background/90 backdrop-blur-sm
+              text-foreground text-sm font-medium py-2 rounded-xl border border-border/50
+              opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0
+              transition-all duration-300"
+            onClick={addToCartLocal}
+          >
+            + {t("add_to_cart")}
+          </button>
         </div>
 
-        {/* INFO */}
-        <div className="pt-3 space-y-1">
-          <h3 className="text-foreground font-medium text-[15px] line-clamp-2">
+        {/* Info area */}
+        <div className="p-4">
+          <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-2 group-hover:text-primary transition-colors">
             {food.foodName}
           </h3>
 
-          <div className="flex items-center gap-2">
-            <span className="text-foreground font-semibold text-sm">
-              {fmt(price)}₮
-            </span>
-
-            {showOldPrice && (
-              <span className="text-muted-foreground text-xs line-through">
-                {fmt(oldPrice)}₮
-              </span>
-            )}
-
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-bold text-primary">{fmt(price)}₮</span>
+              {showOldPrice && (
+                <span className="text-xs text-muted-foreground line-through">{fmt(oldPrice)}₮</span>
+              )}
+            </div>
             {savings && savings > 0 && (
-              <span className="text-green-400 text-xs font-medium">
-                {t("save")} {fmt(savings)}₮
-              </span>
+              <span className="text-xs font-medium text-green-500">{t("save")} {fmt(savings)}₮</span>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 };

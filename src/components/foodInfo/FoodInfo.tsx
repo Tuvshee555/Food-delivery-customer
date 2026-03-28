@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
+import { Package } from "lucide-react";
 import { FoodTitle } from "./FoodTitle";
 import { FoodSizes } from "./FoodSizes";
 import { FoodQuantity } from "./FoodQuantity";
@@ -84,7 +85,6 @@ export const FoodInfo = ({ food }: { food: any }) => {
 
   const isFeatured = Boolean(food.isFeatured);
   const salesCount = Number(food.salesCount ?? 0);
-  console.log(salesCount);
   const discount = Number(food.discount ?? 0);
   const hasDiscount = discount > 0;
 
@@ -164,9 +164,10 @@ export const FoodInfo = ({ food }: { food: any }) => {
         <span className="hidden sm:inline">•</span>
 
         {salesCount > 0 && (
-          <span>
-            {formatCount(salesCount)} {t("times_bought") ?? "bought"}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <Package className="w-3.5 h-3.5" />
+            <span>{formatCount(salesCount)} {t("sold") ?? "sold"}</span>
+          </div>
         )}
       </div>
 
@@ -227,20 +228,6 @@ export const FoodInfo = ({ food }: { food: any }) => {
           isProcessing={isProcessing}
           addText={t("add_to_cart")}
           orderText={t("order_now")}
-          primaryClass="
-          h-[44px]
-          rounded-md
-          bg-foreground
-          text-background
-          text-sm font-medium
-        "
-          secondaryClass="
-          h-[44px]
-          rounded-md
-          bg-muted
-          text-foreground
-          text-sm font-medium
-        "
         />
       </div>
     </motion.div>

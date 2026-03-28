@@ -16,18 +16,14 @@ export const FoodSizes = ({
 }) => {
   const { t } = useI18n();
 
-  // 🔒 Hooks MUST be before any return
   useEffect(() => {
     if (!sizes || sizes.length === 0) return;
-
     if (!selectedSize) {
       const first = typeof sizes[0] === "string" ? sizes[0] : sizes[0]?.label;
-
       if (first) setSelectedSize(first);
     }
   }, [sizes, selectedSize, setSelectedSize]);
 
-  // ⛔ Safe early return AFTER hooks
   if (!sizes || sizes.length === 0) return null;
 
   return (
@@ -54,17 +50,10 @@ export const FoodSizes = ({
               whileTap={{ scale: 0.96 }}
               onClick={() => setSelectedSize(label)}
               className={`
-                h-[36px]
-                px-4
-                rounded-md
-                text-sm
-                font-medium
-                transition-colors
-                border
-                ${
-                  active
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-background text-foreground border-border hover:bg-muted"
+                min-w-[44px] h-[44px] px-3 rounded-lg border text-sm font-medium transition-all
+                ${active
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border hover:border-primary/50 hover:bg-muted"
                 }
               `}
               aria-pressed={active}

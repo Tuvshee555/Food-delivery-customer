@@ -2,17 +2,18 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { useCategory } from "@/hooks/useCategory";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { FoodCard } from "../FoodCard";
 import { useFood } from "@/hooks/useFood";
+import { fadeUp, staggerContainer } from "@/utils/animations";
 
 export const FoodCategoryList = () => {
   const { locale, t } = useI18n();
 
-  // ✅ React Query hooks
   const { data: categories = [], isLoading: categoryLoading } = useCategory();
   const { data: foods = [], isLoading: foodLoading } = useFood();
 
@@ -23,7 +24,6 @@ export const FoodCategoryList = () => {
     return typeof media === "string" ? media : URL.createObjectURL(media);
   };
 
-  // ⏳ Loading state
   if (isLoading) {
     return (
       <section className="w-full px-4 mt-10">
@@ -34,67 +34,70 @@ export const FoodCategoryList = () => {
 
   return (
     <section className="w-full">
-      <div className="max-full px-[16px] mx-auto flex flex-col gap-16 mt-10">
+      <div className="max-w-7xl px-4 mx-auto flex flex-col gap-16 mt-10 pb-16">
         {categories
           .filter((cat) => cat.parentId === null)
           .map((cat) => {
             const catId = cat.id;
-
             const filteredFood = foods.filter(
               (dish) => dish.category === catId || dish.categoryId === catId
             );
 
             const firstFoodImage =
-              filteredFood.length > 0
-                ? getMediaUrl(filteredFood[0].image)
-                : "/order1.png";
+              filteredFood.length > 0 ? getMediaUrl(filteredFood[0].image) : "/order1.png";
 
             return (
-              <section key={catId} className="w-full">
-                {/* HEADER */}
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={firstFoodImage}
-                      alt={cat.categoryName}
-                      className="w-[32px] h-[32px] rounded-md object-cover border border-border"
-                    />
-                    <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
+              <motion.section
+                key={catId}
+                className="w-full"
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-80px" }}
+              >
+                {/* Section header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-1 flex items-center gap-2">
+                      <img
+                        src={firstFoodImage}
+                        alt={cat.categoryName}
+                        className="w-5 h-5 rounded object-cover border border-border inline-block"
+                      />
+                      {t("categories")}
+                    </p>
+                    <h2 className="text-2xl font-bold tracking-tight">
                       {cat.categoryName || t("unknown_category")}
                     </h2>
                   </div>
 
                   <Link
                     href={`/${locale}/category/${catId}`}
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition"
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {t("see_more")}
-                    <ChevronRight className="w-4 h-4" />
+                    {t("view_all")} <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
 
-                {/* GRID */}
+                {/* Product grid */}
                 {filteredFood.length > 0 ? (
-                  <div
-                    className="
-                      grid
-                      grid-cols-2
-                      sm:grid-cols-3
-                      md:grid-cols-4
-                      lg:grid-cols-5
-                      gap-6
-                    "
+                  <motion.div
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+                    variants={staggerContainer}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, margin: "-50px" }}
                   >
                     {filteredFood.map((dish) => (
                       <FoodCard key={dish.id} food={dish} />
                     ))}
-                  </div>
+                  </motion.div>
                 ) : (
                   <p className="text-sm italic text-muted-foreground">
                     {t("no_products_in_category")}
                   </p>
                 )}
-              </section>
+              </motion.section>
             );
           })}
       </div>

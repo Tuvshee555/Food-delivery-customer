@@ -21,40 +21,24 @@ export const FoodActions = ({
 }: FoodActionsProps) => {
   return (
     <div className="flex flex-col gap-3 mt-4">
-      {/* PRIMARY ACTION */}
+      {/* Primary action — Order Now */}
       <motion.button
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onOrderNow}
         disabled={isProcessing}
-        className="
-          h-[48px]
-          w-full
-          rounded-md
-          bg-foreground
-          text-background
-          text-sm font-medium
-          disabled:opacity-60
-          transition
-        "
+        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base
+          hover:bg-primary/90 transition-colors disabled:opacity-60"
       >
         {orderText}
       </motion.button>
 
-      {/* SECONDARY ACTION */}
+      {/* Secondary action — Add to Cart */}
       <motion.button
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onAddToCart}
         disabled={isProcessing}
-        className="
-          h-[48px]
-          w-full
-          rounded-md
-          bg-muted
-          text-foreground
-          text-sm font-medium
-          disabled:opacity-60
-          transition
-        "
+        className="w-full py-4 rounded-xl border border-border bg-transparent text-foreground font-semibold text-base
+          hover:bg-muted transition-colors disabled:opacity-60"
       >
         {addText}
       </motion.button>

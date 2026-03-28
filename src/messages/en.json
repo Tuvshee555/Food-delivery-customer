@@ -408,5 +408,22 @@
   "server_error": "Server error",
   "review_only_buyers": "Only customers who purchased can review. Reviews are verified automatically.",
   "review_available_after_paid": "Reviews are available after your order is paid/delivered.",
-  "review_min_chars": "Please write at least 2 characters."
+  "review_min_chars": "Please write at least 2 characters.",
+  "free_shipping_announcement": "Free Shipping on Orders Over 50,000₮",
+  "new_arrivals_announcement": "New Arrivals Just Dropped",
+  "featured_collection": "Featured Collection",
+  "shop_now": "Shop Now",
+  "footer_cta_title": "Stay in the Loop",
+  "footer_cta_subtitle": "Subscribe to get exclusive deals and new arrivals",
+  "footer_email_placeholder": "Your email address",
+  "subscribe": "Subscribe",
+  "footer_brand_description": "Premium products delivered fast and reliably. Quality you can trust.",
+  "all_rights_reserved": "All rights reserved.",
+  "privacy_policy": "Privacy Policy",
+  "terms_of_service": "Terms of Service",
+  "sold": "sold",
+  "view_all": "View All",
+  "times_bought": "times bought",
+  "new_arrivals_label": "New Arrivals",
+  "back_to_top": "Back to top"
 }

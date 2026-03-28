@@ -12,5 +12,7 @@ export function useFood() {
       );
       return data;
     },
+    staleTime: 10 * 60_000,
+    gcTime: 30 * 60_000,
   });
 }

@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import {
@@ -13,11 +14,14 @@ import {
   Youtube,
   ArrowUp,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function Footer() {
   const router = useRouter();
   const { locale } = useParams<{ locale: string }>();
   const { t } = useI18n();
+  const [email, setEmail] = useState("");
 
   const go = (path: string) => {
     router.push(`/${locale}${path}`);
@@ -39,84 +43,82 @@ export default function Footer() {
     ["/category/discounted", "footer_discounted"],
   ];
 
+  const contactItems = [
+    { icon: Phone, value: "86185769", href: "tel:86185769" },
+    { icon: Mail, value: "ganturtuvshinsaihan@gmail.com", href: "mailto:ganturtuvshinsaihan@gmail.com" },
+    { icon: MapPin, value: t("Байршил"), href: undefined },
+  ];
+
   return (
-    <footer className="w-full bg-background text-foreground border-t border-border">
-      <div
-        className="
-          max-w-7xl mx-auto
-          px-4 sm:px-6
-          py-8 sm:py-12
-          grid grid-cols-1
-          md:grid-cols-4
-          gap-8 md:gap-10
-        "
-      >
-        {/* BRAND — CENTER ON MOBILE */}
-        <div className="space-y-4 text-center md:text-left md:col-span-1">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-3">
-            <div className="w-12 h-12 relative rounded-md overflow-hidden bg-muted">
-              <Image
-                src="/order1.png"
-                alt={t("site_name")}
-                fill
-                className="object-contain"
-              />
-            </div>
-
+    <>
+      <footer className="bg-foreground text-background mt-24">
+        {/* Top CTA strip */}
+        <div className="border-b border-background/10">
+          <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h4 className="text-base font-semibold">{t("site_name")}</h4>
-              <p className="text-sm text-muted-foreground">
-                {t("footer_followers", "56963")}
-              </p>
+              <h3 className="text-xl font-bold">{t("footer_cta_title")}</h3>
+              <p className="text-background/60 text-sm mt-1">{t("footer_cta_subtitle")}</p>
             </div>
-          </div>
-
-          {/* Socials — centered on mobile */}
-          <div className="flex justify-center md:justify-start gap-2">
-            <a
-              href={
-                t("https://www.facebook.com/talbai") || "https://facebook.com"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
-            >
-              <Facebook size={18} />
-            </a>
-
-            <a
-              href={t("https://www.instagram.com/") || "https://instagram.com"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
-            >
-              <Instagram size={18} />
-            </a>
-
-            <a
-              href={t("https://www.youtube.com/") || "https://youtube.com"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-11 w-11 rounded-md border border-border flex items-center justify-center hover:bg-muted"
-            >
-              <Youtube size={18} />
-            </a>
+            <div className="flex gap-3 w-full md:w-auto">
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("footer_email_placeholder")}
+                className="bg-background/10 border-background/20 text-background placeholder:text-background/40 w-full md:w-64"
+              />
+              <Button
+                variant="outline"
+                className="border-background/20 text-background hover:bg-background hover:text-foreground shrink-0"
+              >
+                {t("subscribe")}
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* LINKS — 2 COLUMNS ON MOBILE */}
-        <div className="grid grid-cols-2 gap-6 md:contents">
-          {/* Help */}
+        {/* Main footer grid */}
+        <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
+          {/* Brand column */}
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 relative rounded-md overflow-hidden bg-background/10">
+                <Image src="/order1.png" alt={t("site_name")} fill className="object-contain" />
+              </div>
+              <span className="font-bold text-lg">{t("site_name")}</span>
+            </div>
+            <p className="text-background/50 text-sm leading-relaxed mb-6">
+              {t("footer_brand_description")}
+            </p>
+            <div className="flex gap-3">
+              {[
+                { Icon: Facebook, href: "https://facebook.com" },
+                { Icon: Instagram, href: "https://instagram.com" },
+                { Icon: Youtube, href: "https://youtube.com" },
+              ].map(({ Icon, href }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Help links */}
           <div>
-            <h3 className="text-sm font-semibold mb-2">
+            <h4 className="font-semibold text-sm uppercase tracking-widest mb-5 text-background/70">
               {t("footer_menu_help")}
-            </h3>
-            <ul className="space-y-1">
+            </h4>
+            <ul className="space-y-3">
               {helpLinks.map(([path, key]) => (
                 <li key={path}>
                   <button
                     onClick={() => go(path)}
-                    className="min-h-[40px] text-sm hover:underline text-left"
+                    className="text-background/50 text-sm hover:text-background transition-colors text-left"
                   >
                     {t(key)}
                   </button>
@@ -125,17 +127,17 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Products */}
+          {/* Product links */}
           <div>
-            <h3 className="text-sm font-semibold mb-2">
+            <h4 className="font-semibold text-sm uppercase tracking-widest mb-5 text-background/70">
               {t("footer_products")}
-            </h3>
-            <ul className="space-y-1">
+            </h4>
+            <ul className="space-y-3">
               {productLinks.map(([path, key]) => (
                 <li key={path}>
                   <button
                     onClick={() => go(path)}
-                    className="min-h-[40px] text-sm hover:underline text-left"
+                    className="text-background/50 text-sm hover:text-background transition-colors text-left"
                   >
                     {t(key)}
                   </button>
@@ -143,56 +145,62 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+
+          {/* Contact */}
+          <div className="pb-[80px] md:pb-0">
+            <h4 className="font-semibold text-sm uppercase tracking-widest mb-5 text-background/70">
+              {t("footer_contact")}
+            </h4>
+            <ul className="space-y-3">
+              {contactItems.map(({ icon: Icon, value, href }, i) =>
+                href ? (
+                  <li key={i}>
+                    <a
+                      href={href}
+                      className="flex items-start gap-2 text-background/50 text-sm hover:text-background transition-colors"
+                    >
+                      <Icon className="w-4 h-4 mt-0.5 shrink-0" />
+                      {value}
+                    </a>
+                  </li>
+                ) : (
+                  <li key={i} className="flex items-start gap-2 text-background/50 text-sm">
+                    <Icon className="w-4 h-4 mt-0.5 shrink-0" />
+                    {value}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
         </div>
 
-        {/* CONTACT — FULL WIDTH ON MOBILE */}
-        <div className="md:col-span-1 pb-[90px] md:pb-0">
-          <h3 className="text-sm font-semibold mb-2">{t("footer_contact")}</h3>
-          <ul className="space-y-2 text-sm">
-            <li>
-              <a
-                href={`tel:${t("86185769")}`}
-                className="flex items-center gap-2 min-h-[40px]"
-              >
-                <Phone size={16} />
-                {t("86185769")}
+        {/* Bottom bar */}
+        <div className="border-t border-background/10">
+          <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-2">
+            <p className="text-background/30 text-xs">
+              © {new Date().getFullYear()} {t("site_name")}. {t("all_rights_reserved")}
+            </p>
+            <div className="flex gap-6">
+              <a href="#" className="text-background/30 text-xs hover:text-background/60 transition-colors">
+                {t("privacy_policy")}
               </a>
-            </li>
-
-            <li>
-              <a
-                href={`mailto:${t("ganturtuvshinsaihan@gmail.com")}`}
-                className="flex items-center gap-2 min-h-[40px]"
-              >
-                <Mail size={16} />
-                {t("ganturtuvshinsaihan@gmail.com")}
+              <a href="#" className="text-background/30 text-xs hover:text-background/60 transition-colors">
+                {t("terms_of_service")}
               </a>
-            </li>
-
-            <li className="flex items-center gap-2 min-h-[40px]">
-              <MapPin size={16} className="mt-0.5" />
-              <span>{t("Байршил")}</span>
-            </li>
-          </ul>
+            </div>
+          </div>
         </div>
-      </div>
+      </footer>
 
-      {/* Back to top */}
+      {/* Back to top — outside footer so it floats on top */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="
-          fixed bottom-4 right-4
-          sm:bottom-6 sm:right-6
-          h-10 w-10 sm:h-12 sm:w-12
-          rounded-lg
-          bg-card border border-border
-          flex items-center justify-center
-          hover:bg-muted
-        "
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-10 w-10 sm:h-12 sm:w-12
+          rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted z-40"
         aria-label={t("back_to_top")}
       >
         <ArrowUp size={16} />
       </button>
-    </footer>
+    </>
   );
 }

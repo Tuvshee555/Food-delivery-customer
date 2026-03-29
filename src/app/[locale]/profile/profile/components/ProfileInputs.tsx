@@ -23,7 +23,7 @@ export function Field({
   return (
     <div>
       <label
-        className={`text-sm ${
+        className={`text-xs font-medium uppercase tracking-wide ${
           error ? "text-red-500" : "text-muted-foreground"
         }`}
       >
@@ -64,7 +64,7 @@ export function TextareaField({
   return (
     <div>
       <label
-        className={`text-sm ${
+        className={`text-xs font-medium uppercase tracking-wide ${
           error ? "text-red-500" : "text-muted-foreground"
         }`}
       >

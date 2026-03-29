@@ -25,7 +25,8 @@ export const ProfileFields = ({
 
   return (
     <>
-      <div className="space-y-6">
+      {/* Personal info */}
+      <div className="space-y-6 mb-6">
         <div className="grid gap-4 md:grid-cols-2">
           <Field
             label={t("last_name")}
@@ -58,7 +59,7 @@ export const ProfileFields = ({
           />
 
           <div>
-            <label className="text-sm text-muted-foreground">
+            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {t("email")}
             </label>
             <Input value={email} disabled className="mt-1 h-[44px]" />
@@ -66,7 +67,12 @@ export const ProfileFields = ({
         </div>
       </div>
 
-      <div className="space-y-6">
+      {/* Delivery address section */}
+      <div className="pt-4 border-t border-border space-y-6">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {t("delivery_address")}
+        </p>
+
         <Field
           label={t("city")}
           required
@@ -95,23 +101,23 @@ export const ProfileFields = ({
             onChange={(v: string) => update("khoroo", v)}
           />
         </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <TextareaField
-          label={t("notes")}
-          value={form.notes}
-          onChange={(v: string) => update("notes", v)}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <TextareaField
+            label={t("address")}
+            required
+            value={form.address}
+            error={touched.address && !form.address}
+            onBlur={() => markTouched("address")}
+            onChange={(v: string) => update("address", v)}
+          />
 
-        <TextareaField
-          label={t("address")}
-          required
-          value={form.address}
-          error={touched.address && !form.address}
-          onBlur={() => markTouched("address")}
-          onChange={(v: string) => update("address", v)}
-        />
+          <TextareaField
+            label={t("notes")}
+            value={form.notes}
+            onChange={(v: string) => update("notes", v)}
+          />
+        </div>
       </div>
     </>
   );

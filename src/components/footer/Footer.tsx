@@ -51,22 +51,22 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="w-full bg-muted text-foreground border-t border-border mt-24">
+      <footer className="w-full bg-zinc-900 text-zinc-100 mt-24">
         {/* Top CTA strip */}
-        <div className="border-b border-border">
+        <div className="border-b border-zinc-800">
           <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-xl font-bold">{t("footer_cta_title")}</h3>
-              <p className="text-muted-foreground text-sm mt-1">{t("footer_cta_subtitle")}</p>
+              <h3 className="text-xl font-bold text-zinc-100">{t("footer_cta_title")}</h3>
+              <p className="text-zinc-400 text-sm mt-1">{t("footer_cta_subtitle")}</p>
             </div>
             <div className="flex gap-3 w-full md:w-auto">
               <Input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t("footer_email_placeholder")}
-                className="bg-background border-border w-full md:w-64"
+                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 w-full md:w-64"
               />
-              <Button variant="outline" className="shrink-0">
+              <Button variant="outline" className="shrink-0 border-zinc-700 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-100">
                 {t("subscribe")}
               </Button>
             </div>
@@ -78,12 +78,12 @@ export default function Footer() {
           {/* Brand column */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 relative rounded-md overflow-hidden bg-background border border-border">
+              <div className="w-8 h-8 relative rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
                 <Image src="/order1.png" alt={t("site_name")} fill className="object-contain" />
               </div>
-              <span className="font-bold text-lg">{t("site_name")}</span>
+              <span className="font-bold text-lg text-zinc-100">{t("site_name")}</span>
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
               {t("footer_brand_description")}
             </p>
             <div className="flex gap-3">
@@ -97,9 +97,9 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:bg-card transition-colors"
+                  className="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center hover:bg-zinc-700 transition-colors"
                 >
-                  <Icon className="w-4 h-4 text-muted-foreground" />
+                  <Icon className="w-4 h-4 text-zinc-400" />
                 </a>
               ))}
             </div>
@@ -107,7 +107,7 @@ export default function Footer() {
 
           {/* Help links */}
           <div>
-            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-muted-foreground">
+            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-zinc-500">
               {t("footer_menu_help")}
             </h4>
             <ul className="space-y-3">
@@ -115,7 +115,7 @@ export default function Footer() {
                 <li key={path}>
                   <button
                     onClick={() => go(path)}
-                    className="text-muted-foreground text-sm hover:text-foreground transition-colors text-left"
+                    className="text-zinc-400 text-sm hover:text-zinc-100 transition-colors text-left"
                   >
                     {t(key)}
                   </button>
@@ -126,7 +126,7 @@ export default function Footer() {
 
           {/* Product links */}
           <div>
-            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-muted-foreground">
+            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-zinc-500">
               {t("footer_products")}
             </h4>
             <ul className="space-y-3">
@@ -134,7 +134,7 @@ export default function Footer() {
                 <li key={path}>
                   <button
                     onClick={() => go(path)}
-                    className="text-muted-foreground text-sm hover:text-foreground transition-colors text-left"
+                    className="text-zinc-400 text-sm hover:text-zinc-100 transition-colors text-left"
                   >
                     {t(key)}
                   </button>
@@ -145,7 +145,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div className="pb-[80px] md:pb-0">
-            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-muted-foreground">
+            <h4 className="font-semibold text-xs uppercase tracking-widest mb-5 text-zinc-500">
               {t("footer_contact")}
             </h4>
             <ul className="space-y-3">
@@ -154,14 +154,14 @@ export default function Footer() {
                   <li key={i}>
                     <a
                       href={href}
-                      className="flex items-start gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors"
+                      className="flex items-start gap-2 text-zinc-400 text-sm hover:text-zinc-100 transition-colors"
                     >
                       <Icon className="w-4 h-4 mt-0.5 shrink-0" />
                       {value}
                     </a>
                   </li>
                 ) : (
-                  <li key={i} className="flex items-start gap-2 text-muted-foreground text-sm">
+                  <li key={i} className="flex items-start gap-2 text-zinc-400 text-sm">
                     <Icon className="w-4 h-4 mt-0.5 shrink-0" />
                     {value}
                   </li>
@@ -172,16 +172,16 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-border">
+        <div className="border-t border-zinc-800">
           <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-2">
-            <p className="text-muted-foreground text-xs">
+            <p className="text-zinc-500 text-xs">
               © {new Date().getFullYear()} {t("site_name")}. {t("all_rights_reserved")}
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-muted-foreground text-xs hover:text-foreground transition-colors">
+              <a href="#" className="text-zinc-500 text-xs hover:text-zinc-100 transition-colors">
                 {t("privacy_policy")}
               </a>
-              <a href="#" className="text-muted-foreground text-xs hover:text-foreground transition-colors">
+              <a href="#" className="text-zinc-500 text-xs hover:text-zinc-100 transition-colors">
                 {t("terms_of_service")}
               </a>
             </div>

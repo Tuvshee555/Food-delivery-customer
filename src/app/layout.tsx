@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Food delivery customer",
-  description: "Manage foods, categories, and orders",
+  title: "Nomad Edge Store",
+  description: "Nomad Edge Store",
 };
 
 export default function RootLayout({

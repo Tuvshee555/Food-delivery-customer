@@ -1,28 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { Article, fetchArticles } from "@/lib/articles";
 
 export function HomeBlogSection() {
   const { locale, t } = useI18n();
+  const [posts, setPosts] = useState<Article[]>([]);
 
-  const posts = [
-    {
-      date: "2026-05-01",
-      title: t("blog_post_1_title"),
-      excerpt: t("blog_post_1_excerpt"),
-    },
-    {
-      date: "2026-04-18",
-      title: t("blog_post_2_title"),
-      excerpt: t("blog_post_2_excerpt"),
-    },
-    {
-      date: "2026-04-02",
-      title: t("blog_post_3_title"),
-      excerpt: t("blog_post_3_excerpt"),
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    fetchArticles().then((data) => {
+      if (!mounted) return;
+      setPosts(data);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const visiblePosts = useMemo(() => posts.slice(0, 3), [posts]);
+
+  const formatDate = (value?: string) => {
+    if (!value) return "";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "";
+    return parsed.toISOString().slice(0, 10);
+  };
+
+  if (visiblePosts.length === 0) return null;
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
@@ -45,12 +52,14 @@ export function HomeBlogSection() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {posts.map((post) => (
+        {visiblePosts.map((post) => (
           <article
-            key={post.title}
+            key={post.id}
             className="rounded-2xl border border-border bg-card p-5"
           >
-            <p className="text-xs text-muted-foreground mb-2">{post.date}</p>
+            <p className="text-xs text-muted-foreground mb-2">
+              {formatDate(post.createdAt)}
+            </p>
             <h3 className="font-semibold mb-2">{post.title}</h3>
             <p className="text-sm text-muted-foreground mb-4">{post.excerpt}</p>
             <Link

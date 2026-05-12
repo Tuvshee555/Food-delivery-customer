@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,11 +9,11 @@ import MagneticButton from "@/components/motion/MagneticButton";
 
 const slides = [
   {
-    src: "/food1.png",
+    bgClass: "bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]",
     subtitle: {
-      mn: "2026 Хаврын цуглуулга",
-      en: "Spring 2026 Drop",
-      ko: "2026 봄 컬렉션",
+      mn: "FAN EDITION",
+      en: "FAN EDITION",
+      ko: "FAN EDITION",
     },
     title: {
       mn: "Өдөр бүрийн спорт загвар",
@@ -23,7 +22,7 @@ const slides = [
     },
   },
   {
-    src: "/food3.png",
+    bgClass: "bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a]",
     subtitle: {
       mn: "Fan Edition",
       en: "Fan Edition",
@@ -36,7 +35,7 @@ const slides = [
     },
   },
   {
-    src: "/food5.png",
+    bgClass: "bg-gradient-to-tr from-[#0a0a0a] to-[#1a1a1a]",
     subtitle: {
       mn: "Бестселлер багц",
       en: "Best Seller Picks",
@@ -98,21 +97,12 @@ export function HeroCarousel() {
       <AnimatePresence mode="wait">
         <motion.div
           key={active}
-          className="absolute inset-0"
+          className={`absolute inset-0 ${slides[active].bgClass}`}
           initial={{ opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] as any }}
         >
-          <Image
-            src={slides[active].src}
-            alt="Hero slide"
-            fill
-            priority={active === 0}
-            sizes="100vw"
-            className="object-cover"
-          />
-
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
 

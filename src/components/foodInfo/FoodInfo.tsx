@@ -103,6 +103,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
     Array.isArray(food.sizes) && food.sizes.length > 0
       ? food.sizes
       : getDefaultClothingSizes();
+  const stickyThumbnail = resolveImageUrl(food.image);
 
   useEffect(() => {
     const target = actionsRef.current;
@@ -271,18 +272,25 @@ export const FoodInfo = ({ food }: { food: any }) => {
       </div>
 
       {showStickyBar && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur p-3">
-          <div className="mx-auto max-w-5xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">{food.foodName}</p>
-              <p className="font-semibold">{Number(food.price ?? 0).toLocaleString()}₮</p>
+        <div className="fixed bottom-0 left-0 right-0 z-50 w-full border-t border-white/10 bg-[#111] text-white p-3">
+          <div className="mx-auto max-w-7xl flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0 flex items-center gap-3">
+              <img
+                src={stickyThumbnail}
+                alt={food.foodName}
+                className="h-10 w-10 rounded object-cover border border-white/10 bg-[#1a1a1a]"
+              />
+              <div className="min-w-0">
+                <p className="text-xs text-white/70 truncate">{food.foodName}</p>
+                <p className="font-semibold">{Number(food.price ?? 0).toLocaleString()}₮</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-md border border-border px-2 py-1">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 rounded-md border border-white/15 px-2 py-1">
                 <button
                   type="button"
-                  className="h-7 w-7 rounded hover:bg-muted"
+                  className="h-7 w-7 rounded hover:bg-white/10"
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                 >
                   -
@@ -290,7 +298,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
                 <span className="min-w-[24px] text-center text-sm">{quantity}</span>
                 <button
                   type="button"
-                  className="h-7 w-7 rounded hover:bg-muted"
+                  className="h-7 w-7 rounded hover:bg-white/10"
                   onClick={() => setQuantity((prev) => prev + 1)}
                 >
                   +
@@ -300,14 +308,14 @@ export const FoodInfo = ({ food }: { food: any }) => {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="h-[40px] rounded-md border border-border px-3 text-sm font-medium hover:bg-muted"
+                className="h-[40px] rounded-md border border-white/20 bg-transparent px-3 text-sm font-medium text-white hover:bg-white/10"
               >
                 {t("add_to_cart")}
               </button>
               <button
                 type="button"
                 onClick={handleOrderNow}
-                className="h-[40px] rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
+                className="h-[40px] rounded-md bg-white px-3 text-sm font-semibold text-black"
               >
                 {t("order_now")}
               </button>

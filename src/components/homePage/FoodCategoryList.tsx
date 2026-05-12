@@ -43,6 +43,8 @@ export const FoodCategoryList = () => {
               (dish) => dish.category === catId || dish.categoryId === catId
             );
 
+            if (filteredFood.length === 0) return null;
+
             const firstFoodImage =
               cat.imageUrl
                 ? getMediaUrl(cat.imageUrl)
@@ -84,23 +86,17 @@ export const FoodCategoryList = () => {
                 </div>
 
                 {/* Product grid */}
-                {filteredFood.length > 0 ? (
-                  <motion.div
-                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-                    variants={staggerContainer}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true, margin: "-50px" }}
-                  >
-                    {filteredFood.map((dish) => (
-                      <FoodCard key={dish.id} food={dish} />
-                    ))}
-                  </motion.div>
-                ) : (
-                  <p className="text-sm italic text-muted-foreground">
-                    {t("no_products_in_category")}
-                  </p>
-                )}
+                <motion.div
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+                  variants={staggerContainer}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-50px" }}
+                >
+                  {filteredFood.map((dish) => (
+                    <FoodCard key={dish.id} food={dish} />
+                  ))}
+                </motion.div>
               </motion.section>
             );
           })}

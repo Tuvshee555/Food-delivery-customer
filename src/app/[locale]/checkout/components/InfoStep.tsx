@@ -14,6 +14,7 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
 
     const errors: Record<string, boolean> = {};
 
+    if (!checkout.form.firstName?.trim()) errors.firstName = true;
     if (!checkout.form.lastName?.trim()) errors.lastName = true;
     if (!checkout.form.phonenumber?.trim()) errors.phonenumber = true;
     if (!checkout.form.city?.trim()) errors.city = true;
@@ -32,6 +33,7 @@ export default function InfoStep({ cart }: { cart: CartItem[] }) {
         errors={checkout.errors}
         paymentMethod={checkout.paymentMethod}
         setPaymentMethod={checkout.setPaymentMethod}
+        deliveryFee={checkout.deliveryFee}
         setForm={checkout.setForm}
         onSubmit={validateAndSubmit}
         isSubmitting={checkout.isSubmitting} // ✅ IMPORTANT (desktop button lock)

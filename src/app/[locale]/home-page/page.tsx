@@ -3,6 +3,8 @@ import { FoodCategoryList } from "@/components/homePage/FoodCategoryList";
 import { HeroCategoryStrip } from "./HeroCategoryStrip";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { AIChat } from "@/components/aiChatBot/AIChat";
+import { HomeFaqSection } from "@/components/homePage/HomeFaqSection";
+import { HomeBlogSection } from "@/components/homePage/HomeBlogSection";
 
 export default function Home() {
   return (
@@ -11,6 +13,8 @@ export default function Home() {
       <HeroCategoryStrip />
       <AutoScrollProducts />
       <FoodCategoryList />
+      <HomeFaqSection />
+      <HomeBlogSection />
 
       {/* AI Assistant */}
       <AIChat />

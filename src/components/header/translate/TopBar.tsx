@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import TranslateButton from "../translate/TranslateButton";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { useTranslations } from "@/components/i18n/ClientI18nProvider";
+import { Facebook, Instagram, Youtube } from "lucide-react";
 
 export default function TopBar() {
   const t = useTranslations();
@@ -32,6 +33,33 @@ export default function TopBar() {
 
         {/* Controls — always visible on right */}
         <div className="flex items-center gap-3 px-4 shrink-0">
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            className="text-primary-foreground/85 hover:text-primary-foreground transition-colors"
+          >
+            <Facebook className="h-3.5 w-3.5" />
+          </a>
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            className="text-primary-foreground/85 hover:text-primary-foreground transition-colors"
+          >
+            <Instagram className="h-3.5 w-3.5" />
+          </a>
+          <a
+            href="https://youtube.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="YouTube"
+            className="text-primary-foreground/85 hover:text-primary-foreground transition-colors"
+          >
+            <Youtube className="h-3.5 w-3.5" />
+          </a>
           <TranslateButton />
           <ThemeToggle />
         </div>

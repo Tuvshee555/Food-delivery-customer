@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 import { Package } from "lucide-react";
 import { FoodTitle } from "./FoodTitle";
@@ -13,6 +14,7 @@ import { FoodActions } from "./FoodActions";
 
 import { resolveImageUrl } from "./utils/resolveImageUrl";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { getDefaultClothingSizes } from "@/utils/catalogSanitizer";
 
 type LocalCartItem = {
   foodId: string;
@@ -82,6 +84,7 @@ const Stars = ({ value }: { value: number }) => {
 export const FoodInfo = ({ food }: { food: any }) => {
   const router = useRouter();
   const { locale, t } = useI18n();
+  const actionsRef = useRef<HTMLDivElement | null>(null);
 
   const isFeatured = Boolean(food.isFeatured);
   const salesCount = Number(food.salesCount ?? 0);
@@ -94,6 +97,27 @@ export const FoodInfo = ({ food }: { food: any }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
+  const effectiveSizes =
+    Array.isArray(food.sizes) && food.sizes.length > 0
+      ? food.sizes
+      : getDefaultClothingSizes();
+
+  useEffect(() => {
+    const target = actionsRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyBar(!entry.isIntersecting);
+      },
+      { threshold: 0.4 }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const buildCartItem = (): LocalCartItem => ({
     foodId: food.id,
@@ -111,7 +135,18 @@ export const FoodInfo = ({ food }: { food: any }) => {
     if (isProcessing) return;
     setIsProcessing(true);
 
-    addToCartLocal(buildCartItem());
+    const ok = addToCartLocal(buildCartItem());
+    if (ok) {
+      toast.success(
+        locale === "mn" ? "Амжилттай сагслагдлаа!" : "Successfully added to cart!",
+      );
+    } else {
+      toast.error(
+        locale === "mn"
+          ? "Сагслах үед алдаа гарлаа."
+          : "Failed to add product to cart.",
+      );
+    }
 
     setIsProcessing(false);
   };
@@ -172,6 +207,10 @@ export const FoodInfo = ({ food }: { food: any }) => {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm bg-emerald-600 text-white">
+          {locale === "mn" ? "Хүргэлттэй" : "Delivery available"}
+        </span>
+
         {isFeatured && (
           <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-sm bg-red-600 text-white">
             {t("featured")}
@@ -198,7 +237,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
       )}
 
       <FoodSizes
-        sizes={food.sizes || []}
+        sizes={effectiveSizes}
         selectedSize={selectedSize}
         setSelectedSize={setSelectedSize}
       />
@@ -221,7 +260,7 @@ export const FoodInfo = ({ food }: { food: any }) => {
         "
       />
 
-      <div className="mt-auto">
+      <div className="mt-auto" ref={actionsRef}>
         <FoodActions
           onAddToCart={handleAddToCart}
           onOrderNow={handleOrderNow}
@@ -230,6 +269,52 @@ export const FoodInfo = ({ food }: { food: any }) => {
           orderText={t("order_now")}
         />
       </div>
+
+      {showStickyBar && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur p-3">
+          <div className="mx-auto max-w-5xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground truncate">{food.foodName}</p>
+              <p className="font-semibold">{Number(food.price ?? 0).toLocaleString()}₮</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 rounded-md border border-border px-2 py-1">
+                <button
+                  type="button"
+                  className="h-7 w-7 rounded hover:bg-muted"
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                >
+                  -
+                </button>
+                <span className="min-w-[24px] text-center text-sm">{quantity}</span>
+                <button
+                  type="button"
+                  className="h-7 w-7 rounded hover:bg-muted"
+                  onClick={() => setQuantity((prev) => prev + 1)}
+                >
+                  +
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="h-[40px] rounded-md border border-border px-3 text-sm font-medium hover:bg-muted"
+              >
+                {t("add_to_cart")}
+              </button>
+              <button
+                type="button"
+                onClick={handleOrderNow}
+                className="h-[40px] rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
+              >
+                {t("order_now")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

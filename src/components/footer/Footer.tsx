@@ -22,6 +22,12 @@ export default function Footer() {
   const { locale } = useParams<{ locale: string }>();
   const { t } = useI18n();
   const [email, setEmail] = useState("");
+  const brandDescription =
+    locale === "mn"
+      ? "Спорт хэв маягийг өдөр тутамд тань тохирсон чанартай загвараар хүргэнэ."
+      : locale === "ko"
+      ? "퍼포먼스 감성의 의류를 빠르고 신뢰성 있게 전달합니다."
+      : t("footer_brand_description");
 
   const go = (path: string) => {
     router.push(`/${locale}${path}`);
@@ -46,7 +52,7 @@ export default function Footer() {
   const contactItems = [
     { icon: Phone, value: "86185769", href: "tel:86185769" },
     { icon: Mail, value: "ganturtuvshinsaihan@gmail.com", href: "mailto:ganturtuvshinsaihan@gmail.com" },
-    { icon: MapPin, value: t("Байршил"), href: undefined },
+    { icon: MapPin, value: t("contact_address"), href: undefined },
   ];
 
   return (
@@ -84,7 +90,7 @@ export default function Footer() {
               <span className="font-bold text-lg text-zinc-100">{t("site_name")}</span>
             </div>
             <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-              {t("footer_brand_description")}
+              {brandDescription}
             </p>
             <div className="flex gap-3">
               {[

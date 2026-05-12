@@ -21,6 +21,7 @@ export type OrderStatus =
 
 export type OrderListItem = {
   id: string;
+  _id?: string;
   orderNumber: string;
   totalPrice: number;
   status: OrderStatus;
@@ -55,13 +56,19 @@ export const OrdersList = () => {
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/user/${userId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    return res.data?.orders ?? [];
+    const payload = res.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.orders)) return payload.orders;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.results)) return payload.results;
+    return [];
   };
 
-  const { data: orders = [], isLoading, isFetching } = useQuery({
+  const { data: orders = [], isLoading, isFetching, isError } = useQuery({
     queryKey: ["orders", userId],
     queryFn: fetchOrders,
     enabled: Boolean(userId && token),
+    retry: 1,
     refetchInterval: (query) => {
       const list = (query.state.data as OrderListItem[]) || [];
       return list.some((o) => o.status === "WAITING_PAYMENT" && o.paymentMethod === "QPAY") ? 30000 : false;
@@ -89,6 +96,16 @@ export const OrdersList = () => {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="text-center mt-12 space-y-2">
+        <p className="text-sm text-muted-foreground">
+          {t("orders_load_failed", "Захиалгын мэдээлэл ачаалахад алдаа гарлаа.")}
+        </p>
+      </div>
+    );
+  }
+
   if (!orders.length) {
     return (
       <div className="text-center mt-16 space-y-2">
@@ -112,13 +129,15 @@ export const OrdersList = () => {
         animate="show"
       >
         {orders.map((order) => {
+          const orderId = order.id ?? order._id ?? "";
+          if (!orderId) return null;
           const addressLine = [order.city, order.district, order.khoroo, order.address]
             .filter(Boolean)
             .join(", ");
 
           return (
-            <motion.div key={order.id} variants={fadeUp}>
-              <Link href={`/${locale}/profile/orders/${order.id}`}>
+            <motion.div key={orderId} variants={fadeUp}>
+              <Link href={`/${locale}/profile/orders/${orderId}`}>
                 <motion.div
                   whileHover={{ x: 3 }}
                   transition={{ duration: 0.15 }}

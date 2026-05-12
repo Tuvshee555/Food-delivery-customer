@@ -9,9 +9,45 @@ import Link from "next/link";
 import MagneticButton from "@/components/motion/MagneticButton";
 
 const slides = [
-  { src: "/BackMain.jpg", subtitleKey: "featured_collection", titleKey: "featured" },
-  { src: "/BackMain.jpg", subtitleKey: "featured_collection", titleKey: "new" },
-  { src: "/BackMain.jpg", subtitleKey: "featured_collection", titleKey: "bestseller" },
+  {
+    src: "/food1.png",
+    subtitle: {
+      mn: "2026 Хаврын цуглуулга",
+      en: "Spring 2026 Drop",
+      ko: "2026 봄 컬렉션",
+    },
+    title: {
+      mn: "Өдөр бүрийн спорт загвар",
+      en: "Everyday Performance Wear",
+      ko: "데일리 퍼포먼스 웨어",
+    },
+  },
+  {
+    src: "/food3.png",
+    subtitle: {
+      mn: "Fan Edition",
+      en: "Fan Edition",
+      ko: "팬 에디션",
+    },
+    title: {
+      mn: "Номад Эдж Про Жерси",
+      en: "Nomad Edge Pro Jersey",
+      ko: "노마드 엣지 프로 저지",
+    },
+  },
+  {
+    src: "/food5.png",
+    subtitle: {
+      mn: "Бестселлер багц",
+      en: "Best Seller Picks",
+      ko: "베스트셀러 셀렉션",
+    },
+    title: {
+      mn: "Шууд захиал, хурдан хүлээж ав",
+      en: "Order Fast, Delivered Fast",
+      ko: "빠르게 주문하고 빠르게 받으세요",
+    },
+  },
 ];
 
 // Split text into characters, each animated individually
@@ -88,11 +124,18 @@ export function HeroCarousel() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {t(slides[active].subtitleKey)}
+              {slides[active].subtitle[locale as "mn" | "en" | "ko"] ??
+                slides[active].subtitle.mn}
             </motion.p>
 
             <h2 className="text-white text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight">
-              <CharReveal text={t(slides[active].titleKey)} delay={0.15} />
+              <CharReveal
+                text={
+                  slides[active].title[locale as "mn" | "en" | "ko"] ??
+                  slides[active].title.mn
+                }
+                delay={0.15}
+              />
             </h2>
 
             <motion.div

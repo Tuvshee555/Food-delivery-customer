@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { CartList } from "./CartList";
 import { CartSummary } from "./CartSummary";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { DELIVERY_FEE } from "@/data/mongoliaLocations";
 
 type CartItem = {
   foodId: string;
@@ -144,8 +145,7 @@ export default function CartStep({ cart }: { cart: CartItem[] }) {
         >
           <CartSummary
             total={total}
-            // delivery={100}
-            delivery={0}
+            delivery={DELIVERY_FEE}
             onCheckout={() => router.push(`/${locale}/checkout?step=info`)}
             onClear={items.length > 0 ? clearCart : undefined}
           />

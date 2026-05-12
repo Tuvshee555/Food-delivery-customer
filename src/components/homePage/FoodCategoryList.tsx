@@ -44,7 +44,11 @@ export const FoodCategoryList = () => {
             );
 
             const firstFoodImage =
-              filteredFood.length > 0 ? getMediaUrl(filteredFood[0].image) : "/order1.png";
+              cat.imageUrl
+                ? getMediaUrl(cat.imageUrl)
+                : filteredFood.length > 0
+                ? getMediaUrl(filteredFood[0].image)
+                : "/order1.png";
 
             return (
               <motion.section

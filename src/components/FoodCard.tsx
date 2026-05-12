@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import type { FoodCardPropsType } from "@/type/type";
 import { fadeUp } from "@/utils/animations";
+import { toast } from "sonner";
 
 const BESTSELLER_THRESHOLD = 5;
 const CART_KEY = "cart";
@@ -83,8 +84,15 @@ export const FoodCard: React.FC<FoodCardPropsType> = ({ food }) => {
       }
       localStorage.setItem(CART_KEY, JSON.stringify(cart));
       window.dispatchEvent(new Event("cart-updated"));
+      toast.success(
+        locale === "mn" ? "Амжилттай сагслагдлаа!" : "Successfully added to cart!",
+      );
     } catch {
-      // silently fail
+      toast.error(
+        locale === "mn"
+          ? "Сагслах үед алдаа гарлаа."
+          : "Failed to add product to cart.",
+      );
     }
   };
 

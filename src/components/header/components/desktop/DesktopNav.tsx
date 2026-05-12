@@ -48,7 +48,9 @@ export default function DesktopNav({
             className="flex items-center gap-2.5 shrink-0"
           >
             <img src="/order1.png" className="w-8 h-8 rounded-md" alt="logo" />
-            <span className="text-foreground text-xl font-black tracking-tight">NEXA</span>
+            <span className="text-foreground text-xl font-black tracking-tight">
+              Nomad Edge
+            </span>
           </Link>
 
           {/* Nav links */}

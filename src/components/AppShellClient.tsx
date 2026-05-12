@@ -25,9 +25,6 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
 
   const isCheckoutPage = pathname?.includes("/checkout");
 
-  const isCatalogPage =
-    pathname?.includes("/food/") || pathname?.includes("/category/");
-
   const isHome =
     pathname === "/mn" ||
     pathname === "/en" ||
@@ -47,7 +44,7 @@ export default function AppShellClient({ children }: { children: ReactNode }) {
 
       <main className="min-h-screen pt-[64px] md:pt-24">{children}</main>
 
-      {isCatalogPage && <FooterPolicies />}
+      {isHome && <FooterPolicies />}
       {isHome && <Footer />}
 
       {!isCheckoutPage && <MobileBottomNav onOpenProfile={openProfile} />}

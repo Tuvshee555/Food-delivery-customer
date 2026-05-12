@@ -4,8 +4,15 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import {
+  AIMAG_DISTRICTS,
+  AIMAGS,
+  DELIVERY_ZONE_OPTIONS,
+  ULAANBAATAR_DISTRICTS,
+} from "@/data/mongoliaLocations";
 
 export type DeliveryFormData = {
+  deliveryZone?: "UB" | "RURAL";
   firstName?: string;
   lastName?: string;
   phonenumber?: string;
@@ -33,6 +40,13 @@ export default function DeliveryForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const zone = form.deliveryZone ?? "UB";
+  const cityOptions = zone === "UB" ? ["Улаанбаатар"] : AIMAGS;
+  const districtOptions =
+    zone === "UB"
+      ? ULAANBAATAR_DISTRICTS
+      : AIMAG_DISTRICTS[form.city ?? ""] ?? [];
+
   // SAME SIZE/WEIGHT — only color change
   const labelClass = (error?: boolean) =>
     `text-sm ${error ? "text-destructive" : "text-foreground"}`;
@@ -54,13 +68,13 @@ export default function DeliveryForm({
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass(errors.lastName as any)}>
+            <label className={labelClass(errors.firstName as any)}>
               {t("first_name")}
             </label>
             <Input
               value={form.firstName ?? ""}
               onChange={(e) => handleChange("firstName", e.target.value)}
-              className={inputClass(errors.lastName as any)}
+              className={inputClass(errors.firstName as any)}
             />
           </div>
 
@@ -94,25 +108,78 @@ export default function DeliveryForm({
           {t("delivery_info")}
         </h2>
 
+        <div className="space-y-2">
+          <p className={labelClass()}>{t("delivery_zone", "Хүргэлтийн бүс")} *</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            {DELIVERY_ZONE_OPTIONS.map((option) => {
+              const active = zone === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      deliveryZone: option.value,
+                      city: option.value === "UB" ? "Улаанбаатар" : prev.city,
+                      district:
+                        option.value === "UB"
+                          ? ULAANBAATAR_DISTRICTS[0]
+                          : "",
+                    }))
+                  }
+                  className={`h-[44px] rounded-md border px-3 text-left text-sm transition ${
+                    active
+                      ? "border-primary bg-primary/5 text-foreground"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className={labelClass(errors.city)}>{t("city")} *</label>
-            <Input
-              value={form.city ?? ""}
-              onChange={(e) => handleChange("city", e.target.value)}
-              className={inputClass(errors.city)}
-            />
+            <select
+              value={form.city ?? (zone === "UB" ? "Улаанбаатар" : "")}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  city: e.target.value,
+                  district: "",
+                }))
+              }
+              className={`${inputClass(errors.city)} w-full px-3`}
+            >
+              <option value="">{t("select_city", "Хот / аймаг сонгох")}</option>
+              {cityOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className={labelClass(errors.district)}>
               {t("district")} *
             </label>
-            <Input
+            <select
               value={form.district ?? ""}
               onChange={(e) => handleChange("district", e.target.value)}
-              className={inputClass(errors.district)}
-            />
+              className={`${inputClass(errors.district)} w-full px-3`}
+            >
+              <option value="">{t("select_district", "Дүүрэг / сум сонгох")}</option>
+              {districtOptions.map((district) => (
+                <option key={district} value={district}>
+                  {district}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

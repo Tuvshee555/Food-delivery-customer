@@ -8,6 +8,11 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useAuth } from "@/app/[locale]/provider/AuthProvider";
+import {
+  DELIVERY_FEE,
+  DeliveryZone,
+  ULAANBAATAR_DISTRICTS,
+} from "@/data/mongoliaLocations";
 
 /** CANONICAL (match backend) */
 export type PaymentMethod = "QPAY" | "BANK" | "COD" | "LEMON" | null;
@@ -22,6 +27,7 @@ export type CartItem = {
 };
 
 export type DeliveryFormData = {
+  deliveryZone?: DeliveryZone;
   firstName?: string;
   lastName?: string;
   phonenumber?: string;
@@ -39,7 +45,11 @@ export function useCheckout(cart: CartItem[]) {
   const { userId, token } = useAuth();
   const { locale, t } = useI18n();
 
-  const [form, setForm] = useState<DeliveryFormData>({});
+  const [form, setForm] = useState<DeliveryFormData>({
+    deliveryZone: "UB",
+    city: "Улаанбаатар",
+    district: ULAANBAATAR_DISTRICTS[0],
+  });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [openTerms, setOpenTerms] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -55,8 +65,7 @@ export function useCheckout(cart: CartItem[]) {
     [cart]
   );
 
-  // const deliveryFee = 100;
-  const deliveryFee = 0;
+  const deliveryFee = DELIVERY_FEE;
   const totalPrice = productTotal + deliveryFee;
 
   const initialLoadRef = useRef(true);
@@ -74,11 +83,13 @@ export function useCheckout(cart: CartItem[]) {
       .then((res) => {
         if (res.data?.user) {
           setForm({
+            deliveryZone:
+              res.data.user.deliveryZone === "RURAL" ? "RURAL" : "UB",
             firstName: res.data.user.firstName ?? "",
             lastName: res.data.user.lastName ?? "",
             phonenumber: res.data.user.phonenumber ?? "",
-            city: res.data.user.city ?? t("ulaanbaatar"),
-            district: res.data.user.district ?? "",
+            city: res.data.user.city ?? "Улаанбаатар",
+            district: res.data.user.district ?? ULAANBAATAR_DISTRICTS[0],
             khoroo: res.data.user.khoroo ?? "",
             address: res.data.user.address ?? "",
             notes: res.data.user.notes ?? "",
@@ -106,6 +117,7 @@ export function useCheckout(cart: CartItem[]) {
         await axios.put(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/${userId}`,
           {
+            deliveryZone: form.deliveryZone ?? "UB",
             firstName: form.firstName ?? "",
             lastName: form.lastName ?? "",
             phonenumber: form.phonenumber ?? "",
@@ -201,6 +213,7 @@ export function useCheckout(cart: CartItem[]) {
           items: normalizedItems,
           totalPrice,
           paymentMethod,
+          deliveryZone: form.deliveryZone ?? "UB",
           firstName: form.firstName ?? null,
           lastName: form.lastName ?? null,
           phone: form.phonenumber ?? null,

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useState } from "react";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 
 type Props = {
@@ -16,8 +17,36 @@ export const CartSummary: React.FC<Props> = ({
   onCheckout,
   onClear,
 }) => {
-  const { t } = useI18n();
-  const grandTotal = total + delivery;
+  const { t, locale } = useI18n();
+  const [coupon, setCoupon] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
+  const grandTotal = total - couponDiscount + delivery;
+
+  const handleCouponCheck = () => {
+    const normalized = coupon.trim().toUpperCase();
+    if (!normalized) {
+      setCouponDiscount(0);
+      setCouponMessage(t("coupon_empty", "Купон код оруулна уу."));
+      return;
+    }
+
+    if (normalized === "NOMAD10") {
+      const discount = Math.round(total * 0.1);
+      setCouponDiscount(discount);
+      setCouponMessage(
+        locale === "mn"
+          ? `Купон баталгаажлаа. -${discount.toLocaleString()}₮`
+          : `Coupon applied. -${discount.toLocaleString()}₮`,
+      );
+      return;
+    }
+
+    setCouponDiscount(0);
+    setCouponMessage(
+      locale === "mn" ? "Купон код хүчингүй байна." : "Invalid coupon code.",
+    );
+  };
 
   return (
     <>
@@ -41,6 +70,41 @@ export const CartSummary: React.FC<Props> = ({
         <div className="flex justify-between text-sm">
           <span>{t("delivery_fee")}</span>
           <span>{delivery.toLocaleString()}₮</span>
+        </div>
+
+        {couponDiscount > 0 && (
+          <div className="flex justify-between text-sm text-emerald-500">
+            <span>{t("coupon_discount", "Купоны хөнгөлөлт")}</span>
+            <span>-{couponDiscount.toLocaleString()}₮</span>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">{t("coupon_placeholder")}</label>
+          <div className="flex gap-2">
+            <input
+              value={coupon}
+              onChange={(e) => setCoupon(e.target.value)}
+              placeholder={t("coupon_placeholder")}
+              className="h-[40px] flex-1 rounded-md border border-border bg-background px-3 text-sm"
+            />
+            <button
+              type="button"
+              className="h-[40px] rounded-md border border-border px-3 text-sm font-medium hover:bg-muted"
+              onClick={handleCouponCheck}
+            >
+              {t("check")}
+            </button>
+          </div>
+          {couponMessage ? (
+            <p
+              className={`text-xs ${
+                couponDiscount > 0 ? "text-emerald-500" : "text-muted-foreground"
+              }`}
+            >
+              {couponMessage}
+            </p>
+          ) : null}
         </div>
 
         <div className="pt-4 flex justify-between items-center sm:border-t sm:border-border">

@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { FoodType } from "@/type/type";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import {
+  sanitizeCategory,
+  sanitizeFoodList,
+} from "@/utils/catalogSanitizer";
 
 type SortType = "newest" | "oldest" | "low" | "high";
 
@@ -104,7 +108,7 @@ export function useCategoryLogic(id: string) {
             { signal: controller.signal },
           );
           const data = await res.json();
-          setFoods(Array.isArray(data) ? data : []);
+          setFoods(sanitizeFoodList(Array.isArray(data) ? data : []));
           return;
         }
 
@@ -115,8 +119,11 @@ export function useCategoryLogic(id: string) {
         );
         const json = await res.json();
 
-        setFoods(json?.foods ?? []);
-        setCategoryName(json?.category?.categoryName ?? t("category"));
+        setFoods(sanitizeFoodList(json?.foods ?? []));
+        setCategoryName(
+          sanitizeCategory(json?.category ?? { categoryName: t("category") })
+            .categoryName ?? t("category"),
+        );
       } catch {
         setFoods([]);
       } finally {

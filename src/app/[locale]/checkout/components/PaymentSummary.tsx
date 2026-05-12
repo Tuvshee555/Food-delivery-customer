@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { DELIVERY_FEE } from "@/data/mongoliaLocations";
 
 /* Cart item */
 type CartItem = {
@@ -27,6 +28,7 @@ interface PaymentSummaryProps {
   onSubmit: () => void;
   paymentMethod: PaymentMethod;
   setPaymentMethod: (p: PaymentMethod) => void;
+  deliveryFee?: number;
   hideActions?: boolean;
   isSubmitting?: boolean;
 }
@@ -45,6 +47,7 @@ export default function PaymentSummary({
   onSubmit,
   paymentMethod,
   setPaymentMethod,
+  deliveryFee = DELIVERY_FEE,
   hideActions = false,
   isSubmitting = false,
 }: PaymentSummaryProps) {
@@ -83,8 +86,10 @@ export default function PaymentSummary({
     }, 0);
   }, [items]);
 
-  const deliveryFee = 0;
-  const grandTotal = productTotal + deliveryFee;
+  const [coupon, setCoupon] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
+  const grandTotal = productTotal - couponDiscount + deliveryFee;
 
   useEffect(() => {
     if (!paymentMethod) setPaymentMethod("QPAY");
@@ -93,6 +98,31 @@ export default function PaymentSummary({
   const handleSubmit = () => {
     if (isSubmitting) return;
     onSubmit();
+  };
+
+  const handleCouponCheck = () => {
+    const normalized = coupon.trim().toUpperCase();
+    if (!normalized) {
+      setCouponDiscount(0);
+      setCouponMessage(t("coupon_empty", "Купон код оруулна уу."));
+      return;
+    }
+
+    if (normalized === "NOMAD10") {
+      const discount = Math.round(productTotal * 0.1);
+      setCouponDiscount(discount);
+      setCouponMessage(
+        locale === "mn"
+          ? `Купон баталгаажлаа. -${discount.toLocaleString()}₮`
+          : `Coupon applied. -${discount.toLocaleString()}₮`,
+      );
+      return;
+    }
+
+    setCouponDiscount(0);
+    setCouponMessage(
+      locale === "mn" ? "Купон код хүчингүй байна." : "Invalid coupon code.",
+    );
   };
 
   return (
@@ -111,6 +141,13 @@ export default function PaymentSummary({
           <span>{t("delivery_price")}</span>
           <span>{deliveryFee.toLocaleString()}₮</span>
         </div>
+
+        {couponDiscount > 0 && (
+          <div className="flex justify-between text-emerald-500">
+            <span>{t("coupon_discount", "Купоны хөнгөлөлт")}</span>
+            <span>-{couponDiscount.toLocaleString()}₮</span>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-border" />
@@ -118,6 +155,35 @@ export default function PaymentSummary({
       <div className="flex justify-between items-center font-semibold">
         <span>{t("grand_total")}</span>
         <span className="text-lg">{grandTotal.toLocaleString()}₮</span>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">{t("coupon_placeholder")}</label>
+        <div className="flex gap-2">
+          <input
+            value={coupon}
+            onChange={(e) => setCoupon(e.target.value)}
+            placeholder={t("coupon_placeholder")}
+            className="h-[44px] flex-1 rounded-md border border-border bg-background px-3 text-sm"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="h-[44px]"
+            onClick={handleCouponCheck}
+          >
+            {t("check")}
+          </Button>
+        </div>
+        {couponMessage ? (
+          <p
+            className={`text-xs ${
+              couponDiscount > 0 ? "text-emerald-500" : "text-muted-foreground"
+            }`}
+          >
+            {couponMessage}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-3">

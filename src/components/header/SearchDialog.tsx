@@ -14,9 +14,10 @@ import {
 import { Search, X } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/components/i18n/ClientI18nProvider";
+import { sanitizeFoodList } from "@/utils/catalogSanitizer";
 
 export const SearchDialog = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -34,7 +35,7 @@ export const SearchDialog = () => {
         setLoading(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/food`);
         const data = await res.json();
-        if (Array.isArray(data)) setAllFoods(data);
+        if (Array.isArray(data)) setAllFoods(sanitizeFoodList(data));
       } finally {
         setLoading(false);
       }
@@ -109,7 +110,9 @@ export const SearchDialog = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between mb-4">
                 <span className="text-lg font-semibold text-primary">
-                  {t("search_food")}
+                  {locale === "mn"
+                    ? "Бүтээгдэхүүн хайх"
+                    : t("search_food", "Search products")}
                 </span>
                 <button
                   onClick={() => setOpen(false)}
@@ -122,10 +125,14 @@ export const SearchDialog = () => {
 
             {/* INPUT */}
             <div className="relative mb-5">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("search_food_placeholder")}
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={
+                    locale === "mn"
+                      ? "Бүтээгдэхүүний нэрээр хайх…"
+                      : t("search_food_placeholder", "Search by product name…")
+                  }
                 className="
                   w-full rounded-2xl px-4 py-3 text-sm
                   bg-background border border-border
@@ -147,7 +154,9 @@ export const SearchDialog = () => {
 
               {!loading && query && filteredFoods.length === 0 && (
                 <p className="text-muted-foreground text-center text-sm py-6">
-                  {t("no_food_found")}
+                  {locale === "mn"
+                    ? "Бүтээгдэхүүн олдсонгүй"
+                    : t("no_food_found", "No products found")}
                 </p>
               )}
 
@@ -159,7 +168,7 @@ export const SearchDialog = () => {
                   transition={{ duration: 0.2 }}
                 >
                   <Link
-                    href={`/food/${item.id || ""}`}
+                    href={`/${locale}/food/${item.id || ""}`}
                     onClick={() => setOpen(false)}
                     className="
                       flex items-center gap-4 p-3

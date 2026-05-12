@@ -11,6 +11,7 @@ export default function CheckoutLayout({
   errors,
   paymentMethod,
   setPaymentMethod,
+  deliveryFee,
   onSubmit,
   setForm,
   isSubmitting, // ✅ NEW
@@ -37,6 +38,7 @@ export default function CheckoutLayout({
             cart={cart}
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
+            deliveryFee={deliveryFee}
             onSubmit={onSubmit}
             isSubmitting={isSubmitting} // ✅ PASS IT HERE
           />
